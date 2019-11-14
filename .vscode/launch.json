@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/build/bin/EDynTestbed",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/bin/",
+            "cwd": "${workspaceFolder}/../bgfx/examples/runtime",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
