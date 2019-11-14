@@ -64,6 +64,7 @@ conan_basic_setup()
 
 set(EDynTestbed_SOURCES
     src/main.cpp
+    src/particles.cpp
 )
 
 add_executable(EDynTestbed ${EDynTestbed_SOURCES})
