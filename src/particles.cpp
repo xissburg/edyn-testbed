@@ -48,21 +48,6 @@ static const uint16_t s_axesLineList[] =
 	4, 5
 };
 
-struct attract : edyn::vector3 {
-    edyn::scalar strength {10};
-};
-
-void update_attract(entt::registry& registry, edyn::scalar dt) {
-    auto view = registry.view<edyn::position, edyn::linvel, attract>();
-    view.each([&] (auto, auto &pos, auto &vel, auto &attr) {
-        auto d = attr - pos;
-        auto l2 = std::max(edyn::length2(d), EDYN_EPSILON);
-        auto l = std::sqrt(l2);
-        auto dn = d / l;
-        vel += dn * (attr.strength * dt / l2);
-    });
-}
-
 class ExampleParticles : public entry::AppI
 {
 public:
@@ -70,7 +55,6 @@ public:
 		: entry::AppI(_name, _description, _url)
 	{
         auto& world = registry.set<edyn::world>(registry);
-        world.update_sink().connect<&update_attract>(registry);
 	}
 
 	void init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height) override
@@ -131,13 +115,15 @@ public:
         registry.reset();
 
         // Create a few particle entities.
+        std::vector<entt::entity> entities;
+
         {
             const auto ent = registry.create();
             registry.assign<edyn::position>(ent, 3, 3, 0);
             registry.assign<edyn::current_position>(ent);
             registry.assign<edyn::linvel>(ent, 0, 4, -1);
             registry.assign<edyn::mass>(ent, 100);
-            registry.assign<edyn::gravity>(ent);
+            entities.push_back(ent);
         }
 
         {
@@ -146,7 +132,7 @@ public:
             registry.assign<edyn::current_position>(ent);
             registry.assign<edyn::linvel>(ent, 0, 2.1, 0);
             registry.assign<edyn::mass>(ent, 1e10);
-            registry.assign<edyn::gravity>(ent);
+            entities.push_back(ent);
         }
 
         {
@@ -155,7 +141,17 @@ public:
             registry.assign<edyn::current_position>(ent);
             registry.assign<edyn::linvel>(ent, 0, 0, 0);
             registry.assign<edyn::mass>(ent, 1e12);
-            registry.assign<edyn::gravity>(ent);
+            entities.push_back(ent);
+        }
+
+        auto& world = registry.ctx<edyn::world>();
+
+        for (size_t i = 0; i < entities.size(); ++i) {
+            for (size_t j = i + 1; j < entities.size(); ++j) {
+                auto ent = registry.create();
+                auto& con = registry.assign<edyn::constraint>(ent, std::array{entities[i], entities[j]}, edyn::gravity_constraint());
+                world.on_construct_constraint(ent, registry, con);
+            }
         }
 	}
 
