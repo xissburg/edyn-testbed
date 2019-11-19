@@ -7,6 +7,11 @@
 #include <common/debugdraw/debugdraw.h>
 #include <common/camera.h>
 
+#include <edyn/comp/delta_linvel.hpp>
+#include <edyn/comp/delta_angvel.hpp>
+
+#include <iostream>
+
 namespace
 {
 
@@ -54,18 +59,18 @@ public:
 	ExampleParticles(const char* _name, const char* _description, const char* _url)
 		: entry::AppI(_name, _description, _url)
 	{
-        auto& world = registry.set<edyn::world>(registry);
+
 	}
 
 	void init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height) override
 	{
-		Args args(_argc, _argv);
+        Args args(_argc, _argv);
 
 		m_width  = _width;
 		m_height = _height;
 		m_debug  = BGFX_DEBUG_NONE;
 		m_reset  = BGFX_RESET_VSYNC;
-
+  
 		bgfx::Init init;
 		init.type     = args.m_type;
 		init.vendorId = args.m_pciId;
@@ -112,47 +117,48 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
+        auto& world = registry.set<edyn::world>(registry);
+
         registry.reset();
 
         // Create a few particle entities.
         std::vector<entt::entity> entities;
-
-        {
-            const auto ent = registry.create();
-            registry.assign<edyn::position>(ent, 3, 3, 0);
-            registry.assign<edyn::current_position>(ent);
-            registry.assign<edyn::linvel>(ent, 0, 4, -1);
-            registry.assign<edyn::mass>(ent, 100);
-            entities.push_back(ent);
-        }
-
-        {
-            const auto ent = registry.create();
-            registry.assign<edyn::position>(ent, -7, 3.2, 4.2);
-            registry.assign<edyn::current_position>(ent);
-            registry.assign<edyn::linvel>(ent, 0, 2.1, 0);
-            registry.assign<edyn::mass>(ent, 1e10);
-            entities.push_back(ent);
-        }
-
-        {
-            const auto ent = registry.create();
-            registry.assign<edyn::position>(ent, 0, 3, 0);
-            registry.assign<edyn::current_position>(ent);
-            registry.assign<edyn::linvel>(ent, 0, 0, 0);
-            registry.assign<edyn::mass>(ent, 1e12);
-            entities.push_back(ent);
-        }
-
-        auto& world = registry.ctx<edyn::world>();
+        entities.push_back(registry.create());
+        entities.push_back(registry.create());
+        entities.push_back(registry.create());
 
         for (size_t i = 0; i < entities.size(); ++i) {
             for (size_t j = i + 1; j < entities.size(); ++j) {
                 auto ent = registry.create();
                 auto& con = registry.assign<edyn::constraint>(ent, std::array{entities[i], entities[j]}, edyn::gravity_constraint());
-                world.on_construct_constraint(ent, registry, con);
+                //world.on_construct_constraint(ent, registry, con);
             }
         }
+        
+        auto ent = entities[0];
+        auto def = edyn::rigidbody_def();
+        def.mass = 100;
+        def.inertia = edyn::vector3_max;
+        def.position = {3, 3, 0};
+        def.linvel = {0, 4, -1};
+        def.presentation = true;
+        edyn::rigidbody(ent, registry, def);
+    
+        ent = entities[1];
+        registry.assign<edyn::position>(ent, -7, 3.2, 4.2);
+        registry.assign<edyn::present_position>(ent);
+        registry.assign<edyn::linvel>(ent, 0, 2.1, 0);
+        registry.assign<edyn::angvel>(ent, edyn::vector3_zero);
+        registry.assign<edyn::mass>(ent, 1e10);
+        registry.assign<edyn::inertia>(ent, edyn::vector3_max);
+        
+        ent = entities[2];
+        registry.assign<edyn::position>(ent, 0, 3, 0);
+        registry.assign<edyn::present_position>(ent);
+        registry.assign<edyn::linvel>(ent, 0, 0, 0);
+        registry.assign<edyn::angvel>(ent, edyn::vector3_zero);
+        registry.assign<edyn::mass>(ent, 1e12);
+        registry.assign<edyn::inertia>(ent, edyn::vector3_max);
 	}
 
 	virtual int shutdown() override
@@ -255,7 +261,7 @@ public:
         world.update(deltaTime);
 
         // Draw entities.
-        auto view = registry.view<edyn::current_position>();
+        auto view = registry.view<edyn::present_position>();
         view.each([&] (auto ent, auto &pos) {
             float trans[16];
             bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
