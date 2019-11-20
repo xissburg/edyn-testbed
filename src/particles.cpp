@@ -131,7 +131,8 @@ public:
         for (size_t i = 0; i < entities.size(); ++i) {
             for (size_t j = i + 1; j < entities.size(); ++j) {
                 auto ent = registry.create();
-                registry.assign<edyn::constraint>(ent, std::array{entities[i], entities[j]}, edyn::gravity_constraint());
+                registry.assign<edyn::relation>(ent, entities[i], entities[j]);
+                registry.assign<edyn::gravity>(ent);
             }
         }
         
@@ -345,7 +346,8 @@ public:
                                 registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
 
                                 pick_constraint_entity = registry.create();
-                                registry.assign<edyn::constraint>(pick_constraint_entity, std::array{ent, pick_entity}, 
+                                registry.assign<edyn::relation>(pick_constraint_entity, ent, pick_entity);
+                                registry.assign<edyn::constraint>(pick_constraint_entity,
                                     edyn::point_constraint{edyn::vector3_zero, edyn::vector3_zero});
                             }
                         }
