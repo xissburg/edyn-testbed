@@ -143,7 +143,7 @@ public:
         def.position = {3, 3, 0};
         def.linvel = {0, 4, -1};
         def.presentation = true;
-        edyn::rigidbody(ent, registry, def);
+        edyn::make_rigidbody(ent, registry, def);
     
         ent = entities[1];
         registry.assign<edyn::position>(ent, -7, 3.2, 4.2);
@@ -345,10 +345,7 @@ public:
                                 registry.assign<edyn::mass>(pick_entity, EDYN_SCALAR_MAX);
                                 registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
 
-                                pick_constraint_entity = registry.create();
-                                registry.assign<edyn::relation>(pick_constraint_entity, ent, pick_entity);
-                                registry.assign<edyn::constraint>(pick_constraint_entity,
-                                    edyn::point_constraint{edyn::vector3_zero, edyn::vector3_zero});
+                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{edyn::vector3_zero, edyn::vector3_zero}, ent, pick_entity);
                             }
                         }
                     });
