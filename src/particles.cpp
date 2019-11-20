@@ -117,10 +117,11 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
-        auto& world = registry.set<edyn::world>(registry);
 
         registry.reset();
 
+        auto& world = registry.ctx_or_set<edyn::world>(registry);
+        
         // Create a few particle entities.
         std::vector<entt::entity> entities;
         entities.push_back(registry.create());
@@ -130,8 +131,7 @@ public:
         for (size_t i = 0; i < entities.size(); ++i) {
             for (size_t j = i + 1; j < entities.size(); ++j) {
                 auto ent = registry.create();
-                auto& con = registry.assign<edyn::constraint>(ent, std::array{entities[i], entities[j]}, edyn::gravity_constraint());
-                //world.on_construct_constraint(ent, registry, con);
+                registry.assign<edyn::constraint>(ent, std::array{entities[i], entities[j]}, edyn::gravity_constraint());
             }
         }
         
@@ -200,18 +200,15 @@ public:
 
         cameraUpdate(deltaTime, m_mouseState);
 
+        // Set view and projection matrix for view 0.
         float viewMtx[16];
         cameraGetViewMtx(viewMtx);
 
         float proj[16];
+        bx::mtxProj(proj, 60.0f, float(m_width)/float(m_height), 0.1f, 10000.0f, bgfx::getCaps()->homogeneousDepth);
 
-        // Set view and projection matrix for view 0.
-        {
-            bx::mtxProj(proj, 60.0f, float(m_width)/float(m_height), 0.1f, 10000.0f, bgfx::getCaps()->homogeneousDepth);
-
-            bgfx::setViewTransform(0, viewMtx, proj);
-            bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
-        }
+        bgfx::setViewTransform(0, viewMtx, proj);
+        bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
 
         imguiBeginFrame(m_mouseState.m_mx
             ,  m_mouseState.m_my
@@ -296,6 +293,78 @@ public:
         // process submitted rendering primitives.
         bgfx::frame();
 
+        if (!ImGui::MouseOverArea()) {
+            if (!!m_mouseState.m_buttons[entry::MouseButton::Left]) {
+                float ray_clip[4];
+                ray_clip[0] = ( (2.0f * m_mouseState.m_mx) / m_width - 1.0f) * -1.0f;
+                ray_clip[1] = ( (1.0f - (2.0f * m_mouseState.m_my) / m_height) ) * -1.0f;
+                ray_clip[2] = -1.0f;
+                ray_clip[3] =  1.0f;
+
+                float invProjMtx[16];
+                bx::mtxInverse(invProjMtx, proj);
+
+                float ray_eye[4];
+                bx::vec4MulMtx(ray_eye, ray_clip, invProjMtx);
+                ray_eye[2] = -1.0f;
+                ray_eye[3] = 0.0f;
+
+                float invViewMtx[16];
+                bx::mtxInverse(invViewMtx, viewMtx);
+
+                float ray_world[4];
+                bx::vec4MulMtx(ray_world, ray_eye, invViewMtx);
+
+                const edyn::vector3 ray_dir = edyn::normalize({ray_world[0], ray_world[1], ray_world[2]}) * -1.0f;
+                const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
+                const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
+
+                if (pick_entity == entt::null) {                    
+                    auto view = registry.view<const edyn::present_position>();
+                    view.each([&] (auto ent, auto &pos) {
+                        if (pick_entity != entt::null) {
+                            return;
+                        }
+
+                        const auto v = pos - cam_pos;
+                        const auto s = edyn::dot(v, ray_dir);
+
+                        if (s > 0) {
+                            const auto dist = std::sqrt(edyn::length2(v) - s * s);
+                            if (dist < 1) {
+                                const auto plane_normal = edyn::normalize(cam_at - cam_pos);
+                                auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);
+                                auto t = cam_dist / edyn::dot(ray_dir, plane_normal);
+                                auto pick_pos = cam_pos + ray_dir * t;
+
+                                pick_entity = registry.create();
+                                registry.assign<edyn::position>(pick_entity, pick_pos);
+                                registry.assign<edyn::linvel>(pick_entity, edyn::vector3_zero);
+                                registry.assign<edyn::angvel>(pick_entity, edyn::vector3_zero);
+                                registry.assign<edyn::mass>(pick_entity, EDYN_SCALAR_MAX);
+                                registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
+
+                                pick_constraint_entity = registry.create();
+                                registry.assign<edyn::constraint>(pick_constraint_entity, std::array{ent, pick_entity}, 
+                                    edyn::point_constraint{edyn::vector3_zero, edyn::vector3_zero});
+                            }
+                        }
+                    });
+                } else {
+                    auto &pick_pos = registry.get<edyn::position>(pick_entity);
+                    const auto plane_normal = edyn::normalize(cam_at - cam_pos);
+                    auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
+                    auto s = dist / edyn::dot(ray_dir, plane_normal);
+                    pick_pos = cam_pos + ray_dir * s;
+                }
+            } else if (pick_entity != entt::null) {
+                registry.destroy(pick_constraint_entity);
+                pick_constraint_entity = entt::null;
+                registry.destroy(pick_entity);
+                pick_entity = entt::null;
+            }
+        }
+
         return true;
 	}
 
@@ -311,6 +380,8 @@ public:
 	int64_t m_timeOffset;
 
     entt::registry registry;
+    entt::entity pick_entity {entt::null};
+    entt::entity pick_constraint_entity {entt::null};
 };
 
 } // namespace
