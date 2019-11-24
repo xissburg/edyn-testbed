@@ -15,43 +15,12 @@
 namespace
 {
 
-struct PosColorVertex
-{
-	float m_x;
-	float m_y;
-	float m_z;
-	uint32_t m_abgr;
-
-	static void init()
-	{
-		ms_layout
-			.begin()
-			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Color0,   4, bgfx::AttribType::Uint8, true)
-			.end();
-	};
-
-	static bgfx::VertexLayout ms_layout;
-};
-
-bgfx::VertexLayout PosColorVertex::ms_layout;
-
-static PosColorVertex s_axesVertices[] =
-{
-	{-1.0f,  0.0f,  0.0f, 0xff0000ff },
-	{ 1.0f,  0.0f,  0.0f, 0xff0000ff },
-	{ 0.0f, -1.0f,  0.0f, 0xff00ff00 },
-	{ 0.0f,  1.0f,  0.0f, 0xff00ff00 },
-	{ 0.0f,  0.0f, -1.0f, 0xffff0000 },
-	{ 0.0f,  0.0f,  1.0f, 0xffff0000 },
-};
-
-static const uint16_t s_axesLineList[] =
-{
-	0, 1,
-	2, 3,
-	4, 5
-};
+void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
+    Sphere sphere;
+    sphere.center = {0,0,0};
+    sphere.radius = sh.radius;
+    dde.draw(sphere);
+}
 
 class ExampleSpheres : public entry::AppI
 {
@@ -90,22 +59,7 @@ public:
 			, 0
 			);
 
-        // Create vertex stream declaration.
-		PosColorVertex::init();
-
-		// Create static vertex buffer.
-		m_vbh = bgfx::createVertexBuffer(
-			  bgfx::makeRef(s_axesVertices, sizeof(s_axesVertices) )
-			, PosColorVertex::ms_layout
-			);
-
-        // Create static index buffer for line list rendering.
-		m_ibh = bgfx::createIndexBuffer(bgfx::makeRef(s_axesLineList, sizeof(s_axesLineList)));
-
-        // Create program from shaders.
-		m_program = loadProgram("vs_cubes", "fs_cubes");
-
-        // Init DebugDraw to draw a grid
+        // Init DebugDraw to draw a grid and spheres.
         ddInit();
 
 		imguiCreate();
@@ -123,7 +77,6 @@ public:
         auto& world = registry.ctx_or_set<edyn::world>(registry);
         
         // Create entities.
-        std::vector<entt::entity> entities;        
         
         auto def = edyn::rigidbody_def();
         def.presentation = true;
@@ -135,34 +88,29 @@ public:
         def.mass = 1e12;
         def.inertia = {1e11, 1e11, 1e11};
         def.shape_opt = {edyn::sphere_shape{3}};
-        entities.push_back(edyn::make_rigidbody(registry, def));
+        auto big_ent = edyn::make_rigidbody(registry, def);
 
         // Add some smaller spheres around it.
+        std::vector<entt::entity> entities;
+
         def.position = {0.1, 5, 0};
-        def.linvel = {0, 1, 0};
+        def.linvel = {2, 1, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 100;
         def.inertia = {40, 40, 40};
         def.shape_opt = {edyn::sphere_shape{0.2}};
         entities.push_back(edyn::make_rigidbody(registry, def));
-        registry.assign<edyn::linacc>(entities.back(), edyn::gravity_earth);
 
-        /* for (size_t i = 0; i < entities.size(); ++i) {
-            for (size_t j = i + 1; j < entities.size(); ++j) {
-                auto ent = registry.create();
-                registry.assign<edyn::relation>(ent, entities[i], entities[j]);
-                registry.assign<edyn::gravity>(ent);
-            }
-        } */
+        for (auto ent : entities) {
+            auto g_ent = registry.create();
+            registry.assign<edyn::relation>(g_ent, big_ent, ent);
+            registry.assign<edyn::gravity>(g_ent);
+        }
 	}
 
 	virtual int shutdown() override
 	{
         // Cleanup.
-        bgfx::destroy(m_ibh);
-		bgfx::destroy(m_vbh);
-		bgfx::destroy(m_program);
-
 		ddShutdown();
 
 		imguiDestroy();
@@ -233,63 +181,41 @@ public:
 
         imguiEndFrame();
 
-        DebugDrawEncoder dde;
-        dde.begin(0);
-        dde.drawGrid(Axis::Y, { 0.0f, 0.0f, 0.0f });
-        dde.end();
-
-        const uint64_t state = 0
-                | BGFX_STATE_WRITE_RGB
-				| BGFX_STATE_WRITE_A
-				| BGFX_STATE_WRITE_Z
-				| BGFX_STATE_DEPTH_TEST_LESS
-				| BGFX_STATE_CULL_CW
-				| BGFX_STATE_MSAA
-                | BGFX_STATE_PT_LINES
-				;
-
         // Update physics.
         auto& world = registry.ctx<edyn::world>();
         world.update(deltaTime);
 
+        // Draw stuff.
+        DebugDrawEncoder dde;
+        dde.begin(0);
+
+        // Grid.
+        dde.drawGrid(Axis::Y, { 0.0f, 0.0f, 0.0f });
+
         // Draw entities.
-        auto view = registry.view<const edyn::present_position, const edyn::present_orientation>();
-        view.each([&] (auto ent, auto &pos, auto &orn) {
+        auto view = registry.view<const edyn::shape, const edyn::present_position, const edyn::present_orientation>();
+        view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
+            dde.push();
+
             auto quat = bx::Quaternion{orn.x, orn.y, orn.z, orn.w};
             float rot[16];
             bx::mtxQuat(rot, quat);
             float trans[16];
             bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
-            float s = .2f;
-
-            // Scale proportional to mass.
-            const auto *mass = registry.try_get<edyn::mass>(ent);
-            if (mass) {
-                s *= pow(*mass, edyn::scalar(0.06));
-            }
-
-            float scale[16];
-            bx::mtxScale(scale, s);
-
-            float trans_rot[16];
-            bx::mtxMul(trans_rot, rot, trans);
 
             float mtx[16];
-            bx::mtxMul(mtx, scale, trans_rot);
+            bx::mtxMul(mtx, rot, trans);
 
-            // Set model matrix for rendering.
-            bgfx::setTransform(mtx);
+            dde.setTransform(mtx);
+            
+            std::visit([&] (auto &&s) {
+                draw(dde, s);
+            }, sh.var);
 
-            // Set vertex and index buffer.
-            bgfx::setVertexBuffer(0, m_vbh);
-            bgfx::setIndexBuffer(m_ibh);
-
-            // Set render states.
-            bgfx::setState(state);
-
-            // Submit primitive for rendering to view 0.
-            bgfx::submit(0, m_program);
+            dde.pop();
         });
+
+        dde.end();
 
         // Advance to next frame. Rendering thread will be kicked to
         // process submitted rendering primitives.
@@ -379,9 +305,6 @@ public:
 	uint32_t m_height;
 	uint32_t m_debug;
 	uint32_t m_reset;
-    bgfx::VertexBufferHandle m_vbh;
-	bgfx::IndexBufferHandle m_ibh;
-	bgfx::ProgramHandle m_program;
 	int64_t m_timeOffset;
 
     entt::registry registry;
@@ -393,7 +316,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleSpheres
-	, "02-spheres"
+	, "00-spheres"
 	, "Spheres with collisions."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
