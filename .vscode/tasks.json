@@ -4,7 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "build edyn",
+            "type": "shell",
+            "command": "reset && cmake --build ${workspaceFolder}/../edyn/build -- -j24",
+            "args": [],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "build",
+            "dependsOn": "build edyn",
             "type": "shell",
             "command": "reset && cmake --build ${workspaceFolder}/build -- -j24",
             "args": [],

@@ -6,11 +6,15 @@
 #include <common/imgui/imgui.h>
 #include <common/debugdraw/debugdraw.h>
 #include <common/camera.h>
+#include <common/entry/input.h>
 
 #include <edyn/comp/delta_linvel.hpp>
 #include <edyn/comp/delta_angvel.hpp>
 
 #include <iostream>
+
+void cmdTogglePause(const void* _userData);
+void cmdStepSimulation(const void* _userData);
 
 namespace
 {
@@ -71,6 +75,7 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
+        m_pause = false;
 
         registry.reset();
 
@@ -80,32 +85,49 @@ public:
         
         auto def = edyn::rigidbody_def();
         def.presentation = true;
+        def.friction = 0;
 
         // Create a central bigger sphere
         def.position = {0, 0, 0};
         def.linvel = edyn::vector3_zero;
         def.angvel = edyn::vector3_zero;
         def.mass = 1e12;
-        def.inertia = {1e11, 1e11, 1e11};
         def.shape_opt = {edyn::sphere_shape{3}};
+        def.update_inertia();
         auto big_ent = edyn::make_rigidbody(registry, def);
 
         // Add some smaller spheres around it.
         std::vector<entt::entity> entities;
 
-        def.position = {0.1, 5, 0};
-        def.linvel = {2, 1, 0};
+        def.position = {5, 5, 0};
+        def.linvel = {0, 0, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 100;
-        def.inertia = {40, 40, 40};
         def.shape_opt = {edyn::sphere_shape{0.2}};
+        def.update_inertia();
         entities.push_back(edyn::make_rigidbody(registry, def));
+
+        /* def.position = {-1, 7, 0};
+        def.linvel = {-2, 0.1, 0};
+        def.angvel = edyn::vector3_zero;
+        def.mass = 250;
+        def.shape_opt = {edyn::sphere_shape{0.32}};
+        def.update_inertia();
+        entities.push_back(edyn::make_rigidbody(registry, def)); */
 
         for (auto ent : entities) {
             auto g_ent = registry.create();
             registry.assign<edyn::relation>(g_ent, big_ent, ent);
             registry.assign<edyn::gravity>(g_ent);
         }
+
+        // Input bindings
+        m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
+        m_bindings[0].set(entry::Key::KeyP, entry::Modifier::None, 1, cmdTogglePause,  this);
+        m_bindings[1].set(entry::Key::KeyL, entry::Modifier::None, 1, cmdStepSimulation, this);
+        m_bindings[2].end();
+
+        inputAddBindings("02-spheres", m_bindings);
 	}
 
 	virtual int shutdown() override
@@ -116,6 +138,9 @@ public:
 		imguiDestroy();
 
 		cameraDestroy();
+
+        inputRemoveBindings("02-spheres");
+		BX_FREE(entry::getAllocator(), m_bindings);
 
 		// Shutdown bgfx.
 		bgfx::shutdown();
@@ -182,8 +207,18 @@ public:
         imguiEndFrame();
 
         // Update physics.
-        auto& world = registry.ctx<edyn::world>();
-        world.update(deltaTime);
+        if (!m_pause) {
+            auto& world = registry.ctx<edyn::world>();
+            world.update(deltaTime);
+
+            registry.view<edyn::angvel>().each([] (auto ent, auto &angvel) {
+                if (entt::to_integer(ent) == 1) {
+                    std::cout << "w: " << angvel.x << ", " << angvel.y << ", " << angvel.z << std::endl;
+                }
+            });
+        }
+
+        bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
 
         // Draw stuff.
         DebugDrawEncoder dde;
@@ -197,7 +232,7 @@ public:
         view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
             dde.push();
 
-            auto quat = bx::Quaternion{orn.x, orn.y, orn.z, orn.w};
+            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
             bx::mtxQuat(rot, quat);
             float trans[16];
@@ -307,6 +342,10 @@ public:
 	uint32_t m_reset;
 	int64_t m_timeOffset;
 
+    InputBinding* m_bindings;
+
+    bool m_pause;
+
     entt::registry registry;
     entt::entity pick_entity {entt::null};
     entt::entity pick_constraint_entity {entt::null};
@@ -320,3 +359,12 @@ ENTRY_IMPLEMENT_MAIN(
 	, "Spheres with collisions."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
+
+void cmdTogglePause(const void* _userData) {
+    ((ExampleSpheres *)_userData)->m_pause = !((ExampleSpheres *)_userData)->m_pause;
+}
+
+void cmdStepSimulation(const void* _userData) {
+    auto &world = ((ExampleSpheres *)_userData)->registry.ctx<edyn::world>();
+    world.update(world.fixed_dt);
+}
