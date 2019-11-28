@@ -257,7 +257,7 @@ public:
         // Draw entities.
         auto view = registry.view<const edyn::present_position, const edyn::present_orientation>();
         view.each([&] (auto ent, auto &pos, auto &orn) {
-            auto quat = bx::Quaternion{orn.x, orn.y, orn.z, orn.w};
+            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
             bx::mtxQuat(rot, quat);
             float trans[16];
@@ -352,7 +352,7 @@ public:
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
-                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{pivot, edyn::vector3_zero}, ent, pick_entity);
+                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{{}, pivot, edyn::vector3_zero}, ent, pick_entity);
                             }
                         }
                     });

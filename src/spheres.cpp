@@ -80,12 +80,13 @@ public:
         registry.reset();
 
         auto& world = registry.ctx_or_set<edyn::world>(registry);
-        
+
         // Create entities.
         
         auto def = edyn::rigidbody_def();
         def.presentation = true;
-        def.friction = 0;
+        def.friction = 1.0;
+        def.restitution = 0.8;
 
         // Create a central bigger sphere
         def.position = {0, 0, 0};
@@ -99,7 +100,23 @@ public:
         // Add some smaller spheres around it.
         std::vector<entt::entity> entities;
 
-        def.position = {5, 5, 0};
+        def.position = {0, 5, 0};
+        def.linvel = {0, 0, 0};
+        def.angvel = edyn::vector3_zero;
+        def.mass = 100;
+        def.shape_opt = {edyn::sphere_shape{0.2}};
+        def.update_inertia();
+        entities.push_back(edyn::make_rigidbody(registry, def));
+
+        def.position = {0, 10, 0};
+        def.linvel = {0, 0, 0};
+        def.angvel = {0, 0, 6.28};
+        def.mass = 200;
+        def.shape_opt = {edyn::sphere_shape{0.2}};
+        def.update_inertia();
+        entities.push_back(edyn::make_rigidbody(registry, def));
+
+        def.position = {0, 7.5, 0};
         def.linvel = {0, 0, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 100;
@@ -209,13 +226,7 @@ public:
         // Update physics.
         if (!m_pause) {
             auto& world = registry.ctx<edyn::world>();
-            world.update(deltaTime);
-
-            registry.view<edyn::angvel>().each([] (auto ent, auto &angvel) {
-                if (entt::to_integer(ent) == 1) {
-                    std::cout << "w: " << angvel.x << ", " << angvel.y << ", " << angvel.z << std::endl;
-                }
-            });
+            world.update(std::min(deltaTime, 0.1f));
         }
 
         bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
@@ -232,7 +243,7 @@ public:
         view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
             dde.push();
 
-            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(-orn.z), float(orn.w)};
             float rot[16];
             bx::mtxQuat(rot, quat);
             float trans[16];
@@ -311,7 +322,7 @@ public:
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
-                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{pivot, edyn::vector3_zero}, ent, pick_entity);
+                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{{}, pivot, edyn::vector3_zero}, ent, pick_entity);
                             }
                         }
                     });
