@@ -65,7 +65,7 @@ conan_basic_setup()
 set(EDynTestbed_SOURCES
     src/main.cpp
     src/particles.cpp
-    src/spheres.cpp
+    src/restitution.cpp
     src/cradle.cpp
 )
 

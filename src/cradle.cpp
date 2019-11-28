@@ -7,15 +7,10 @@
 #include <common/debugdraw/debugdraw.h>
 #include <common/camera.h>
 
+#include "debugdraw.hpp"
+
 namespace
 {
-
-void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
-    Sphere sphere;
-    sphere.center = {0,0,0};
-    sphere.radius = sh.radius;
-    dde.draw(sphere);
-}
 
 class ExampleCradle : public entry::AppI
 {
@@ -75,22 +70,22 @@ public:
         auto def = edyn::rigidbody_def();
         def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.presentation = true;
-        def.friction = 0.1;
-        def.restitution = 0.9;
+        def.friction = 0;
+        def.restitution = 1;
 
         auto def_st = edyn::rigidbody_def();
         def_st.kind = edyn::rigidbody_kind::rb_static;
 
-        for (int i = 0; i < 5; ++i) {
-            def.position = {i * 0.4, 0, 0};
+        const size_t n = 5;
+
+        for (size_t i = 0; i < n; ++i) {
+            def.position = {i * 0.41, 0, 0};
             def.linvel = edyn::vector3_zero;
             def.angvel = edyn::vector3_zero;
             def.mass = 100;
             def.shape_opt = {edyn::sphere_shape{0.2}};
             def.update_inertia();
             auto ent = edyn::make_rigidbody(registry, def);
-
-            registry.assign<edyn::linacc>(ent, edyn::gravity_earth);
 
             def_st.position = def.position + edyn::vector3_y * 2;
             auto ent_st = edyn::make_rigidbody(registry, def_st);
@@ -103,7 +98,7 @@ public:
             constraint.damping = 1e3;
             edyn::make_constraint(registry, constraint, ent, ent_st);
 
-            if (i == 4) {
+            if (i == n - 1) {
                 auto &pos = registry.get<edyn::position>(ent);
                 pos.x += 2;
                 pos.y = 2;
@@ -278,7 +273,7 @@ public:
                                 registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
-                                auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
+                                auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
 
                                 auto constraint = edyn::distance_constraint();
                                 constraint.pivot[0] = pivot;
@@ -326,7 +321,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCradle
-	, "00-cradle"
+	, "03-cradle"
 	, "Newton's Cradle."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

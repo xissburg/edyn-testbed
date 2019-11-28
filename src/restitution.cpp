@@ -16,10 +16,10 @@ void cmdStepSimulation(const void* _userData);
 namespace
 {
 
-class ExampleSpheres : public entry::AppI
+class ExampleRestitution : public entry::AppI
 {
 public:
-	ExampleSpheres(const char* _name, const char* _description, const char* _url)
+	ExampleRestitution(const char* _name, const char* _description, const char* _url)
 		: entry::AppI(_name, _description, _url)
 	{
 
@@ -53,7 +53,7 @@ public:
 			, 0
 			);
 
-        // Init DebugDraw to draw a grid and spheres.
+        // Init DebugDraw to draw a grid and entities.
         ddInit();
 
 		imguiCreate();
@@ -72,60 +72,27 @@ public:
         auto& world = registry.ctx_or_set<edyn::world>(registry);
 
         // Create entities.
-        
+        // Create floor
+        auto floor_def = edyn::rigidbody_def();
+        floor_def.kind = edyn::rigidbody_kind::rb_static;
+        floor_def.restitution = 1;
+        floor_def.friction = 0.5;
+        floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
+        edyn::make_rigidbody(registry, floor_def);
+
+        // Add some bouncy spheres.
         auto def = edyn::rigidbody_def();
         def.presentation = true;
-        def.friction = 1.0;
-        def.restitution = 0.8;
-
-        // Create a central bigger sphere
-        def.position = {0, 0, 0};
-        def.linvel = edyn::vector3_zero;
-        def.angvel = edyn::vector3_zero;
-        def.mass = 1e12;
-        def.shape_opt = {edyn::sphere_shape{3}};
-        def.update_inertia();
-        auto big_ent = edyn::make_rigidbody(registry, def);
-
-        // Add some smaller spheres around it.
-        std::vector<entt::entity> entities;
-
-        def.position = {0, 5, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = edyn::vector3_zero;
+        def.friction = 0.8;
         def.mass = 100;
         def.shape_opt = {edyn::sphere_shape{0.2}};
         def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
 
-        def.position = {0, 10, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = {0, 0, 6.28};
-        def.mass = 200;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
-
-        def.position = {0, 7.5, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = edyn::vector3_zero;
-        def.mass = 100;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
-
-        /* def.position = {-1, 7, 0};
-        def.linvel = {-2, 0.1, 0};
-        def.angvel = edyn::vector3_zero;
-        def.mass = 250;
-        def.shape_opt = {edyn::sphere_shape{0.32}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def)); */
-
-        for (auto ent : entities) {
-            auto g_ent = registry.create();
-            registry.assign<edyn::relation>(g_ent, big_ent, ent);
-            registry.assign<edyn::gravity>(g_ent);
+        const size_t n = 8;
+        for (size_t i = 0; i < n; ++i) {
+            def.restitution = edyn::scalar(i) / n;
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 5, 0};
+            edyn::make_rigidbody(registry, def);
         }
 
         // Input bindings
@@ -134,7 +101,7 @@ public:
         m_bindings[1].set(entry::Key::KeyL, entry::Modifier::None, 1, cmdStepSimulation, this);
         m_bindings[2].end();
 
-        inputAddBindings("02-spheres", m_bindings);
+        inputAddBindings("02-restitution", m_bindings);
 	}
 
 	virtual int shutdown() override
@@ -146,7 +113,7 @@ public:
 
 		cameraDestroy();
 
-        inputRemoveBindings("02-spheres");
+        inputRemoveBindings("02-restitution");
 		BX_FREE(entry::getAllocator(), m_bindings);
 
 		// Shutdown bgfx.
@@ -311,7 +278,7 @@ public:
                                 registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
-                                auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
+                                auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
 
                                 auto constraint = edyn::distance_constraint();
                                 constraint.pivot[0] = pivot;
@@ -362,17 +329,17 @@ public:
 } // namespace
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleSpheres
-	, "01-spheres"
-	, "Spheres with collisions."
+	  ExampleRestitution
+	, "02-restitution"
+	, "Restitution."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
 
 void cmdTogglePause(const void* _userData) {
-    ((ExampleSpheres *)_userData)->m_pause = !((ExampleSpheres *)_userData)->m_pause;
+    ((ExampleRestitution *)_userData)->m_pause = !((ExampleRestitution *)_userData)->m_pause;
 }
 
 void cmdStepSimulation(const void* _userData) {
-    auto &world = ((ExampleSpheres *)_userData)->registry.ctx<edyn::world>();
+    auto &world = ((ExampleRestitution *)_userData)->registry.ctx<edyn::world>();
     world.update(world.fixed_dt);
 }

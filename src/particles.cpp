@@ -117,7 +117,6 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
-
         registry.reset();
 
         auto& world = registry.ctx_or_set<edyn::world>(registry);
@@ -127,6 +126,7 @@ public:
         
         auto def = edyn::rigidbody_def();
         def.presentation = true;
+        def.gravity = edyn::vector3_zero;
 
         def.position = {3, 3, 0};
         def.linvel = {0, 4, -1};
@@ -351,7 +351,7 @@ public:
                                 registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
-                                auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
+                                auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
                                 pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{{}, pivot, edyn::vector3_zero}, ent, pick_entity);
                             }
                         }
