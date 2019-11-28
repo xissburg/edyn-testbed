@@ -294,8 +294,8 @@ public:
                 const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
                 if (pick_entity == entt::null) {                    
-                    auto view = registry.view<const edyn::present_position>();
-                    view.each([&] (auto ent, auto &pos) {
+                    auto view = registry.view<const edyn::present_position, const edyn::mass>();
+                    view.each([&] (auto ent, auto &pos, auto &mass) {
                         if (pick_entity != entt::null) {
                             return;
                         }
@@ -322,7 +322,14 @@ public:
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::inverse(orientation), pick_pos - pos);
-                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{{}, pivot, edyn::vector3_zero}, ent, pick_entity);
+
+                                auto constraint = edyn::distance_constraint();
+                                constraint.pivot[0] = pivot;
+                                constraint.pivot[1] = edyn::vector3_zero;
+                                constraint.distance = 0;
+                                constraint.stiffness = mass * 100;
+                                constraint.damping = mass * 10;
+                                pick_constraint_entity = edyn::make_constraint(registry, constraint, ent, pick_entity);
                             }
                         }
                     });
