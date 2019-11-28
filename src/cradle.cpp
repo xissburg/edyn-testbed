@@ -6,20 +6,21 @@
 #include <common/imgui/imgui.h>
 #include <common/debugdraw/debugdraw.h>
 #include <common/camera.h>
-#include <common/entry/input.h>
-
-#include "debugdraw.hpp"
-
-void cmdTogglePause(const void* _userData);
-void cmdStepSimulation(const void* _userData);
 
 namespace
 {
 
-class ExampleSpheres : public entry::AppI
+void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
+    Sphere sphere;
+    sphere.center = {0,0,0};
+    sphere.radius = sh.radius;
+    dde.draw(sphere);
+}
+
+class ExampleCradle : public entry::AppI
 {
 public:
-	ExampleSpheres(const char* _name, const char* _description, const char* _url)
+	ExampleCradle(const char* _name, const char* _description, const char* _url)
 		: entry::AppI(_name, _description, _url)
 	{
 
@@ -65,8 +66,6 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
-        m_pause = false;
-
         registry.reset();
 
         auto& world = registry.ctx_or_set<edyn::world>(registry);
@@ -74,67 +73,42 @@ public:
         // Create entities.
         
         auto def = edyn::rigidbody_def();
+        def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.presentation = true;
-        def.friction = 1.0;
-        def.restitution = 0.8;
+        def.friction = 0.1;
+        def.restitution = 0.9;
 
-        // Create a central bigger sphere
-        def.position = {0, 0, 0};
-        def.linvel = edyn::vector3_zero;
-        def.angvel = edyn::vector3_zero;
-        def.mass = 1e12;
-        def.shape_opt = {edyn::sphere_shape{3}};
-        def.update_inertia();
-        auto big_ent = edyn::make_rigidbody(registry, def);
+        auto def_st = edyn::rigidbody_def();
+        def_st.kind = edyn::rigidbody_kind::rb_static;
 
-        // Add some smaller spheres around it.
-        std::vector<entt::entity> entities;
+        for (int i = 0; i < 5; ++i) {
+            def.position = {i * 0.4, 0, 0};
+            def.linvel = edyn::vector3_zero;
+            def.angvel = edyn::vector3_zero;
+            def.mass = 100;
+            def.shape_opt = {edyn::sphere_shape{0.2}};
+            def.update_inertia();
+            auto ent = edyn::make_rigidbody(registry, def);
 
-        def.position = {0, 5, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = edyn::vector3_zero;
-        def.mass = 100;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
+            registry.assign<edyn::linacc>(ent, edyn::gravity_earth);
 
-        def.position = {0, 10, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = {0, 0, 6.28};
-        def.mass = 200;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
+            def_st.position = def.position + edyn::vector3_y * 2;
+            auto ent_st = edyn::make_rigidbody(registry, def_st);
 
-        def.position = {0, 7.5, 0};
-        def.linvel = {0, 0, 0};
-        def.angvel = edyn::vector3_zero;
-        def.mass = 100;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def));
+            auto constraint = edyn::distance_constraint();
+            constraint.pivot[0] = edyn::vector3_zero;
+            constraint.pivot[1] = edyn::vector3_zero;
+            constraint.distance = 3;
+            constraint.stiffness = 1e10;
+            constraint.damping = 1e3;
+            edyn::make_constraint(registry, constraint, ent, ent_st);
 
-        /* def.position = {-1, 7, 0};
-        def.linvel = {-2, 0.1, 0};
-        def.angvel = edyn::vector3_zero;
-        def.mass = 250;
-        def.shape_opt = {edyn::sphere_shape{0.32}};
-        def.update_inertia();
-        entities.push_back(edyn::make_rigidbody(registry, def)); */
-
-        for (auto ent : entities) {
-            auto g_ent = registry.create();
-            registry.assign<edyn::relation>(g_ent, big_ent, ent);
-            registry.assign<edyn::gravity>(g_ent);
+            if (i == 4) {
+                auto &pos = registry.get<edyn::position>(ent);
+                pos.x += 2;
+                pos.y = 2;
+            }
         }
-
-        // Input bindings
-        m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
-        m_bindings[0].set(entry::Key::KeyP, entry::Modifier::None, 1, cmdTogglePause,  this);
-        m_bindings[1].set(entry::Key::KeyL, entry::Modifier::None, 1, cmdStepSimulation, this);
-        m_bindings[2].end();
-
-        inputAddBindings("02-spheres", m_bindings);
 	}
 
 	virtual int shutdown() override
@@ -145,9 +119,6 @@ public:
 		imguiDestroy();
 
 		cameraDestroy();
-
-        inputRemoveBindings("02-spheres");
-		BX_FREE(entry::getAllocator(), m_bindings);
 
 		// Shutdown bgfx.
 		bgfx::shutdown();
@@ -214,12 +185,8 @@ public:
         imguiEndFrame();
 
         // Update physics.
-        if (!m_pause) {
-            auto& world = registry.ctx<edyn::world>();
-            world.update(std::min(deltaTime, 0.1f));
-        }
-
-        bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
+        auto& world = registry.ctx<edyn::world>();
+        world.update(std::min(deltaTime, 0.1f));
 
         // Draw stuff.
         DebugDrawEncoder dde;
@@ -350,10 +317,6 @@ public:
 	uint32_t m_reset;
 	int64_t m_timeOffset;
 
-    InputBinding* m_bindings;
-
-    bool m_pause;
-
     entt::registry registry;
     entt::entity pick_entity {entt::null};
     entt::entity pick_constraint_entity {entt::null};
@@ -362,17 +325,8 @@ public:
 } // namespace
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleSpheres
-	, "01-spheres"
-	, "Spheres with collisions."
+	  ExampleCradle
+	, "00-cradle"
+	, "Newton's Cradle."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
-
-void cmdTogglePause(const void* _userData) {
-    ((ExampleSpheres *)_userData)->m_pause = !((ExampleSpheres *)_userData)->m_pause;
-}
-
-void cmdStepSimulation(const void* _userData) {
-    auto &world = ((ExampleSpheres *)_userData)->registry.ctx<edyn::world>();
-    world.update(world.fixed_dt);
-}

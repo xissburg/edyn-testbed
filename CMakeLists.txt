@@ -66,9 +66,14 @@ set(EDynTestbed_SOURCES
     src/main.cpp
     src/particles.cpp
     src/spheres.cpp
+    src/cradle.cpp
 )
 
 add_executable(EDynTestbed ${EDynTestbed_SOURCES})
+
+target_include_directories(EDynTestbed
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
+)
 
 target_include_directories(EDynTestbed SYSTEM
     PUBLIC ${EDyn_INCLUDE_DIR}
