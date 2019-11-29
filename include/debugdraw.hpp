@@ -16,4 +16,12 @@ inline void draw(DebugDrawEncoder &dde, const edyn::plane_shape &sh) {
     dde.drawQuad(bx::Vec3(sh.normal.x, sh.normal.y, sh.normal.z), bx::Vec3(center.x, center.y, center.z), 10);
 }
 
+void draw(DebugDrawEncoder &dde, const edyn::contact_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+
+inline void draw(DebugDrawEncoder &dde, const edyn::point_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
+
+}
+
+void draw(DebugDrawEncoder &dde, const edyn::distance_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+
 #endif // EDYN_TESTBED_DEBUG_DRAW_HPP

@@ -76,10 +76,12 @@ public:
         auto def_st = edyn::rigidbody_def();
         def_st.kind = edyn::rigidbody_kind::rb_static;
 
-        const size_t n = 5;
+        const size_t n = 8;
 
         for (size_t i = 0; i < n; ++i) {
-            def.position = {i * 0.41, 0, 0};
+            // It only works if the spheres are not touching.
+            // TODO: fix shock propagation in solver.
+            def.position = {i * 0.45, 0, 0};
             def.linvel = edyn::vector3_zero;
             def.angvel = edyn::vector3_zero;
             def.mass = 100;
@@ -87,7 +89,7 @@ public:
             def.update_inertia();
             auto ent = edyn::make_rigidbody(registry, def);
 
-            def_st.position = def.position + edyn::vector3_y * 2;
+            def_st.position = def.position + edyn::vector3_y * 3;
             auto ent_st = edyn::make_rigidbody(registry, def_st);
 
             auto constraint = edyn::distance_constraint();
@@ -100,8 +102,8 @@ public:
 
             if (i == n - 1) {
                 auto &pos = registry.get<edyn::position>(ent);
-                pos.x += 2;
-                pos.y = 2;
+                pos.x += 3;
+                pos.y = 3;
             }
         }
 	}
@@ -191,27 +193,38 @@ public:
         dde.drawGrid(Axis::Y, { 0.0f, 0.0f, 0.0f });
 
         // Draw entities.
-        auto view = registry.view<const edyn::shape, const edyn::present_position, const edyn::present_orientation>();
-        view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
-            dde.push();
+        {
+            auto view = registry.view<const edyn::shape, const edyn::present_position, const edyn::present_orientation>();
+            view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
+                dde.push();
 
-            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(-orn.z), float(orn.w)};
-            float rot[16];
-            bx::mtxQuat(rot, quat);
-            float trans[16];
-            bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+                auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(-orn.z), float(orn.w)};
+                float rot[16];
+                bx::mtxQuat(rot, quat);
+                float trans[16];
+                bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
 
-            float mtx[16];
-            bx::mtxMul(mtx, rot, trans);
+                float mtx[16];
+                bx::mtxMul(mtx, rot, trans);
 
-            dde.setTransform(mtx);
-            
-            std::visit([&] (auto &&s) {
-                draw(dde, s);
-            }, sh.var);
+                dde.setTransform(mtx);
+                
+                std::visit([&] (auto &&s) {
+                    draw(dde, s);
+                }, sh.var);
 
-            dde.pop();
-        });
+                dde.pop();
+            });
+        }
+
+        {
+            auto view = registry.view<const edyn::constraint, const edyn::relation>();
+            view.each([&] (auto, auto &con, auto &rel) {
+                std::visit([&] (auto &&c) {
+                    draw(dde, c, rel, registry);
+                }, con.var);
+            });
+        }
 
         dde.end();
 
