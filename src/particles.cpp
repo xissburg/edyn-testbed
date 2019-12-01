@@ -12,9 +12,6 @@
 
 #include <iostream>
 
-namespace
-{
-
 struct PosColorVertex
 {
 	float m_x;
@@ -390,8 +387,6 @@ public:
     entt::entity pick_entity {entt::null};
     entt::entity pick_constraint_entity {entt::null};
 };
-
-} // namespace
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleParticles
