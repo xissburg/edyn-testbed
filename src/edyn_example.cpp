@@ -174,10 +174,14 @@ bool EDynExample::update()
 
             uint32_t color = 0xffffffff;
             
-            auto node = m_registry.try_get<edyn::island_node>(ent);
-            if (node) {
-                assert(m_registry.has<edyn::island>(node->island_entity));
-                color = m_registry.get<ColorComponent>(node->island_entity);
+            if (m_registry.has<edyn::sleeping_tag>(ent)) {
+                color = 0x80000000;
+            } else {
+                auto node = m_registry.try_get<edyn::island_node>(ent);
+                if (node) {
+                    assert(m_registry.has<edyn::island>(node->island_entity));
+                    color = m_registry.get<ColorComponent>(node->island_entity);
+                }
             }
             dde.setColor(color);
 

@@ -32,7 +32,7 @@ public:
         def.shape_opt = {edyn::sphere_shape{0.2}};
         def.update_inertia();
 
-        const size_t n = 8;
+        const size_t n = 10;
         for (size_t i = 0; i < n; ++i) {
             def.restitution = edyn::scalar(i) / n;
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 5, 0};

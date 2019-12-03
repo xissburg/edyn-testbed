@@ -29,7 +29,7 @@ public:
         for (size_t i = 0; i < n; ++i) {
             // It only works if the spheres are not touching.
             // TODO: fix shock propagation in solver.
-            def.position = {i * 0.45, 0, 0};
+            def.position = {i * 0.41, 0, 0};
             def.linvel = edyn::vector3_zero;
             def.angvel = edyn::vector3_zero;
             def.mass = 100;
