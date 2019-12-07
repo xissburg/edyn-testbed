@@ -185,25 +185,44 @@ bool EDynExample::update()
             }
             dde.setColor(color);
 
-            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(-orn.z), float(orn.w)};
+            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
             bx::mtxQuat(rot, quat);
+            float rotT[16];
+            bx::mtxTranspose(rotT, rot);
             float trans[16];
             bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
 
             float mtx[16];
-            bx::mtxMul(mtx, rot, trans);
+            bx::mtxMul(mtx, rotT, trans);
 
-            dde.setTransform(mtx);
+            dde.pushTransform(mtx);
             
             std::visit([&] (auto &&s) {
                 draw(dde, s);
+            }, sh.var);
+
+            dde.popTransform();
+
+            // Draw AABBs.
+            std::visit([&] (auto &&s) {
+                dde.push();
+
+                uint32_t color = 0xff0000f2;
+                dde.setColor(color);
+                dde.setWireframe(true);
+
+                auto aabb = s.aabb(pos, orn);
+                dde.draw(Aabb{{aabb.min.x, aabb.min.y, aabb.min.z}, {aabb.max.x, aabb.max.y, aabb.max.z}});
+
+                dde.pop();
             }, sh.var);
 
             dde.pop();
         });
     }
 
+    // Draw constraints.
     {
         auto view = m_registry.view<const edyn::constraint, const edyn::relation>();
         view.each([&] (auto, auto &con, auto &rel) {

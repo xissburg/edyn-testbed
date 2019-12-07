@@ -15,9 +15,6 @@ void draw(DebugDrawEncoder &dde, const edyn::contact_constraint &con, const edyn
 
         dde.push();
 
-        float trans[16];
-        bx::mtxIdentity(trans);
-        dde.setTransform(trans);
         dde.setColor(0xfffe0000);
         dde.moveTo(pB.x, pB.y, pB.z);
         dde.lineTo(tip.x, tip.y, tip.z);
@@ -59,9 +56,6 @@ void draw(DebugDrawEncoder &dde, const edyn::distance_constraint &con, const edy
 
     dde.push();
 
-    float trans[16];
-    bx::mtxIdentity(trans);
-    dde.setTransform(trans);
     dde.setColor(0xff0000fe);
     dde.moveTo(pA.x, pA.y, pA.z);
     dde.lineTo(pB.x, pB.y, pB.z);

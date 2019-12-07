@@ -32,6 +32,7 @@ add_compile_definitions(ENTT_DISABLE_ASSERT)
 
 set(EDyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "EDyn include directory.")
 find_library(EDyn_LIBRARY EDyn PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
+find_library(EDyn_LIBRARY_DEBUG EDyn_d PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
 
 set(Bx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bx/include CACHE PATH "bx include directory.")
 set(Bgfx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bgfx/include;${CMAKE_SOURCE_DIR}/../bgfx/examples;${CMAKE_SOURCE_DIR}/../bgfx/3rdparty CACHE PATH "bgfx include directory.")
@@ -71,6 +72,7 @@ set(EDynTestbed_SOURCES
     src/particles.cpp
     src/restitution.cpp
     src/cradle.cpp
+    src/cylinders.cpp
 )
 
 add_executable(EDynTestbed ${EDynTestbed_SOURCES})
@@ -104,7 +106,8 @@ target_link_libraries(EDynTestbed
     debug ${Bgfx_LIBRARY_DEBUG}
     optimized ${Bx_LIBRARY_RELEASE}
     debug ${Bx_LIBRARY_DEBUG}
-    ${EDyn_LIBRARY}
+    optimized ${EDyn_LIBRARY}
+    debug ${EDyn_LIBRARY_DEBUG}
 )
 
 if (UNIX AND NOT APPLE)
