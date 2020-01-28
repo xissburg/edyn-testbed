@@ -17,7 +17,11 @@ inline void draw(DebugDrawEncoder &dde, const edyn::plane_shape &sh) {
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::cylinder_shape &sh) {
-    dde.drawCylinder({-sh.length/2, 0, 0}, {sh.length/2, 0, 0}, sh.radius);
+    dde.drawCylinder({-sh.half_length, 0, 0}, {sh.half_length, 0, 0}, sh.radius);
+}
+
+inline void draw(DebugDrawEncoder &dde, const edyn::capsule_shape &sh) {
+    dde.drawCapsule({-sh.half_length, 0, 0}, {sh.half_length, 0, 0}, sh.radius);
 }
 
 void draw(DebugDrawEncoder &dde, const edyn::contact_constraint &con, const edyn::relation &rel, const entt::registry &reg);
@@ -27,5 +31,6 @@ inline void draw(DebugDrawEncoder &dde, const edyn::point_constraint &con, const
 }
 
 void draw(DebugDrawEncoder &dde, const edyn::distance_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+void draw(DebugDrawEncoder &dde, const edyn::hinge_constraint &con, const edyn::relation &rel, const entt::registry &reg);
 
 #endif // EDYN_TESTBED_DEBUG_DRAW_HPP

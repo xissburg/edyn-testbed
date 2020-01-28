@@ -73,6 +73,8 @@ set(EDynTestbed_SOURCES
     src/restitution.cpp
     src/cradle.cpp
     src/cylinders.cpp
+    src/capsules.cpp
+    src/hinge.cpp
 )
 
 add_executable(EDynTestbed ${EDynTestbed_SOURCES})

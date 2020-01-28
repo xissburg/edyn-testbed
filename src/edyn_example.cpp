@@ -179,6 +179,7 @@ bool EDynExample::update()
             } else {
                 auto node = m_registry.try_get<edyn::island_node>(ent);
                 if (node) {
+                    assert(m_registry.valid(node->island_entity));
                     assert(m_registry.has<edyn::island>(node->island_entity));
                     color = m_registry.get<ColorComponent>(node->island_entity);
                 }
