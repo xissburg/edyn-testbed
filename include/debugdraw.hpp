@@ -24,13 +24,18 @@ inline void draw(DebugDrawEncoder &dde, const edyn::capsule_shape &sh) {
     dde.drawCapsule({-sh.half_length, 0, 0}, {sh.half_length, 0, 0}, sh.radius);
 }
 
-void draw(DebugDrawEncoder &dde, const edyn::contact_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const edyn::relation &rel, const entt::registry &reg);
 
-inline void draw(DebugDrawEncoder &dde, const edyn::point_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
+inline void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::point_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
 
 }
 
-void draw(DebugDrawEncoder &dde, const edyn::distance_constraint &con, const edyn::relation &rel, const entt::registry &reg);
-void draw(DebugDrawEncoder &dde, const edyn::hinge_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+
+inline
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::generic_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
+
+}
 
 #endif // EDYN_TESTBED_DEBUG_DRAW_HPP

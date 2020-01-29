@@ -226,9 +226,9 @@ bool EDynExample::update()
     // Draw constraints.
     {
         auto view = m_registry.view<const edyn::constraint, const edyn::relation>();
-        view.each([&] (auto, auto &con, auto &rel) {
+        view.each([&] (auto ent, auto &con, auto &rel) {
             std::visit([&] (auto &&c) {
-                draw(dde, c, rel, m_registry);
+                draw(dde, ent, c, rel, m_registry);
             }, con.var);
         });
     }
