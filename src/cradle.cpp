@@ -43,8 +43,6 @@ public:
             constraint.pivot[0] = edyn::vector3_zero;
             constraint.pivot[1] = edyn::vector3_zero;
             constraint.distance = 3;
-            constraint.stiffness = 1e10;
-            constraint.damping = 1e3;
             edyn::make_constraint(m_registry, constraint, ent, ent_st);
 
             if (i == n - 1) {

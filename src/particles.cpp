@@ -331,7 +331,7 @@ public:
                         const auto s = edyn::dot(v, ray_dir);
 
                         if (s > 0) {
-                            const auto dist = std::sqrt(edyn::length2(v) - s * s);
+                            const auto dist = std::sqrt(edyn::length_sqr(v) - s * s);
                             if (dist < 1) {
                                 const auto plane_normal = edyn::normalize(cam_at - cam_pos);
                                 auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);

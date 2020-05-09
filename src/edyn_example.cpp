@@ -276,7 +276,7 @@ bool EDynExample::update()
                     const auto s = edyn::dot(v, ray_dir);
 
                     if (s > 0) {
-                        const auto dist = std::sqrt(edyn::length2(v) - s * s);
+                        const auto dist = std::sqrt(edyn::length_sqr(v) - s * s);
                         if (dist < 1) {
                             const auto plane_normal = edyn::normalize(cam_at - cam_pos);
                             auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);
@@ -295,7 +295,7 @@ bool EDynExample::update()
                             auto &orientation = m_registry.get<edyn::orientation>(ent);
                             auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
 
-                            auto constraint = edyn::distance_constraint();
+                            auto constraint = edyn::soft_distance_constraint();
                             constraint.pivot[0] = pivot;
                             constraint.pivot[1] = edyn::vector3_zero;
                             constraint.distance = 0;
