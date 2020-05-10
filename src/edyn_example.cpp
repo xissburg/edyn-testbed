@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <fenv.h> 
 
 void cmdTogglePause(const void* _userData) {
     ((EDynExample *)_userData)->m_pause = !((EDynExample *)_userData)->m_pause;
@@ -19,6 +20,8 @@ void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
 
 void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
+    feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
+
     Args args(_argc, _argv);
 
     m_width  = _width;

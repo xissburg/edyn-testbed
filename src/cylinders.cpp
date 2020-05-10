@@ -24,27 +24,24 @@ public:
 
         // Add some cylinders.
         auto def = edyn::rigidbody_def();
+        def.kind = edyn::rigidbody_kind::rb_static;
         def.presentation = true;
         def.restitution = 0;
         def.friction = 0.8;
-        def.mass = 100;
         def.shape_opt = {edyn::cylinder_shape{0.2, 0.5}};
-        def.update_inertia();
-
-        def.position = {0, 2.7, 0.0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
+        def.position = {0, 0.5, 0};
+        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), edyn::pi/2);
         edyn::make_rigidbody(m_registry, def);
 
-        def.position = {0.1, 1.8, 0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
-        edyn::make_rigidbody(m_registry, def);
-
-        def.position = {0, 0.5, 0.0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
-        def.shape_opt = {edyn::cylinder_shape{0.25, 0.4}};
-        def.update_inertia();
-        edyn::make_rigidbody(m_registry, def);
-
+        auto dyn_def = edyn::rigidbody_def();
+        dyn_def.kind = edyn::rigidbody_kind::rb_dynamic;
+        dyn_def.presentation = true;
+        dyn_def.mass = 100;
+        dyn_def.shape_opt = {edyn::cylinder_shape{0.1, 0.4}};
+        dyn_def.update_inertia();
+        dyn_def.position = {0, 2, 0};
+        //dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
+        edyn::make_rigidbody(m_registry, dyn_def);
 
         /* const size_t n = 10;
         for (size_t i = 0; i < n; ++i) {
@@ -64,12 +61,14 @@ public:
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 9, 0};
             edyn::make_rigidbody(m_registry, def);
         } */
+
+        m_pause = true;
 	}
 };
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCylinders
-	, "05-cylinders"
+	, "00-cylinders"
 	, "Cylinders."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
