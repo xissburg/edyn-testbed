@@ -7,11 +7,11 @@ void cmdTogglePause(const void* _userData) {
 
 void cmdStepSimulation(const void* _userData) {
     auto &world = ((EDynExample *)_userData)->m_registry.ctx<edyn::world>();
-    world.update(world.fixed_dt);
+    ((EDynExample *)_userData)->updatePhysics(world.fixed_dt);
 }
 
 void OnCreateIsland(entt::entity entity, entt::registry &registry, edyn::island &) {
-    registry.assign<ColorComponent>(entity, 0xff000000 | (0x00ffffff & rand()));
+    registry.assign<ColorComponent>(entity, 0x80000000 | (0x00ffffff & rand()));
 }
 
 void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
@@ -21,7 +21,7 @@ void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
 void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
     feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
-
+    
     Args args(_argc, _argv);
 
     m_width  = _width;
@@ -66,6 +66,7 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry.on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
     auto& world = m_registry.ctx_or_set<edyn::world>(m_registry);
+    world.fixed_dt = 1.0/60;
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
@@ -73,7 +74,7 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_bindings[1].set(entry::Key::KeyL, entry::Modifier::None, 1, cmdStepSimulation, this);
     m_bindings[2].end();
 
-    inputAddBindings(getName(), m_bindings);
+    inputAddBindings("base", m_bindings);
 
     createScene();
 }
@@ -87,7 +88,7 @@ int EDynExample::shutdown()
 
     cameraDestroy();
 
-    inputRemoveBindings(getName());
+    inputRemoveBindings("base");
 	BX_FREE(entry::getAllocator(), m_bindings);
 
     // Shutdown bgfx.
@@ -156,8 +157,7 @@ bool EDynExample::update()
 
     // Update physics.
     if (!m_pause) {
-        auto& world = m_registry.ctx<edyn::world>();
-        world.update(std::min(deltaTime, 0.1f));
+        updatePhysics(deltaTime);
     }
 
     bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
@@ -182,16 +182,16 @@ bool EDynExample::update()
             } else {
                 auto node = m_registry.try_get<edyn::island_node>(ent);
                 if (node) {
-                    assert(m_registry.valid(node->island_entity));
                     assert(m_registry.has<edyn::island>(node->island_entity));
                     color = m_registry.get<ColorComponent>(node->island_entity);
                 }
             }
             dde.setColor(color);
+            //dde.setWireframe(true);
 
-            auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
-            bx::mtxQuat(rot, quat);
+            bx::mtxQuat(rot, bxquat);
             float rotT[16];
             bx::mtxTranspose(rotT, rot);
             float trans[16];
@@ -206,9 +206,12 @@ bool EDynExample::update()
                 draw(dde, s);
             }, sh.var);
 
+            dde.drawAxis(0, 0, 0, 0.15);
+
             dde.popTransform();
 
             // Draw AABBs.
+            #if 0
             std::visit([&] (auto &&s) {
                 dde.push();
 
@@ -221,6 +224,33 @@ bool EDynExample::update()
 
                 dde.pop();
             }, sh.var);
+            #endif
+
+            dde.pop();
+        });
+    }
+
+    // Draw amorphous entities.
+    {
+        auto view = m_registry.view<const edyn::present_position, const edyn::present_orientation>(entt::exclude_t<edyn::shape>{});
+        view.each([&] (auto ent, auto &pos, auto &orn) {
+            dde.push();
+
+            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+
+            float rot[16];
+            bx::mtxQuat(rot, bxquat);
+            float rotT[16];
+            bx::mtxTranspose(rotT, rot);
+            float trans[16];
+            bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+
+            float mtx[16];
+            bx::mtxMul(mtx, rotT, trans);
+
+            dde.pushTransform(mtx);
+            dde.drawAxis(0, 0, 0);
+            dde.popTransform();
 
             dde.pop();
         });
@@ -228,9 +258,12 @@ bool EDynExample::update()
 
     // Draw constraints.
     {
-        auto view = m_registry.view<const edyn::constraint, const edyn::relation>();
+        auto view = m_registry.view<edyn::constraint, const edyn::relation>();
         view.each([&] (auto ent, auto &con, auto &rel) {
             std::visit([&] (auto &&c) {
+                // Force constraints to update the internals before drawing.
+                // c.prepare(ent, con, rel, m_registry, std::max(deltaTime, edyn::scalar(0.001)));
+
                 draw(dde, ent, c, rel, m_registry);
             }, con.var);
         });
@@ -271,7 +304,7 @@ bool EDynExample::update()
             if (m_pick_entity == entt::null) {                    
                 auto view = m_registry.view<const edyn::present_position, const edyn::mass>();
                 view.each([&] (auto ent, auto &pos, auto &mass) {
-                    if (m_pick_entity != entt::null) {
+                    if (m_pick_entity != entt::null || mass == EDYN_SCALAR_MAX) {
                         return;
                     }
 
@@ -302,8 +335,8 @@ bool EDynExample::update()
                             constraint.pivot[0] = pivot;
                             constraint.pivot[1] = edyn::vector3_zero;
                             constraint.distance = 0;
-                            constraint.stiffness = mass * 100;
-                            constraint.damping = mass * 10;
+                            constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
+                            constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
                             m_pick_constraint_entity = edyn::make_constraint(m_registry, constraint, ent, m_pick_entity);
                         }
                     }
@@ -325,4 +358,9 @@ bool EDynExample::update()
     }
 
     return true;
+}
+
+void EDynExample::updatePhysics(float deltaTime) {
+    auto& world = m_registry.ctx<edyn::world>();
+    world.update(std::min(deltaTime, 0.1f));
 }

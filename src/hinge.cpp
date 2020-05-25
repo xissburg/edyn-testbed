@@ -47,7 +47,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleHinge
-	, "00-hinge"
+	, "08-hinge"
 	, "Hinge constraint."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

@@ -75,6 +75,8 @@ set(EDynTestbed_SOURCES
     src/cylinders.cpp
     src/capsules.cpp
     src/hinge.cpp
+    src/triangle_mesh.cpp
+    src/boxes.cpp
 )
 
 add_executable(EDynTestbed ${EDynTestbed_SOURCES})

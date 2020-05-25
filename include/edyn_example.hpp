@@ -41,6 +41,7 @@ public:
 	bool update() override;
 
     virtual void createScene() = 0;
+    virtual void updatePhysics(float deltaTime);
 
 	entry::MouseState m_mouseState;
 

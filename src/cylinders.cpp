@@ -17,6 +17,7 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
+        floor_def.presentation = true;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
@@ -30,7 +31,7 @@ public:
         def.friction = 0.8;
         def.shape_opt = {edyn::cylinder_shape{0.2, 0.5}};
         def.position = {0, 0.5, 0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), edyn::pi/2);
+        //def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), edyn::pi/2);
         edyn::make_rigidbody(m_registry, def);
 
         auto dyn_def = edyn::rigidbody_def();
@@ -39,8 +40,8 @@ public:
         dyn_def.mass = 100;
         dyn_def.shape_opt = {edyn::cylinder_shape{0.1, 0.4}};
         dyn_def.update_inertia();
-        dyn_def.position = {0, 2, 0};
-        //dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
+        dyn_def.position = {-0.4, 2, -0.3};
+        dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), edyn::pi * 0.3);
         edyn::make_rigidbody(m_registry, dyn_def);
 
         /* const size_t n = 10;
@@ -68,7 +69,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCylinders
-	, "00-cylinders"
+	, "01-cylinders"
 	, "Cylinders."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
