@@ -18,8 +18,17 @@ public:
         // Create entities.
         // Create floor
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
-        edyn::load_mesh_from_obj("/home/xissburg/Documents/Projects/ExhibitionOfSpeed/playground/resources/media/models/racetrack/SmallRacetrack.obj", 
-                                 trimesh->vertices, trimesh->indices);
+        auto input = edyn::file_input_archive("SmallRacetrack.bin");
+
+        if (input.is_file_open()) {
+            edyn::serialize(input, *trimesh);
+        } else {
+            edyn::load_mesh_from_obj("/home/xissburg/Documents/Projects/ExhibitionOfSpeed/playground/resources/media/models/racetrack/SmallRacetrack.obj", 
+                                    trimesh->vertices, trimesh->indices);
+            trimesh->initialize();
+            auto output = edyn::file_output_archive("SmallRacetrack.bin");
+            edyn::serialize(output, *trimesh);
+        }
 
         /* auto extent_x = 2;
         auto extent_z = 12;
@@ -58,9 +67,9 @@ public:
 
         trimesh->indices.push_back(1);
         trimesh->indices.push_back(4);
-        trimesh->indices.push_back(0); */
+        trimesh->indices.push_back(0); 
 
-        trimesh->initialize();
+        trimesh->initialize();*/
 
         /* trimesh->is_concave_edge[0] = true;
         trimesh->is_concave_edge[1] = true;
