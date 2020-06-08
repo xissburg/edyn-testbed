@@ -3,6 +3,31 @@
 #include <sstream>
 #include <iostream>
 
+void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &cp) {
+    auto &rel = reg.get<edyn::relation>(cp.parent);
+    auto posA = reg.get<edyn::position>(rel.entity[0]);
+    auto ornA = reg.get<edyn::orientation>(rel.entity[0]);
+    auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
+    edyn::scalar impulse = 0;
+
+    auto *con = reg.try_get<edyn::constraint>(ent);
+    if (con) {
+        auto &row = reg.get<edyn::constraint_row>(con->row[0]);
+        impulse = row.impulse;
+    }
+
+    std::cout << "Started | imp: " << impulse << " pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
+}
+
+void ContactEnded(entt::entity ent, entt::registry &reg) {
+    auto &cp = reg.get<edyn::contact_point>(ent);
+    auto &rel = reg.get<edyn::relation>(cp.parent);
+    auto posA = reg.get<edyn::position>(rel.entity[0]);
+    auto ornA = reg.get<edyn::orientation>(rel.entity[0]);
+    auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
+    std::cout << "Ended | pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
+}
+
 class ExampleTriangleMesh : public EDynExample
 {
 public:
@@ -18,6 +43,11 @@ public:
         // Create entities.
         // Create floor
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
+
+    #define LOAD_TRI_MESH 1
+    #define PLANAR_TRI_MESH 0
+
+    #if LOAD_TRI_MESH
         auto input = edyn::file_input_archive("SmallRacetrack.bin");
 
         if (input.is_file_open()) {
@@ -29,8 +59,8 @@ public:
             auto output = edyn::file_output_archive("SmallRacetrack.bin");
             edyn::serialize(output, *trimesh);
         }
-
-        /* auto extent_x = 2;
+    #elif PLANAR_TRI_MESH
+        auto extent_x = 2;
         auto extent_z = 12;
         auto num_vertices_x = 4;
         auto num_vertices_z = 24;
@@ -44,9 +74,10 @@ public:
             for (int x = 0; x < num_vertices_x; ++x) {
                 trimesh->vertices[z * num_vertices_x + x].y = y + (x == 0 || x == num_vertices_x - 1 ? 0.1 : 0);
             }
-        } */
-        
-        /* trimesh->vertices.push_back({0.5, 0, -0.5});
+        }
+        trimesh->initialize();
+    #else
+        trimesh->vertices.push_back({0.5, 0, -0.5});
         trimesh->vertices.push_back({-0.5, 0, -0.5});
         trimesh->vertices.push_back({0.5, 0, 0.5});
         trimesh->vertices.push_back({0, 0.5, 1});
@@ -54,7 +85,7 @@ public:
 
         trimesh->indices.push_back(0);
         trimesh->indices.push_back(1);
-        trimesh->indices.push_back(2); */
+        trimesh->indices.push_back(2);
 
         /* trimesh->indices.push_back(1);
         trimesh->indices.push_back(4);
@@ -67,13 +98,10 @@ public:
 
         trimesh->indices.push_back(1);
         trimesh->indices.push_back(4);
-        trimesh->indices.push_back(0); 
+        trimesh->indices.push_back(0); */
 
-        trimesh->initialize();*/
-
-        /* trimesh->is_concave_edge[0] = true;
-        trimesh->is_concave_edge[1] = true;
-        trimesh->is_concave_edge[2] = true; */
+        trimesh->initialize();
+    #endif
 
         auto floor_def = edyn::rigidbody_def();
         floor_def.presentation = true;
@@ -108,20 +136,34 @@ public:
             def.shape_opt = {edyn::cylinder_shape{0.36, 0.11}};
             def.update_inertia();
             def.restitution = 0;
-            def.stiffness = 20000;
-            def.damping = 100;
+            //def.stiffness = 20000;
+            //def.damping = 100;
             def.position = {0.25, 1, -0.25};
             def.linvel = {0, 0, 0};
             def.angvel = {0, 0, 0};
             def.orientation = 
-                //edyn::quaternion_axis_angle({0,1,0}, edyn::pi * 0.06) *
-                //edyn::quaternion_axis_angle({1,0,0}, -edyn::pi * 0.015) *
-                edyn::quaternion_axis_angle({0,0,1}, edyn::pi * 0.5);
+                edyn::quaternion_axis_angle({0,1,0}, edyn::pi * 0.06) *
+                edyn::quaternion_axis_angle({1,0,0}, -edyn::pi * 0.015);// *
+                //edyn::quaternion_axis_angle({0,0,1}, edyn::pi * 0.5);
             auto ent = edyn::make_rigidbody(m_registry, def);
             m_registry.assign<edyn::sleeping_disabled_tag>(ent);
         }
 
+        auto &world = m_registry.ctx<edyn::world>();
+        world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);
+        //m_registry.on_construct<edyn::contact_point>().connect<&ContactStarted>();
+        m_registry.on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+
         m_pause = true;
+    }
+
+    void worldStep(uint64_t step) {
+        auto cp_view = m_registry.view<edyn::contact_point>();
+        cp_view.each([&] (entt::entity entity, edyn::contact_point &cp) {
+            if (cp.lifetime == 0) {
+                ContactStarted(entity, m_registry, cp);
+            }
+        });
     }
 };
 
