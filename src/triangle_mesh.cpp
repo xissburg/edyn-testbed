@@ -103,12 +103,20 @@ public:
         trimesh->initialize();
     #endif
 
+        auto *buffer = new edyn::memory_output_archive_source::buffer_type();
+        auto output_source = edyn::memory_output_archive_source(*buffer);
+        auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh<edyn::memory_input_archive_source>>(*buffer);
+        edyn::load_paged_triangle_mesh(*paged_trimesh, 
+                                       trimesh->vertices.begin(), trimesh->vertices.end(),
+                                       trimesh->indices.begin(), trimesh->indices.end(),
+                                       output_source, 512);
+
         auto floor_def = edyn::rigidbody_def();
         floor_def.presentation = true;
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
+        floor_def.shape_opt = {edyn::paged_mesh_shape{paged_trimesh}};
         edyn::make_rigidbody(m_registry, floor_def);
 
         // Add some bouncy spheres.
@@ -131,7 +139,7 @@ public:
         {
             auto def = edyn::rigidbody_def();
             def.presentation = true;
-            def.friction = 0.1;
+            def.friction = 0.7;
             def.mass = 100;
             def.shape_opt = {edyn::cylinder_shape{0.36, 0.11}};
             def.update_inertia();
@@ -148,6 +156,41 @@ public:
             auto ent = edyn::make_rigidbody(m_registry, def);
             m_registry.assign<edyn::sleeping_disabled_tag>(ent);
         }
+
+        /* {
+            auto def = edyn::rigidbody_def();
+            def.presentation = true;
+            def.friction = 0.5;
+            def.mass = 80;
+            def.shape_opt = {edyn::box_shape{0.26, 0.15, 0.18}};
+            def.update_inertia();
+            def.restitution = 0;
+            //def.stiffness = 20000;
+            //def.damping = 100;
+            def.position = {0.1, 1.2, -1.1};
+            def.linvel = {0, 0, 0};
+            def.angvel = {0, 0, 0};
+            def.orientation =  edyn::quaternion_axis_angle({0,1,0}, edyn::pi * 0.06);
+            auto ent = edyn::make_rigidbody(m_registry, def);
+            m_registry.assign<edyn::sleeping_disabled_tag>(ent);
+        }
+
+        {
+            auto def = edyn::rigidbody_def();
+            def.presentation = true;
+            def.friction = 0.9;
+            def.mass = 60;
+            def.shape_opt = {edyn::sphere_shape{0.3}};
+            def.update_inertia();
+            def.restitution = 0;
+            //def.stiffness = 20000;
+            //def.damping = 100;
+            def.position = {-0.1, 1.4, 0.8};
+            def.linvel = {0, 0, 0};
+            def.angvel = {0, 0, 0};
+            auto ent = edyn::make_rigidbody(m_registry, def);
+            m_registry.assign<edyn::sleeping_disabled_tag>(ent);
+        } */
 
         auto &world = m_registry.ctx<edyn::world>();
         world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);

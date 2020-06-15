@@ -1,9 +1,21 @@
 #include "debugdraw.hpp"
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
-    auto aabb = edyn::AABB{-edyn::vector3_max, edyn::vector3_max};
     dde.setWireframe(false);
-    sh.trimesh->visit(aabb, [&] (auto, const edyn::triangle_vertices &vertices) {
+    sh.trimesh->visit_all([&] (auto, const edyn::triangle_vertices &vertices) {
+        auto &v0 = vertices[0];
+        auto &v1 = vertices[1];
+        auto &v2 = vertices[2];
+        dde.moveTo(v0.x, v0.y, v0.z);
+        dde.lineTo(v1.x, v1.y, v1.z);
+        dde.lineTo(v2.x, v2.y, v2.z);
+        dde.lineTo(v0.x, v0.y, v0.z);
+    });
+}
+
+void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
+    dde.setWireframe(false);
+    sh.trimesh->visit_cache_all([&] (auto, auto, const edyn::triangle_vertices &vertices) {
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
         auto &v2 = vertices[2];

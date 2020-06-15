@@ -31,6 +31,7 @@ inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
 }
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh);
+void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh);
 
 void draw(DebugDrawEncoder &dde, entt::entity, const edyn::contact_constraint &, const edyn::relation &, const entt::registry &);
 
