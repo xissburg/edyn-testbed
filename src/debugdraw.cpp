@@ -27,8 +27,8 @@ void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
-    auto &posA = reg.get<edyn::position>(rel.entity[0]);
-    auto &ornA = reg.get<edyn::orientation>(rel.entity[0]);
+    //auto &posA = reg.get<edyn::position>(rel.entity[0]);
+    //auto &ornA = reg.get<edyn::orientation>(rel.entity[0]);
     auto &posB = reg.get<edyn::position>(rel.entity[1]);
     auto &ornB = reg.get<edyn::orientation>(rel.entity[1]);
     

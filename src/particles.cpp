@@ -116,7 +116,7 @@ public:
 
         registry.reset();
 
-        auto& world = registry.ctx_or_set<edyn::world>(registry);
+        registry.ctx_or_set<edyn::world>(registry);
         
         // Create a few particle entities.
         std::vector<entt::entity> entities;        

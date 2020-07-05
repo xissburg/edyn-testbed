@@ -65,6 +65,10 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry.on_construct<edyn::island>().connect<&OnCreateIsland>();
     m_registry.on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
+    // Start EDyn default dispatcher.
+    edyn::job_dispatcher::shared().start();
+
+    // Setup world.
     auto& world = m_registry.ctx_or_set<edyn::world>(m_registry);
     world.fixed_dt = 1.0/60;
 

@@ -11,7 +11,7 @@ public:
 
     void createScene() override 
     {
-        auto& world = m_registry.ctx<edyn::world>();
+        //auto& world = m_registry.ctx<edyn::world>();
 
         // Create entities.
         
@@ -28,7 +28,7 @@ public:
 
         for (size_t i = 0; i < n; ++i) {
             // It only works if the spheres are not touching.
-            def.position = {i * 0.41, 0, 0};
+            def.position = {edyn::scalar(i * 0.41), 0, 0};
             def.linvel = edyn::vector3_zero;
             def.angvel = edyn::vector3_zero;
             def.mass = 100;

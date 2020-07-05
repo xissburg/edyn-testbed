@@ -35,19 +35,19 @@ public:
         const size_t n = 10;
         for (size_t i = 0; i < n; ++i) {
             def.restitution = edyn::scalar(i) / n;
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 5, 0};
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 5, 0};
             edyn::make_rigidbody(m_registry, def);
 
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 6, 0};
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 6, 0};
             edyn::make_rigidbody(m_registry, def);
 
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 7, 0};
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 7, 0};
             edyn::make_rigidbody(m_registry, def);
 
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 8, 0};
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 8, 0};
             edyn::make_rigidbody(m_registry, def);
 
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 9, 0};
+            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 9, 0};
             edyn::make_rigidbody(m_registry, def);
         }
 	}

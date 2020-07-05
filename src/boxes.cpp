@@ -37,7 +37,7 @@ public:
         for (int i = 0; i < n; ++i) {
             def.shape_opt = {edyn::box_shape{{0.5, 0.5, 0.5}}};
             def.update_inertia();
-            def.position = {0, 1.1 + i * 1.1, 0};
+            def.position = {0, edyn::scalar(1.1 + i * 1.1), 0};
             edyn::make_rigidbody(m_registry, def);
         }
 
