@@ -33,7 +33,7 @@ class ExampleTriangleMesh : public EDynExample
 public:
 	ExampleTriangleMesh(const char* _name, const char* _description, const char* _url)
 		: EDynExample(_name, _description, _url)
-        , m_input(std::make_shared<edyn::paged_triangle_mesh_file_input_archive>("SmallRacetrackPaged.bin"))
+        , m_input(std::make_shared<edyn::paged_triangle_mesh_file_input_archive>())
 	{
 
 	}
@@ -106,6 +106,7 @@ public:
 
         auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh>(std::static_pointer_cast<edyn::triangle_mesh_page_loader_base>(m_input));
         paged_trimesh->m_max_cache_num_vertices = 1 << 14;
+        m_input->open("SmallRacetrackPaged.bin");
 
         if (m_input->is_file_open()) {
             edyn::serialize(*m_input, *paged_trimesh);
@@ -230,7 +231,6 @@ public:
         });
     }
 
-    std::vector<uint8_t> m_buffer;
     std::shared_ptr<edyn::paged_triangle_mesh_file_input_archive> m_input;
 };
 
