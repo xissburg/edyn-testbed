@@ -66,7 +66,7 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry.on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
     // Start EDyn default dispatcher.
-    edyn::job_dispatcher::shared().start();
+    edyn::job_dispatcher::global().start();
 
     // Setup world.
     auto& world = m_registry.ctx_or_set<edyn::world>(m_registry);

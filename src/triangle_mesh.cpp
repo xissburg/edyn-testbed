@@ -105,7 +105,7 @@ public:
     #endif*/
 
         auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh>(std::static_pointer_cast<edyn::triangle_mesh_page_loader_base>(m_input));
-        paged_trimesh->m_max_cache_num_vertices = 1 << 15;
+        paged_trimesh->m_max_cache_num_vertices = 1 << 14;
 
         if (m_input->is_file_open()) {
             edyn::serialize(*m_input, *paged_trimesh);
@@ -119,7 +119,7 @@ public:
                 *paged_trimesh,
                 vertices.begin(), vertices.end(),
                 indices.begin(), indices.end(),
-                1 << 15);
+                1 << 11);
 
             {
                 auto output = edyn::paged_triangle_mesh_file_output_archive("SmallRacetrackPaged.bin",
