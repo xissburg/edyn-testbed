@@ -54,7 +54,7 @@ public:
         if (input.is_file_open()) {
             edyn::serialize(input, *trimesh);
         } else {
-            edyn::load_mesh_from_obj("/home/xissburg/Documents/Projects/ExhibitionOfSpeed/playground/resources/media/models/racetrack/SmallRacetrack.obj", 
+            edyn::load_mesh_from_obj("SmallRacetrack.obj", 
                                     trimesh->vertices, trimesh->indices);
             trimesh->initialize();
             auto output = edyn::file_output_archive("SmallRacetrack.bin");
@@ -113,7 +113,7 @@ public:
         } else {
             std::vector<edyn::vector3> vertices;
             std::vector<uint16_t> indices;
-            auto obj_path = "/home/xissburg/Documents/Projects/ExhibitionOfSpeed/playground/resources/media/models/racetrack/SmallRacetrack.obj";
+            auto obj_path = "SmallRacetrack.obj";
             edyn::load_mesh_from_obj(obj_path, vertices, indices);
 
             edyn::create_paged_triangle_mesh(
@@ -178,7 +178,7 @@ public:
             auto ent = edyn::make_rigidbody(m_registry, def);
             m_registry.assign<edyn::sleeping_disabled_tag>(ent);
         }
-
+        
         /* {
             auto def = edyn::rigidbody_def();
             def.presentation = true;

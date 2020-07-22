@@ -6,4 +6,4 @@ Dependencies:
 - [EnTT](https://github.com/skypjack/entt) (installed via [Conan](https://conan.io/))
 - [bgfx](https://github.com/bkaradzic/bgfx)
 
-TODO: setup instructions
+TODO: write setup instructions.
