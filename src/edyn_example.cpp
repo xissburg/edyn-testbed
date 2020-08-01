@@ -11,7 +11,7 @@ void cmdStepSimulation(const void* _userData) {
 }
 
 void OnCreateIsland(entt::entity entity, entt::registry &registry, edyn::island &) {
-    registry.assign<ColorComponent>(entity, 0x80000000 | (0x00ffffff & rand()));
+    registry.assign<ColorComponent>(entity, 0xff000000 | (0x00ffffff & rand()));
 }
 
 void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
