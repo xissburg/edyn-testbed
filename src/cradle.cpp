@@ -1,10 +1,10 @@
 #include "edyn_example.hpp"
 
-class ExampleCradle : public EDynExample
+class ExampleCradle : public EdynExample
 {
 public:
 	ExampleCradle(const char* _name, const char* _description, const char* _url)
-		: EDynExample(_name, _description, _url)
+		: EdynExample(_name, _description, _url)
 	{
 
 	}

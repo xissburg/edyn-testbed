@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.2)
 
-project(EDynTestbed VERSION 0.0.0 LANGUAGES CXX)
+project(EdynTestbed VERSION 0.0.0 LANGUAGES CXX)
 
 #
 # Explicit debug build by default
@@ -30,9 +30,9 @@ add_compile_definitions(ENTT_DISABLE_ASSERT)
 # Dependencies
 #
 
-set(EDyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "EDyn include directory.")
-find_library(EDyn_LIBRARY EDyn PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
-find_library(EDyn_LIBRARY_DEBUG EDyn_d PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
+set(Edyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "Edyn include directory.")
+find_library(Edyn_LIBRARY Edyn PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
+find_library(Edyn_LIBRARY_DEBUG Edyn_d PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
 
 set(Bx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bx/include CACHE PATH "bx include directory.")
 set(Bgfx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bgfx/include;${CMAKE_SOURCE_DIR}/../bgfx/examples;${CMAKE_SOURCE_DIR}/../bgfx/3rdparty CACHE PATH "bgfx include directory.")
@@ -65,7 +65,7 @@ conan_basic_setup()
 # Executable
 #
 
-set(EDynTestbed_SOURCES
+set(EdynTestbed_SOURCES
     src/main.cpp
     src/debugdraw.cpp
     src/edyn_example.cpp
@@ -79,23 +79,23 @@ set(EDynTestbed_SOURCES
     src/boxes.cpp
 )
 
-add_executable(EDynTestbed ${EDynTestbed_SOURCES})
+add_executable(EdynTestbed ${EdynTestbed_SOURCES})
 
-target_include_directories(EDynTestbed
+target_include_directories(EdynTestbed
     PUBLIC ${CMAKE_SOURCE_DIR}/include
 )
 
-target_include_directories(EDynTestbed SYSTEM
-    PUBLIC ${EDyn_INCLUDE_DIR}
+target_include_directories(EdynTestbed SYSTEM
+    PUBLIC ${Edyn_INCLUDE_DIR}
     PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
     PUBLIC ${Bx_INCLUDE_DIR}
     PUBLIC ${Bgfx_INCLUDE_DIR}
     PUBLIC ${Bimg_INCLUDE_DIR}
 )
 
-target_compile_features(EDynTestbed PUBLIC cxx_std_17)
+target_compile_features(EdynTestbed PUBLIC cxx_std_17)
 
-target_link_libraries(EDynTestbed
+target_link_libraries(EdynTestbed
     optimized ${BgfxExampleGlue_LIBRARY_RELEASE}
     debug ${BgfxExampleGlue_LIBRARY_DEBUG}
     optimized ${BgfxExampleCommon_LIBRARY_RELEASE}
@@ -110,12 +110,12 @@ target_link_libraries(EDynTestbed
     debug ${Bgfx_LIBRARY_DEBUG}
     optimized ${Bx_LIBRARY_RELEASE}
     debug ${Bx_LIBRARY_DEBUG}
-    optimized ${EDyn_LIBRARY}
-    debug ${EDyn_LIBRARY_DEBUG}
+    optimized ${Edyn_LIBRARY}
+    debug ${Edyn_LIBRARY_DEBUG}
 )
 
 if (UNIX AND NOT APPLE)
-    target_link_libraries(EDynTestbed
+    target_link_libraries(EdynTestbed
         dl
         pthread
         X11

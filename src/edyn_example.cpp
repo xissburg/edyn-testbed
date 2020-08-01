@@ -2,12 +2,12 @@
 #include <fenv.h> 
 
 void cmdTogglePause(const void* _userData) {
-    ((EDynExample *)_userData)->m_pause = !((EDynExample *)_userData)->m_pause;
+    ((EdynExample *)_userData)->m_pause = !((EdynExample *)_userData)->m_pause;
 }
 
 void cmdStepSimulation(const void* _userData) {
-    auto &world = ((EDynExample *)_userData)->m_registry.ctx<edyn::world>();
-    ((EDynExample *)_userData)->updatePhysics(world.fixed_dt);
+    auto &world = ((EdynExample *)_userData)->m_registry.ctx<edyn::world>();
+    ((EdynExample *)_userData)->updatePhysics(world.fixed_dt);
 }
 
 void OnCreateIsland(entt::entity entity, entt::registry &registry, edyn::island &) {
@@ -18,7 +18,7 @@ void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
     registry.remove<ColorComponent>(entity);
 }
 
-void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
+void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
     feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
     
@@ -65,7 +65,7 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry.on_construct<edyn::island>().connect<&OnCreateIsland>();
     m_registry.on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
-    // Start EDyn default dispatcher.
+    // Start Edyn default dispatcher.
     if (edyn::job_dispatcher::global().num_workers() == 0) {
         edyn::job_dispatcher::global().start();
     }
@@ -85,7 +85,7 @@ void EDynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     createScene();
 }
 
-int EDynExample::shutdown()
+int EdynExample::shutdown()
 {
     // Cleanup.
     ddShutdown();
@@ -103,7 +103,7 @@ int EDynExample::shutdown()
     return 0;
 }
 
-bool EDynExample::update()
+bool EdynExample::update()
 {
     if (entry::processEvents(m_width, m_height, m_debug, m_reset, &m_mouseState) ) {
         return false;
@@ -267,9 +267,6 @@ bool EDynExample::update()
         auto view = m_registry.view<edyn::constraint, const edyn::relation>();
         view.each([&] (auto ent, auto &con, auto &rel) {
             std::visit([&] (auto &&c) {
-                // Force constraints to update the internals before drawing.
-                // c.prepare(ent, con, rel, m_registry, std::max(deltaTime, edyn::scalar(0.001)));
-
                 draw(dde, ent, c, rel, m_registry);
             }, con.var);
         });
@@ -366,7 +363,7 @@ bool EDynExample::update()
     return true;
 }
 
-void EDynExample::updatePhysics(float deltaTime) {
+void EdynExample::updatePhysics(float deltaTime) {
     auto& world = m_registry.ctx<edyn::world>();
     world.update(std::min(deltaTime, 0.1f));
 }

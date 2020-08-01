@@ -1,10 +1,10 @@
 #include "edyn_example.hpp"
 
-class ExampleCylinders : public EDynExample
+class ExampleCylinders : public EdynExample
 {
 public:
 	ExampleCylinders(const char* _name, const char* _description, const char* _url)
-		: EDynExample(_name, _description, _url)
+		: EdynExample(_name, _description, _url)
 	{
 
 	}
