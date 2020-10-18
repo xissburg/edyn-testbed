@@ -33,19 +33,19 @@ inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh);
 void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh);
 
-void draw(DebugDrawEncoder &dde, entt::entity, const edyn::contact_constraint &, const edyn::relation &, const entt::registry &);
+void draw(DebugDrawEncoder &dde, entt::entity, const edyn::contact_constraint &, const edyn::constraint &, const entt::registry &);
 
-inline void draw(DebugDrawEncoder &dde, entt::entity, const edyn::point_constraint &, const edyn::relation &, const entt::registry &) {
+inline void draw(DebugDrawEncoder &dde, entt::entity, const edyn::point_constraint &, const edyn::constraint &, const entt::registry &) {
 
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity, const edyn::distance_constraint &, const edyn::relation &, const entt::registry &);
-void draw(DebugDrawEncoder &dde, entt::entity, const edyn::soft_distance_constraint &, const edyn::relation &, const entt::registry &);
+void draw(DebugDrawEncoder &dde, entt::entity, const edyn::distance_constraint &, const edyn::constraint &, const entt::registry &);
+void draw(DebugDrawEncoder &dde, entt::entity, const edyn::soft_distance_constraint &, const edyn::constraint &, const entt::registry &);
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const edyn::relation &rel, const entt::registry &reg);
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const edyn::constraint &rel, const entt::registry &reg);
 
 inline
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::generic_constraint &con, const edyn::relation &rel, const entt::registry &reg) {
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::generic_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
 
 }
 
