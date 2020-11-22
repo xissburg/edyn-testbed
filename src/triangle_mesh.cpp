@@ -4,9 +4,8 @@
 #include <iostream>
 
 void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &cp) {
-    auto &manifold = reg.get<edyn::contact_manifold>(cp.parent);
-    auto posA = reg.get<edyn::position>(manifold.body[0]);
-    auto ornA = reg.get<edyn::orientation>(manifold.body[0]);
+    auto posA = reg.get<edyn::position>(cp.body[0]);
+    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
     auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
     edyn::scalar impulse = 0;
 
@@ -21,9 +20,8 @@ void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &
 
 void ContactEnded(entt::registry &reg, entt::entity ent) {
     auto &cp = reg.get<edyn::contact_point>(ent);
-    auto &manifold = reg.get<edyn::contact_manifold>(cp.parent);
-    auto posA = reg.get<edyn::position>(manifold.body[0]);
-    auto ornA = reg.get<edyn::orientation>(manifold.body[0]);
+    auto posA = reg.get<edyn::position>(cp.body[0]);
+    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
     auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
     std::cout << "Ended | pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
 }

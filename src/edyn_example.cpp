@@ -183,7 +183,7 @@ bool EdynExample::update()
                 auto container = m_registry.try_get<edyn::island_container>(ent);
                 if (container && !container->entities.empty()) {
                     auto island_entity = container->entities.front();
-                    assert(m_registry.has<edyn::island>(island_entity));
+                    //assert(m_registry.has<edyn::island>(island_entity));
                     color = m_registry.get<ColorComponent>(island_entity);
                 }
             }
@@ -355,12 +355,12 @@ bool EdynExample::update()
                 auto& world = m_registry.ctx<edyn::world>();
                 world.refresh<edyn::position, edyn::linvel>(m_pick_entity);
             }
-        }/*  else if (m_pick_entity != entt::null) {
+        } else if (m_pick_entity != entt::null) {
             m_registry.destroy(m_pick_constraint_entity);
             m_registry.destroy(m_pick_entity);
             m_pick_constraint_entity = entt::null;
             m_pick_entity = entt::null;
-        } */
+        }
     }
 
     return true;
