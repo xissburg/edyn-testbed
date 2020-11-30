@@ -38,11 +38,11 @@ public:
         //def.gravity = {0,0,0};
         def.update_inertia();
 
-        const auto n = 30;
+        const auto n = 20;
 
         for (int i = 0; i < n; ++i) {
             //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};
-            def.position = {0, edyn::scalar(0.2 + i * 0.4), 0};
+            def.position = {0, edyn::scalar(0.6 + i * 0.6), 0};
             if (i == 1) {
                 def.position.x += 0.01;
                 def.position.z -= 0.01;

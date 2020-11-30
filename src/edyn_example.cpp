@@ -182,8 +182,8 @@ bool EdynExample::update()
             } else {
                 auto container = m_registry.try_get<edyn::island_container>(ent);
                 if (container && !container->entities.empty()) {
-                    auto island_entity = container->entities.front();
-                    //assert(m_registry.has<edyn::island>(island_entity));
+                    auto island_entity = *container->entities.begin();
+                    assert(m_registry.valid(island_entity));
                     color = m_registry.get<ColorComponent>(island_entity);
                 }
             }
