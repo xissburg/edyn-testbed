@@ -1,5 +1,10 @@
 #include "edyn_example.hpp"
 
+void on_construct_contact_point(entt::registry &registry, entt::entity entity) {
+    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
+    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
+}
+
 class ExampleBoxes : public EdynExample
 {
 public:
@@ -38,7 +43,7 @@ public:
         //def.gravity = {0,0,0};
         def.update_inertia();
 
-        const auto n = 20;
+        const auto n = 92;
 
         for (int i = 0; i < n; ++i) {
             //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};
@@ -49,6 +54,8 @@ public:
             }
             edyn::make_rigidbody(m_registry, def);
         }
+
+        m_registry.on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
 
         //m_pause = true;
 	}
