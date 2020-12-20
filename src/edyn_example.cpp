@@ -351,9 +351,12 @@ bool EdynExample::update()
                 auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
                 auto s = dist / edyn::dot(ray_dir, plane_normal);
                 auto next_pick_pos = cam_pos + ray_dir * s;
-                edyn::update_kinematic_position(m_registry, m_pick_entity, next_pick_pos, deltaTime);
-                auto& world = m_registry.ctx<edyn::world>();
-                world.refresh<edyn::position, edyn::linvel>(m_pick_entity);
+
+                if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
+                    edyn::update_kinematic_position(m_registry, m_pick_entity, next_pick_pos, deltaTime);
+                    m_registry.get_or_emplace<edyn::dirty>(m_pick_entity)
+                        .updated<edyn::position, edyn::linvel>();
+                }
             }
         } else if (m_pick_entity != entt::null) {
             m_registry.destroy(m_pick_constraint_entity);
