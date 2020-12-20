@@ -4,9 +4,8 @@
 #include <iostream>
 
 void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &cp) {
-    auto &rel = reg.get<edyn::relation>(cp.parent);
-    auto posA = reg.get<edyn::position>(rel.entity[0]);
-    auto ornA = reg.get<edyn::orientation>(rel.entity[0]);
+    auto posA = reg.get<edyn::position>(cp.body[0]);
+    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
     auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
     edyn::scalar impulse = 0;
 
@@ -19,11 +18,10 @@ void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &
     std::cout << "Started | imp: " << impulse << " pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
 }
 
-void ContactEnded(entt::entity ent, entt::registry &reg) {
+void ContactEnded(entt::registry &reg, entt::entity ent) {
     auto &cp = reg.get<edyn::contact_point>(ent);
-    auto &rel = reg.get<edyn::relation>(cp.parent);
-    auto posA = reg.get<edyn::position>(rel.entity[0]);
-    auto ornA = reg.get<edyn::orientation>(rel.entity[0]);
+    auto posA = reg.get<edyn::position>(cp.body[0]);
+    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
     auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
     std::cout << "Ended | pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
 }
@@ -96,7 +94,7 @@ public:
         trimesh->vertices.push_back({1, 0, 1});
         trimesh->vertices.push_back({1, 0.1, -1});
         trimesh->vertices.push_back({-1, 0, -1});
-        trimesh->vertices.push_back({-1, 0.2, 1});
+        trimesh->vertices.push_back({-1, -0.3, 1});
 
         trimesh->indices.push_back(0);
         trimesh->indices.push_back(1);
@@ -157,20 +155,25 @@ public:
 
         edyn::make_rigidbody(m_registry, floor_def);
 
-        // Add some spheres.
+        // Add some dynamic entities.
         {
             auto def = edyn::rigidbody_def();
             def.presentation = true;
             def.friction = 0.8;
             def.mass = 100;
-            def.shape_opt = {edyn::sphere_shape{0.3}};
-            def.update_inertia();
             def.restitution = 0.5;
             def.position = {0, 5, 0};
 
             const size_t n = 10;
             for (size_t i = 0; i < n; ++i) {
-                def.position = {0, edyn::scalar(1.8 + i * 0.7), 0};
+                if (i % 2 == 0) {
+                    def.shape_opt = {edyn::box_shape{0.3, 0.3, 0.3}};
+                 }else {
+                    def.shape_opt = {edyn::sphere_shape{0.3}};
+                 }
+
+                def.update_inertia();
+                def.position = {0, edyn::scalar(0.8 + i * 0.7), 0};
                 edyn::make_rigidbody(m_registry, def);
             }
         }
@@ -185,7 +188,7 @@ public:
         // Listen to the step signal in `edyn::world` and look for `edyn::contact_point`s
         // that have lifetime equal to zero.
         auto &world = m_registry.ctx<edyn::world>();
-        world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);
+        //world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);
 
         m_pause = true;
     }
@@ -205,7 +208,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleTriangleMesh
-	, "00-triangle-mesh"
+	, "01-triangle-mesh"
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);

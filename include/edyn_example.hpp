@@ -42,6 +42,8 @@ public:
 
     virtual void createScene() = 0;
     virtual void updatePhysics(float deltaTime);
+    void togglePausePhysics();
+    void stepPhysics();
 
 	entry::MouseState m_mouseState;
 

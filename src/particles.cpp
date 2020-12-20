@@ -114,7 +114,7 @@ public:
 
         m_timeOffset = bx::getHPCounter();
 
-        registry.reset();
+        registry.clear();
 
         registry.ctx_or_set<edyn::world>(registry);
         
@@ -149,8 +149,7 @@ public:
         for (size_t i = 0; i < entities.size(); ++i) {
             for (size_t j = i + 1; j < entities.size(); ++j) {
                 auto ent = registry.create();
-                registry.assign<edyn::relation>(ent, entities[i], entities[j]);
-                registry.assign<edyn::gravity>(ent);
+                registry.emplace<edyn::gravity>(ent, std::array<entt::entity, 2>{entities[i], entities[j]});
             }
         }
 	}
@@ -249,10 +248,10 @@ public:
 
         // Update physics.
         auto& world = registry.ctx<edyn::world>();
-        world.update(deltaTime);
+        world.update();
 
         // Draw entities.
-        auto view = registry.view<const edyn::present_position, const edyn::present_orientation>();
+        auto view = registry.view<edyn::present_position, edyn::present_orientation>();
         view.each([&] (auto ent, auto &pos, auto &orn) {
             auto quat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
@@ -321,7 +320,7 @@ public:
                 const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
                 if (pick_entity == entt::null) {                    
-                    auto view = registry.view<const edyn::present_position>();
+                    auto view = registry.view<edyn::present_position>();
                     view.each([&] (auto ent, auto &pos) {
                         if (pick_entity != entt::null) {
                             return;
@@ -339,13 +338,13 @@ public:
                                 auto pick_pos = cam_pos + ray_dir * t;
 
                                 pick_entity = registry.create();
-                                registry.assign<edyn::kinematic_tag>(pick_entity);
-                                registry.assign<edyn::position>(pick_entity, pick_pos);
-                                registry.assign<edyn::orientation>(pick_entity, edyn::quaternion_identity);
-                                registry.assign<edyn::linvel>(pick_entity, edyn::vector3_zero);
-                                registry.assign<edyn::angvel>(pick_entity, edyn::vector3_zero);
-                                registry.assign<edyn::mass>(pick_entity, EDYN_SCALAR_MAX);
-                                registry.assign<edyn::inertia>(pick_entity, edyn::vector3_max);
+                                registry.emplace<edyn::kinematic_tag>(pick_entity);
+                                registry.emplace<edyn::position>(pick_entity, pick_pos);
+                                registry.emplace<edyn::orientation>(pick_entity, edyn::quaternion_identity);
+                                registry.emplace<edyn::linvel>(pick_entity, edyn::vector3_zero);
+                                registry.emplace<edyn::angvel>(pick_entity, edyn::vector3_zero);
+                                registry.emplace<edyn::mass>(pick_entity, EDYN_SCALAR_MAX);
+                                registry.emplace<edyn::inertia>(pick_entity, edyn::vector3_max);
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
@@ -354,7 +353,7 @@ public:
                         }
                     });
                 } else {
-                    const auto &pick_pos = registry.get<const edyn::position>(pick_entity);
+                    const auto &pick_pos = registry.get<edyn::position>(pick_entity);
                     const auto plane_normal = edyn::normalize(cam_at - cam_pos);
                     auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
                     auto s = dist / edyn::dot(ray_dir, plane_normal);

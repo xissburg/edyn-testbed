@@ -2,20 +2,19 @@
 #include <fenv.h> 
 
 void cmdTogglePause(const void* _userData) {
-    ((EdynExample *)_userData)->m_pause = !((EdynExample *)_userData)->m_pause;
+    ((EdynExample *)_userData)->togglePausePhysics();
 }
 
 void cmdStepSimulation(const void* _userData) {
-    auto &world = ((EdynExample *)_userData)->m_registry.ctx<edyn::world>();
-    ((EdynExample *)_userData)->updatePhysics(world.fixed_dt);
+    ((EdynExample *)_userData)->stepPhysics();
 }
 
-void OnCreateIsland(entt::entity entity, entt::registry &registry, edyn::island &) {
-    registry.assign<ColorComponent>(entity, 0xff000000 | (0x00ffffff & rand()));
+void OnCreateIsland(entt::registry &registry, entt::entity entity) {
+    registry.emplace<ColorComponent>(entity, 0xff000000 | (0x00ffffff & rand()));
 }
 
-void OnDestroyIsland(entt::entity entity, entt::registry &registry) {
-    registry.remove<ColorComponent>(entity);
+void OnDestroyIsland(entt::registry &registry, entt::entity entity) {
+    //registry.remove<ColorComponent>(entity);
 }
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
@@ -60,19 +59,16 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     m_timeOffset = bx::getHPCounter();
 
-    m_registry.reset();
+    m_registry.clear();
 
     m_registry.on_construct<edyn::island>().connect<&OnCreateIsland>();
     m_registry.on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
-    // Start Edyn default dispatcher.
-    if (edyn::job_dispatcher::global().num_workers() == 0) {
-        edyn::job_dispatcher::global().start();
-    }
+    edyn::init();
 
     // Setup world.
     auto& world = m_registry.ctx_or_set<edyn::world>(m_registry);
-    world.fixed_dt = 1.0/60;
+    world.m_fixed_dt = 1.0/60;
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
@@ -162,9 +158,7 @@ bool EdynExample::update()
     imguiEndFrame();
 
     // Update physics.
-    if (!m_pause) {
-        updatePhysics(deltaTime);
-    }
+    updatePhysics(deltaTime);
 
     bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
 
@@ -177,7 +171,7 @@ bool EdynExample::update()
 
     // Draw entities.
     {
-        auto view = m_registry.view<const edyn::shape, const edyn::present_position, const edyn::present_orientation>();
+        auto view = m_registry.view<edyn::shape, edyn::present_position, edyn::present_orientation>();
         view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
             dde.push();
 
@@ -186,10 +180,11 @@ bool EdynExample::update()
             if (m_registry.has<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
             } else {
-                auto node = m_registry.try_get<edyn::island_node>(ent);
-                if (node) {
-                    assert(m_registry.has<edyn::island>(node->island_entity));
-                    color = m_registry.get<ColorComponent>(node->island_entity);
+                auto container = m_registry.try_get<edyn::island_container>(ent);
+                if (container && !container->entities.empty()) {
+                    auto island_entity = *container->entities.begin();
+                    assert(m_registry.valid(island_entity));
+                    color = m_registry.get<ColorComponent>(island_entity);
                 }
             }
             dde.setColor(color);
@@ -238,7 +233,7 @@ bool EdynExample::update()
 
     // Draw amorphous entities.
     {
-        auto view = m_registry.view<const edyn::present_position, const edyn::present_orientation>(entt::exclude_t<edyn::shape>{});
+        auto view = m_registry.view<edyn::present_position, edyn::present_orientation>(entt::exclude_t<edyn::shape>{});
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 
@@ -264,10 +259,10 @@ bool EdynExample::update()
 
     // Draw constraints.
     {
-        auto view = m_registry.view<edyn::constraint, const edyn::relation>();
-        view.each([&] (auto ent, auto &con, auto &rel) {
+        auto view = m_registry.view<edyn::constraint>();
+        view.each([&] (auto ent, auto &con) {
             std::visit([&] (auto &&c) {
-                draw(dde, ent, c, rel, m_registry);
+                draw(dde, ent, c, con, m_registry);
             }, con.var);
         });
     }
@@ -304,10 +299,12 @@ bool EdynExample::update()
             const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
             const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
-            if (m_pick_entity == entt::null) {                    
-                auto view = m_registry.view<const edyn::present_position, const edyn::mass>();
+            if (m_pick_entity == entt::null) {      
+                entt::entity picked_entity = entt::null;
+
+                auto view = m_registry.view<edyn::present_position, edyn::mass>();
                 view.each([&] (auto ent, auto &pos, auto &mass) {
-                    if (m_pick_entity != entt::null || mass == EDYN_SCALAR_MAX) {
+                    if (picked_entity != entt::null || mass == EDYN_SCALAR_MAX) {
                         return;
                     }
 
@@ -317,45 +314,54 @@ bool EdynExample::update()
                     if (s > 0) {
                         const auto dist = std::sqrt(edyn::length_sqr(v) - s * s);
                         if (dist < 1) {
-                            const auto plane_normal = edyn::normalize(cam_at - cam_pos);
-                            auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);
-                            auto t = cam_dist / edyn::dot(ray_dir, plane_normal);
-                            auto pick_pos = cam_pos + ray_dir * t;
-
-                            m_pick_entity = m_registry.create();
-                            m_registry.assign<edyn::kinematic_tag>(m_pick_entity);
-                            m_registry.assign<edyn::position>(m_pick_entity, pick_pos);
-                            m_registry.assign<edyn::orientation>(m_pick_entity, edyn::quaternion_identity);
-                            m_registry.assign<edyn::linvel>(m_pick_entity, edyn::vector3_zero);
-                            m_registry.assign<edyn::angvel>(m_pick_entity, edyn::vector3_zero);
-                            m_registry.assign<edyn::mass>(m_pick_entity, EDYN_SCALAR_MAX);
-                            m_registry.assign<edyn::inertia>(m_pick_entity, edyn::vector3_max);
-
-                            auto &orientation = m_registry.get<edyn::orientation>(ent);
-                            auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
-
-                            auto constraint = edyn::soft_distance_constraint();
-                            constraint.pivot[0] = pivot;
-                            constraint.pivot[1] = edyn::vector3_zero;
-                            constraint.distance = 0;
-                            constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
-                            constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
-                            m_pick_constraint_entity = edyn::make_constraint(m_registry, constraint, ent, m_pick_entity);
+                            picked_entity = ent;
+                            // Do not create kinematic entity and constraint while iterating view.
+                            // Do it afterwards to avoid possible undefined behavior when changing
+                            // the storage while iterating.
                         }
                     }
                 });
+
+                if (picked_entity != entt::null) {
+                    const auto plane_normal = edyn::normalize(cam_at - cam_pos);
+                    auto &pos = view.get<edyn::present_position>(picked_entity);
+                    auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);
+                    auto t = cam_dist / edyn::dot(ray_dir, plane_normal);
+                    auto pick_pos = cam_pos + ray_dir * t;
+                    auto &orientation = m_registry.get<edyn::orientation>(picked_entity);
+                    auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
+                    
+                    auto pick_def = edyn::rigidbody_def{};
+                    pick_def.position = pick_pos;
+                    pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
+                    m_pick_entity = edyn::make_rigidbody(m_registry, pick_def);
+
+                    auto &mass = view.get<edyn::mass>(picked_entity);
+                    auto constraint = edyn::soft_distance_constraint();
+                    constraint.pivot[0] = pivot;
+                    constraint.pivot[1] = edyn::vector3_zero;
+                    constraint.distance = 0;
+                    constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
+                    constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
+                    m_pick_constraint_entity = edyn::make_constraint(m_registry, constraint, picked_entity, m_pick_entity);
+                }
             } else {
-                const auto &pick_pos = m_registry.get<const edyn::position>(m_pick_entity);
+                const auto &pick_pos = m_registry.get<edyn::position>(m_pick_entity);
                 const auto plane_normal = edyn::normalize(cam_at - cam_pos);
                 auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
                 auto s = dist / edyn::dot(ray_dir, plane_normal);
                 auto next_pick_pos = cam_pos + ray_dir * s;
-                edyn::update_kinematic_position(m_registry, m_pick_entity, next_pick_pos, deltaTime);
+
+                if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
+                    edyn::update_kinematic_position(m_registry, m_pick_entity, next_pick_pos, deltaTime);
+                    m_registry.get_or_emplace<edyn::dirty>(m_pick_entity)
+                        .updated<edyn::position, edyn::linvel>();
+                }
             }
         } else if (m_pick_entity != entt::null) {
             m_registry.destroy(m_pick_constraint_entity);
-            m_pick_constraint_entity = entt::null;
             m_registry.destroy(m_pick_entity);
+            m_pick_constraint_entity = entt::null;
             m_pick_entity = entt::null;
         }
     }
@@ -365,5 +371,16 @@ bool EdynExample::update()
 
 void EdynExample::updatePhysics(float deltaTime) {
     auto& world = m_registry.ctx<edyn::world>();
-    world.update(std::min(deltaTime, 0.1f));
+    world.update();
+}
+
+void EdynExample::togglePausePhysics() {
+    m_pause = !m_pause;
+    auto& world = m_registry.ctx<edyn::world>();
+    world.set_paused(m_pause);
+}
+
+void EdynExample::stepPhysics() {
+    auto& world = m_registry.ctx<edyn::world>();
+    world.step();
 }
