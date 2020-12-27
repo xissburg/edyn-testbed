@@ -43,7 +43,7 @@ public:
         //def.gravity = {0,0,0};
         def.update_inertia();
 
-        const auto n = 92;
+        const auto n = 101;
 
         for (int i = 0; i < n; ++i) {
             //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};

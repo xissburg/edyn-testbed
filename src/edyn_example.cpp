@@ -1,5 +1,5 @@
 #include "edyn_example.hpp"
-#include <fenv.h> 
+#include <fenv.h>
 
 void cmdTogglePause(const void* _userData) {
     ((EdynExample *)_userData)->togglePausePhysics();
@@ -34,6 +34,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     init.resolution.width  = m_width;
     init.resolution.height = m_height;
     init.resolution.reset  = m_reset;
+    init.callback = &m_callback;
     bgfx::init(init);
 
     // Enable debug text.

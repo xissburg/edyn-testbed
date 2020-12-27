@@ -114,6 +114,14 @@ target_link_libraries(EdynTestbed
     debug ${Edyn_LIBRARY_DEBUG}
 )
 
+#
+# Sanitize
+#
+
+if(CMAKE_BUILD_TYPE EQUAL "Debug")
+    #add_compile_definitions(-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined)
+endif()
+
 if (UNIX AND NOT APPLE)
     target_link_libraries(EdynTestbed
         dl
