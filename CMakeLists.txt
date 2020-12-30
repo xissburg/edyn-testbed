@@ -79,7 +79,13 @@ set(EdynTestbed_SOURCES
     src/boxes.cpp
 )
 
-add_executable(EdynTestbed ${EdynTestbed_SOURCES})
+if (APPLE)
+	add_executable(EdynTestbed MACOSX_BUNDLE ${EdynTestbed_SOURCES})
+elseif (WIN32)
+	add_executable(EdynTestbed WIN32 ${EdynTestbed_SOURCES})
+else ()
+	add_executable(EdynTestbed ${EdynTestbed_SOURCES})
+endif ()
 
 target_include_directories(EdynTestbed
     PUBLIC ${CMAKE_SOURCE_DIR}/include
@@ -113,6 +119,11 @@ target_link_libraries(EdynTestbed
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
 )
+
+if (APPLE)
+    set_target_properties(EdynTestbed PROPERTIES
+        LINK_FLAGS "-framework Cocoa -framework Metal -framework QuartzCore")
+endif()
 
 #
 # Sanitize
