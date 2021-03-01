@@ -11,7 +11,7 @@ void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &
 
     auto *con = reg.try_get<edyn::constraint>(ent);
     if (con) {
-        auto &row = reg.get<edyn::constraint_row>(con->row[0]);
+        auto &row = reg.get<edyn::constraint_row_data>(con->row[0]);
         impulse = row.impulse;
     }
 

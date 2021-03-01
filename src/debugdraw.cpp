@@ -29,7 +29,7 @@ void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
     //auto &posA = reg.get<edyn::position>(rel.body[0]);
     //auto &ornA = reg.get<edyn::orientation>(rel.body[0]);
-    auto &posB = reg.get<edyn::position>(rel.body[1]);
+    /* auto &posB = reg.get<edyn::position>(rel.body[1]);
     auto &ornB = reg.get<edyn::orientation>(rel.body[1]);
     
     auto &cp = reg.get<edyn::contact_point>(entity);
@@ -43,7 +43,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     dde.moveTo(pB.x, pB.y, pB.z);
     dde.lineTo(tip.x, tip.y, tip.z);
 
-    dde.pop();
+    dde.pop(); */
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {

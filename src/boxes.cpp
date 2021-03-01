@@ -43,21 +43,49 @@ public:
         //def.gravity = {0,0,0};
         def.update_inertia();
 
-        const auto n = 101;
+    #if 0
+        const auto n = 3;
 
         for (int i = 0; i < n; ++i) {
             //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};
-            def.position = {0, edyn::scalar(0.6 + i * 0.6), 0};
+            def.position = {edyn::scalar(0.6 + i * 0.99), 0.6, 0};
             if (i == 1) {
                 def.position.x += 0.01;
                 def.position.z -= 0.01;
             }
             edyn::make_rigidbody(m_registry, def);
         }
+    #else
+        /* for (int i = 0; i < 10; ++i) {
+            for (int j = 0; j < 10; ++j) {
+                //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};
+                def.position = {edyn::scalar(-5 + j), edyn::scalar(0.6 + i * 0.6), 0};
+                if (i == 1) {
+                    def.position.x += 0.01;
+                    def.position.z -= 0.01;
+                }
+                edyn::make_rigidbody(m_registry, def);
+            }
+        } */
 
-        m_registry.on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
+        for (int i = 0; i < 10; ++i) {
+            for (int j = 0; j < 10; ++j) {
+                for (int k = 0; k < 10; ++k) {
+                    for (int l = 0; l < 1; ++l) {
 
-        //m_pause = true;
+                    def.position = {edyn::scalar(0.4 * j + l * 7), edyn::scalar(0.6 + 0.4 * i), edyn::scalar(0.4 * k)};
+                    edyn::make_rigidbody(m_registry, def);
+                    }
+                }
+            }
+        }
+    #endif
+
+        //m_registry.on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
+
+        m_pause = true;
+        auto& world = m_registry.ctx<edyn::world>();
+        world.set_paused(m_pause);
 	}
 };
 

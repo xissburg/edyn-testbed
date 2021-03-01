@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/comp/island.hpp>
 #include <fenv.h>
 
 void cmdTogglePause(const void* _userData) {
@@ -19,7 +20,7 @@ void OnDestroyIsland(entt::registry &registry, entt::entity entity) {
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
-    feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
+    //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
     
     Args args(_argc, _argv);
 
@@ -181,11 +182,9 @@ bool EdynExample::update()
             if (m_registry.has<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
             } else {
-                auto container = m_registry.try_get<edyn::island_container>(ent);
-                if (container && !container->entities.empty()) {
-                    auto island_entity = *container->entities.begin();
-                    assert(m_registry.valid(island_entity));
-                    color = m_registry.get<ColorComponent>(island_entity);
+                auto *resident = m_registry.try_get<edyn::island_resident>(ent);
+                if (resident) {
+                    color = m_registry.get<ColorComponent>(resident->island_entity);
                 }
             }
             dde.setColor(color);

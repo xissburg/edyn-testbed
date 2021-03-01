@@ -101,6 +101,14 @@ target_include_directories(EdynTestbed SYSTEM
 
 target_compile_features(EdynTestbed PUBLIC cxx_std_17)
 
+# Sanitize
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    #target_compile_options(EdynTestbed PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined)
+endif()
+
+# Link libraries
+
 target_link_libraries(EdynTestbed
     optimized ${BgfxExampleGlue_LIBRARY_RELEASE}
     debug ${BgfxExampleGlue_LIBRARY_DEBUG}
@@ -118,19 +126,13 @@ target_link_libraries(EdynTestbed
     debug ${Bx_LIBRARY_DEBUG}
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
+    #-fsanitize=address 
+    #-fsanitize=undefined
 )
 
 if (APPLE)
     set_target_properties(EdynTestbed PROPERTIES
         LINK_FLAGS "-framework Cocoa -framework Metal -framework QuartzCore")
-endif()
-
-#
-# Sanitize
-#
-
-if(CMAKE_BUILD_TYPE EQUAL "Debug")
-    #add_compile_definitions(-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined)
 endif()
 
 if (UNIX AND NOT APPLE)

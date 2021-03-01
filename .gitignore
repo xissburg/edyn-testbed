@@ -2,6 +2,7 @@
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
+.cache
 
 # build
 build
