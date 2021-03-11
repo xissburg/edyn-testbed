@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/island.hpp>
+#include <edyn/comp/tag.hpp>
 #include <fenv.h>
 
 
@@ -174,7 +175,7 @@ bool EdynExample::update()
     // Grid.
     dde.drawGrid(Axis::Y, { 0.0f, 0.0f, 0.0f });
 
-    // Draw entities.
+    // Draw dynamic entities.
     {
         auto view = m_registry->view<edyn::shape, edyn::present_position, edyn::present_orientation>();
         view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
@@ -230,6 +231,38 @@ bool EdynExample::update()
             }, sh.var);
             #endif
 
+            dde.pop();
+        });
+    }
+
+    // Draw static entities.
+    {
+        auto view = m_registry->view<edyn::shape, edyn::position, edyn::orientation, edyn::static_tag>();
+        view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
+            dde.push();
+
+            uint32_t color = 0xffa0a0a0;
+            dde.setColor(color);
+            //dde.setWireframe(true);
+
+            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            float rot[16];
+            bx::mtxQuat(rot, bxquat);
+            float rotT[16];
+            bx::mtxTranspose(rotT, rot);
+            float trans[16];
+            bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+
+            float mtx[16];
+            bx::mtxMul(mtx, rotT, trans);
+            dde.pushTransform(mtx);
+            
+            std::visit([&] (auto &&s) {
+                draw(dde, s);
+            }, sh.var);
+
+            dde.drawAxis(0, 0, 0, 0.15);
+            dde.popTransform();
             dde.pop();
         });
     }
