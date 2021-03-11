@@ -1,6 +1,7 @@
 #ifndef EDYN_TESTBED_EDYN_EXAMPLE_HPP
 #define EDYN_TESTBED_EDYN_EXAMPLE_HPP
 
+#include <memory>
 #include <edyn/edyn.hpp>
 #include <entt/entt.hpp>
 
@@ -73,7 +74,7 @@ public:
 
     bool m_pause;
 
-    entt::registry m_registry;
+    std::unique_ptr<entt::registry> m_registry;
     entt::entity m_pick_entity {entt::null};
     entt::entity m_pick_constraint_entity {entt::null};
 };

@@ -18,7 +18,7 @@ public:
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
-        edyn::make_rigidbody(m_registry, floor_def);
+        edyn::make_rigidbody(*m_registry, floor_def);
         
         // Add some cylinders.
         auto def = edyn::rigidbody_def();
@@ -31,17 +31,17 @@ public:
 
         def.position = {0, 2, 0};
         def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi);
-        auto entA = edyn::make_rigidbody(m_registry, def);
+        auto entA = edyn::make_rigidbody(*m_registry, def);
 
         def.position = {0, 2, 0.8};
         def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
-        auto entB = edyn::make_rigidbody(m_registry, def);
+        auto entB = edyn::make_rigidbody(*m_registry, def);
 
         auto hinge = edyn::hinge_constraint();
         hinge.pivot[0] = {0, 0, 0.4};
         hinge.pivot[1] = {0, 0, -0.4};
-        hinge.set_axis(m_registry.get<edyn::orientation>(entA), edyn::vector3_z, -edyn::vector3_z);
-        edyn::make_constraint(m_registry, hinge, entA, entB);
+        hinge.set_axis(m_registry->get<edyn::orientation>(entA), edyn::vector3_z, -edyn::vector3_z);
+        edyn::make_constraint(*m_registry, hinge, entA, entB);
 	}
 };
 

@@ -28,7 +28,7 @@ public:
         //floor_def.shape_opt = {edyn::box_shape{{2, 0.5, 2}}};// {edyn::plane_shape{{0, 1, 0}, 0}};
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
         floor_def.presentation = true;
-        edyn::make_rigidbody(m_registry, floor_def);
+        edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some boxes.
         auto def = edyn::rigidbody_def();
@@ -53,7 +53,7 @@ public:
                 def.position.x += 0.01;
                 def.position.z -= 0.01;
             }
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
         }
     #else
         /* for (int i = 0; i < 10; ++i) {
@@ -64,27 +64,27 @@ public:
                     def.position.x += 0.01;
                     def.position.z -= 0.01;
                 }
-                edyn::make_rigidbody(m_registry, def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         } */
 
-        for (int i = 0; i < 10; ++i) {
-            for (int j = 0; j < 10; ++j) {
-                for (int k = 0; k < 10; ++k) {
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                for (int k = 0; k < 5; ++k) {
                     for (int l = 0; l < 1; ++l) {
 
                     def.position = {edyn::scalar(0.4 * j + l * 7), edyn::scalar(0.6 + 0.4 * i), edyn::scalar(0.4 * k)};
-                    edyn::make_rigidbody(m_registry, def);
+                    edyn::make_rigidbody(*m_registry, def);
                     }
                 }
             }
         }
     #endif
 
-        //m_registry.on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
+        m_registry->on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
 
         m_pause = true;
-        auto& world = m_registry.ctx<edyn::world>();
+        auto& world = m_registry->ctx<edyn::world>();
         world.set_paused(m_pause);
 	}
 };

@@ -153,7 +153,7 @@ public:
         static_assert(false, "Invalid mesh type.")
     #endif
 
-        edyn::make_rigidbody(m_registry, floor_def);
+        edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some dynamic entities.
         {
@@ -174,31 +174,31 @@ public:
 
                 def.update_inertia();
                 def.position = {0, edyn::scalar(0.8 + i * 0.7), 0};
-                edyn::make_rigidbody(m_registry, def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         }
 
         // Collision events example.
-        m_registry.on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+        m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
 
         // A `contact_point` is created before constraint resolution thus it still
         // does not have the collision impulse assigned. So if impulse information
         // is required, instead of doing:
-        // `m_registry.on_construct<edyn::contact_point>().connect<&ContactStarted>();`
+        // `m_registry->on_construct<edyn::contact_point>().connect<&ContactStarted>();`
         // Listen to the step signal in `edyn::world` and look for `edyn::contact_point`s
         // that have lifetime equal to zero.
-        auto &world = m_registry.ctx<edyn::world>();
+        auto &world = m_registry->ctx<edyn::world>();
         //world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);
 
         m_pause = true;
     }
 
     void worldStep(uint64_t step) {
-        auto cp_view = m_registry.view<edyn::contact_point>();
+        auto cp_view = m_registry->view<edyn::contact_point>();
         cp_view.each([&] (entt::entity entity, edyn::contact_point &cp) {
             // If the contact lifetime is zero, it means it is a new contact.
             if (cp.lifetime == 0) {
-                ContactStarted(entity, m_registry, cp);
+                ContactStarted(entity, *m_registry, cp);
             }
         });
     }

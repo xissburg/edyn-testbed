@@ -11,7 +11,7 @@ public:
 
     void createScene() override 
     {
-        //auto& world = m_registry.ctx<edyn::world>();
+        //auto& world = m_registry->ctx<edyn::world>();
 
         // Create entities.
         
@@ -34,19 +34,19 @@ public:
             def.mass = 100;
             def.shape_opt = {edyn::sphere_shape{0.2}};
             def.update_inertia();
-            auto ent = edyn::make_rigidbody(m_registry, def);
+            auto ent = edyn::make_rigidbody(*m_registry, def);
 
             def_st.position = def.position + edyn::vector3_y * 3;
-            auto ent_st = edyn::make_rigidbody(m_registry, def_st);
+            auto ent_st = edyn::make_rigidbody(*m_registry, def_st);
 
             auto constraint = edyn::distance_constraint();
             constraint.pivot[0] = edyn::vector3_zero;
             constraint.pivot[1] = edyn::vector3_zero;
             constraint.distance = 3;
-            edyn::make_constraint(m_registry, constraint, ent, ent_st);
+            edyn::make_constraint(*m_registry, constraint, ent, ent_st);
 
             if (i == n - 1) {
-                auto &pos = m_registry.get<edyn::position>(ent);
+                auto &pos = m_registry->get<edyn::position>(ent);
                 pos.x += 3;
                 pos.y = 3;
             }

@@ -13,7 +13,7 @@ public:
 
 	void createScene() override
 	{
-        auto& world = m_registry.ctx<edyn::world>();
+        auto& world = m_registry->ctx<edyn::world>();
 
         // Create entities.
         // Create floor
@@ -22,7 +22,7 @@ public:
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
-        edyn::make_rigidbody(m_registry, floor_def);
+        edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some bouncy spheres.
         auto def = edyn::rigidbody_def();
@@ -36,19 +36,19 @@ public:
         for (size_t i = 0; i < n; ++i) {
             def.restitution = edyn::scalar(i) / n;
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 5, 0};
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
 
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 6, 0};
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
 
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 7, 0};
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
 
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 8, 0};
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
 
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 9, 0};
-            edyn::make_rigidbody(m_registry, def);
+            edyn::make_rigidbody(*m_registry, def);
         }
 	}
 };
