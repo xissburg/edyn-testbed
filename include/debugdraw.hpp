@@ -3,6 +3,7 @@
 
 #include <edyn/edyn.hpp>
 #include <common/debugdraw/debugdraw.h>
+#include <edyn/shapes/polyhedron_shape.hpp>
 
 inline void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
     Sphere sphere;
@@ -32,6 +33,7 @@ inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh);
 void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh);
+void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh);
 
 void draw(DebugDrawEncoder &dde, entt::entity, const edyn::contact_constraint &, const edyn::constraint &, const entt::registry &);
 

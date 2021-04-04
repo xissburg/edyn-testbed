@@ -1,4 +1,6 @@
 #include "debugdraw.hpp"
+#include <common/debugdraw/debugdraw.h>
+#include <edyn/shapes/polyhedron_shape.hpp>
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
     dde.setWireframe(false);
@@ -24,6 +26,30 @@ void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
         dde.lineTo(v2.x, v2.y, v2.z);
         dde.lineTo(v0.x, v0.y, v0.z);
     });
+}
+
+void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh) {
+    for (size_t i = 0; i < sh.mesh->num_faces(); ++i) {
+        auto first = sh.mesh->faces[i * 2];
+        auto count = sh.mesh->faces[i * 2 + 1];
+
+        auto i0 = sh.mesh->indices[first];
+        auto &v0 = sh.mesh->vertices[i0];
+
+        for (size_t j = 1; j < count - 1; ++j) {
+            auto i1 = sh.mesh->indices[first + j];
+            auto i2 = sh.mesh->indices[first + j + 1];
+            auto &v1 = sh.mesh->vertices[i1];
+            auto &v2 = sh.mesh->vertices[i2];
+
+            auto tri = Triangle { 
+                bx::Vec3(v0.x, v0.y, v0.z),
+                bx::Vec3(v1.x, v1.y, v1.z),
+                bx::Vec3(v2.x, v2.y, v2.z)
+            };
+            dde.draw(tri);
+        }
+    }
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {

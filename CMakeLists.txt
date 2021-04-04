@@ -70,6 +70,7 @@ set(EdynTestbed_SOURCES
     src/debugdraw.cpp
     src/edyn_example.cpp
     src/particles.cpp
+    src/polyhedrons.cpp
     src/restitution.cpp
     src/cradle.cpp
     src/cylinders.cpp

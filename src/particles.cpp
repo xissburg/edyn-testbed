@@ -1,3 +1,4 @@
+#include <edyn/constraints/point_constraint.hpp>
 #include <edyn/edyn.hpp>
 #include <entt/entt.hpp>
 
@@ -116,7 +117,7 @@ public:
 
         registry.clear();
 
-        registry.ctx_or_set<edyn::world>(registry);
+        registry.set<edyn::world>(registry);
         
         // Create a few particle entities.
         std::vector<entt::entity> entities;        
@@ -129,21 +130,21 @@ public:
         def.linvel = {0, 4, -1};
         def.angvel = {1, 3, 0.1};
         def.mass = 100;
-        def.inertia = {40, 40, 40};
+        def.inertia = edyn::diagonal_matrix({40, 40, 40});
         entities.push_back(edyn::make_rigidbody(registry, def));
     
         def.position = {-7, 3.2, 4.2};
         def.linvel = {0, 2.1, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 1e10;
-        def.inertia = {1e9, 1e9, 1e9};
+        def.inertia = edyn::diagonal_matrix({1e9, 1e9, 1e9});
         entities.push_back(edyn::make_rigidbody(registry, def));
         
         def.position = {0, 3, 0};
         def.linvel = {0, 0, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 1e12;
-        def.inertia = {1e11, 1e11, 1e11};
+        def.inertia = edyn::diagonal_matrix({1e11, 1e11, 1e11});
         entities.push_back(edyn::make_rigidbody(registry, def));
 
         for (size_t i = 0; i < entities.size(); ++i) {
@@ -344,11 +345,14 @@ public:
                                 registry.emplace<edyn::linvel>(pick_entity, edyn::vector3_zero);
                                 registry.emplace<edyn::angvel>(pick_entity, edyn::vector3_zero);
                                 registry.emplace<edyn::mass>(pick_entity, EDYN_SCALAR_MAX);
-                                registry.emplace<edyn::inertia>(pick_entity, edyn::vector3_max);
+                                registry.emplace<edyn::inertia>(pick_entity, edyn::diagonal_matrix(edyn::vector3_max));
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
-                                pick_constraint_entity = edyn::make_constraint(registry, edyn::point_constraint{{}, pivot, edyn::vector3_zero}, ent, pick_entity);
+                                auto constraint = edyn::point_constraint();
+                                constraint.pivot[0] = pivot;
+                                constraint.pivot[1] = edyn::vector3_zero;
+                                pick_constraint_entity = edyn::make_constraint(registry, constraint, ent, pick_entity);
                             }
                         }
                     });

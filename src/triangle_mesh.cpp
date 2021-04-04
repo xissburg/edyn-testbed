@@ -1,27 +1,32 @@
 #include "edyn_example.hpp"
+#include <edyn/math/matrix3x3.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-void ContactStarted(entt::entity ent, entt::registry &reg, edyn::contact_point &cp) {
-    auto posA = reg.get<edyn::position>(cp.body[0]);
-    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
-    auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
+void ContactStarted(entt::registry &registry, entt::entity entity) {
+    auto &cp = registry.get<edyn::contact_point>(entity);
+    auto posA = registry.get<edyn::position>(cp.body[0]);
+    auto ornA = registry.get<edyn::orientation>(cp.body[0]);
+    auto pivot = edyn::to_world_space(cp.pivotA, posA, ornA);
     edyn::scalar impulse = 0;
 
-    auto *con = reg.try_get<edyn::constraint>(ent);
+    auto *con = registry.try_get<edyn::constraint>(entity);
     if (con) {
-        auto &row = reg.get<edyn::constraint_row_data>(con->row[0]);
+        auto &row = registry.get<edyn::constraint_row_data>(con->row[0]);
         impulse = row.impulse;
     }
 
     std::cout << "Started | imp: " << impulse << " pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
+
+    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
+    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
 }
 
-void ContactEnded(entt::registry &reg, entt::entity ent) {
-    auto &cp = reg.get<edyn::contact_point>(ent);
-    auto posA = reg.get<edyn::position>(cp.body[0]);
-    auto ornA = reg.get<edyn::orientation>(cp.body[0]);
+void ContactEnded(entt::registry &registry, entt::entity entity) {
+    auto &cp = registry.get<edyn::contact_point>(entity);
+    auto posA = registry.get<edyn::position>(cp.body[0]);
+    auto ornA = registry.get<edyn::orientation>(cp.body[0]);
     auto pivot = posA + edyn::rotate(ornA, cp.pivotA);
     std::cout << "Ended | pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
 }
@@ -61,8 +66,8 @@ public:
             edyn::serialize(input, *trimesh);
         } else {
             // If binary is not found, load obj then export binary.
-            edyn::load_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj", 
-                                    trimesh->vertices, trimesh->indices);
+            edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj", 
+                                         trimesh->vertices, trimesh->indices);
             trimesh->initialize();
             auto output = edyn::file_output_archive("terrain.bin");
             edyn::serialize(output, *trimesh);
@@ -91,10 +96,10 @@ public:
         floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
     #elif MESH_TYPE == MANUAL_TRI_MESH
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
-        trimesh->vertices.push_back({1, 0, 1});
-        trimesh->vertices.push_back({1, 0.1, -1});
-        trimesh->vertices.push_back({-1, 0, -1});
-        trimesh->vertices.push_back({-1, -0.3, 1});
+        trimesh->vertices.push_back({2, 0, 2});
+        trimesh->vertices.push_back({2, 0.1, -2});
+        trimesh->vertices.push_back({-2, 0, -2});
+        trimesh->vertices.push_back({-1, 0.8, 1});
 
         trimesh->indices.push_back(0);
         trimesh->indices.push_back(1);
@@ -115,12 +120,14 @@ public:
         if (m_input->is_file_open()) {
             edyn::serialize(*m_input, *paged_trimesh);
         } else {
+            // Load a large mesh, split it into smaller submeshes, write them to files
+            // and setup the paged triangle mesh to read them on demand.
             std::vector<edyn::vector3> vertices;
             std::vector<uint16_t> indices;
             // Note: the working directory is bgfx/examples/runtime and it is
             // assumed the edyn-testbed directory is at the same level.
             auto obj_path = "../../../edyn-testbed/resources/terrain_large.obj";
-            edyn::load_mesh_from_obj(obj_path, vertices, indices);
+            edyn::load_tri_mesh_from_obj(obj_path, vertices, indices);
 
             // Generate triangle mesh from .obj file. This splits the mesh into 
             // a bunch of smaller `triangle_mesh` which are stored in the 
@@ -135,7 +142,7 @@ public:
                 // After creating the paged triangle mesh all nodes are loaded into
                 // the cache, then it's the best time to write them all to files.
                 // This scope is to ensure the file is commited to external storage
-                // before reading it.
+                // before reading from it.
                 auto output = edyn::paged_triangle_mesh_file_output_archive("terrain_large.bin",
                     edyn::paged_triangle_mesh_serialization_mode::external);
                 edyn::serialize(output, *paged_trimesh);
@@ -167,10 +174,10 @@ public:
             const size_t n = 10;
             for (size_t i = 0; i < n; ++i) {
                 if (i % 2 == 0) {
-                    def.shape_opt = {edyn::box_shape{0.3, 0.3, 0.3}};
-                 }else {
-                    def.shape_opt = {edyn::sphere_shape{0.3}};
-                 }
+                    def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+                } else {
+                    def.shape_opt = {edyn::sphere_shape{0.2}};
+                }
 
                 def.update_inertia();
                 def.position = {0, edyn::scalar(0.8 + i * 0.7), 0};
@@ -179,28 +186,12 @@ public:
         }
 
         // Collision events example.
+        m_registry->on_construct<edyn::contact_point>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
 
-        // A `contact_point` is created before constraint resolution thus it still
-        // does not have the collision impulse assigned. So if impulse information
-        // is required, instead of doing:
-        // `m_registry->on_construct<edyn::contact_point>().connect<&ContactStarted>();`
-        // Listen to the step signal in `edyn::world` and look for `edyn::contact_point`s
-        // that have lifetime equal to zero.
-        auto &world = m_registry->ctx<edyn::world>();
-        //world.step_sink().connect<&ExampleTriangleMesh::worldStep>(*this);
-
         m_pause = true;
-    }
-
-    void worldStep(uint64_t step) {
-        auto cp_view = m_registry->view<edyn::contact_point>();
-        cp_view.each([&] (entt::entity entity, edyn::contact_point &cp) {
-            // If the contact lifetime is zero, it means it is a new contact.
-            if (cp.lifetime == 0) {
-                ContactStarted(entity, *m_registry, cp);
-            }
-        });
+        auto& world = m_registry->ctx<edyn::world>();
+        world.set_paused(m_pause);
     }
 
     std::shared_ptr<edyn::paged_triangle_mesh_file_input_archive> m_input;
@@ -208,7 +199,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleTriangleMesh
-	, "01-triangle-mesh"
+	, "00-triangle-mesh"
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);

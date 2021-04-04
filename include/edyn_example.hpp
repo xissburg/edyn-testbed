@@ -61,6 +61,8 @@ public:
     void togglePausePhysics();
     void stepPhysics();
 
+	void onConstructContactPoint(entt::registry &registry, entt::entity entity);
+
 	entry::MouseState m_mouseState;
 
 	uint32_t m_width;

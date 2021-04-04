@@ -102,6 +102,8 @@ int EdynExample::shutdown()
     // Shutdown bgfx.
     bgfx::shutdown();
 
+    m_registry.reset();
+
     return 0;
 }
 
@@ -419,4 +421,9 @@ void EdynExample::togglePausePhysics() {
 void EdynExample::stepPhysics() {
     auto& world = m_registry->ctx<edyn::world>();
     world.step();
+}
+
+void EdynExample::onConstructContactPoint(entt::registry &registry, entt::entity entity) {
+    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
+    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
 }

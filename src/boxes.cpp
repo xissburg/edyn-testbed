@@ -1,10 +1,5 @@
 #include "edyn_example.hpp"
 
-void on_construct_contact_point(entt::registry &registry, entt::entity entity) {
-    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
-    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
-}
-
 class ExampleBoxes : public EdynExample
 {
 public:
@@ -37,9 +32,14 @@ public:
         def.mass = 10;
         def.restitution = 0;
         def.position = {0, 4, 0};
-        //def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi * 0.0);
+        def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi * 0.5);
         //def.shape_opt = {edyn::sphere_shape{0.2}};
+        //def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
         def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+        
+        //auto obj_path = "../../../edyn-testbed/resources/box.obj";
+        //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+        
         //def.gravity = {0,0,0};
         def.update_inertia();
 
@@ -81,7 +81,7 @@ public:
         }
     #endif
 
-        m_registry->on_construct<edyn::contact_point>().connect<&on_construct_contact_point>();
+        m_registry->on_construct<edyn::contact_point>().connect<&EdynExample::onConstructContactPoint>(*this);
 
         m_pause = true;
         auto& world = m_registry->ctx<edyn::world>();
@@ -91,7 +91,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleBoxes
-	, "00-boxes"
+	, "06-boxes"
 	, "Boxes."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
