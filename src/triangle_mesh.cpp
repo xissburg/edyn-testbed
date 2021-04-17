@@ -5,22 +5,17 @@
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {
+    if (!registry.has<edyn::contact_point>(entity)) return;
+
     auto &cp = registry.get<edyn::contact_point>(entity);
     auto posA = registry.get<edyn::position>(cp.body[0]);
     auto ornA = registry.get<edyn::orientation>(cp.body[0]);
     auto pivot = edyn::to_world_space(cp.pivotA, posA, ornA);
-    edyn::scalar impulse = 0;
 
-    auto *con = registry.try_get<edyn::constraint>(entity);
-    if (con) {
-        auto &row = registry.get<edyn::constraint_row_data>(con->row[0]);
-        impulse = row.impulse;
-    }
+    auto &imp = registry.get<edyn::constraint_impulse>(entity);
+    auto normal_impulse = imp.values[0];
 
-    std::cout << "Started | imp: " << impulse << " pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
-
-    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
-    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
+    std::cout << "Started | imp: " << normal_impulse << " pos: (" << pivot.x << ", " << pivot.y << ", " << pivot.z << ")" << std::endl;
 }
 
 void ContactEnded(entt::registry &registry, entt::entity entity) {
@@ -56,7 +51,7 @@ public:
     #define PLANAR_TRI_MESH 3
     #define MANUAL_TRI_MESH 4
 
-    #define MESH_TYPE LOAD_PAGED_TRI_MESH
+    #define MESH_TYPE PLANAR_TRI_MESH
 
     #if MESH_TYPE == LOAD_TRI_MESH
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
@@ -166,17 +161,19 @@ public:
         {
             auto def = edyn::rigidbody_def();
             def.presentation = true;
-            def.friction = 0.8;
+            def.friction = 0.3;
             def.mass = 100;
             def.restitution = 0.5;
             def.position = {0, 5, 0};
 
-            const size_t n = 10;
+            const size_t n = 2;
             for (size_t i = 0; i < n; ++i) {
                 if (i % 2 == 0) {
                     def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
                 } else {
-                    def.shape_opt = {edyn::sphere_shape{0.2}};
+                    //def.shape_opt = {edyn::sphere_shape{0.2}};
+                    auto obj_path = "../../../edyn-testbed/resources/cylinder.obj";
+                    def.shape_opt = {edyn::polyhedron_shape(obj_path)};
                 }
 
                 def.update_inertia();
@@ -186,8 +183,10 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::contact_point>().connect<&ContactStarted>();
+        m_registry->on_construct<edyn::constraint_impulse>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+
+        m_registry->on_construct<edyn::contact_point>().connect<&EdynExample::onConstructContactPoint>(*this);
 
         m_pause = true;
         auto& world = m_registry->ctx<edyn::world>();
@@ -199,7 +198,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleTriangleMesh
-	, "00-triangle-mesh"
+	, "01-triangle-mesh"
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);

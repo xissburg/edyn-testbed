@@ -349,10 +349,10 @@ public:
 
                                 auto &orientation = registry.get<edyn::orientation>(ent);
                                 auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
-                                auto constraint = edyn::point_constraint();
+                                auto [con_ent, constraint] = edyn::make_constraint<edyn::point_constraint>(registry, ent, pick_entity);
                                 constraint.pivot[0] = pivot;
                                 constraint.pivot[1] = edyn::vector3_zero;
-                                pick_constraint_entity = edyn::make_constraint(registry, constraint, ent, pick_entity);
+                                pick_constraint_entity = con_ent;
                             }
                         }
                     });

@@ -37,11 +37,10 @@ public:
         def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
         auto entB = edyn::make_rigidbody(*m_registry, def);
 
-        auto hinge = edyn::hinge_constraint();
+        auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entA, entB);
         hinge.pivot[0] = {0, 0, 0.4};
         hinge.pivot[1] = {0, 0, -0.4};
         hinge.set_axis(m_registry->get<edyn::orientation>(entA), edyn::vector3_z, -edyn::vector3_z);
-        edyn::make_constraint(*m_registry, hinge, entA, entB);
 	}
 };
 

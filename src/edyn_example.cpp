@@ -217,24 +217,24 @@ bool EdynExample::update()
 
             dde.popTransform();
 
-            // Draw AABBs.
-            #if 0
-            std::visit([&] (auto &&s) {
-                dde.push();
-
-                uint32_t color = 0xff0000f2;
-                dde.setColor(color);
-                dde.setWireframe(true);
-
-                auto aabb = s.aabb(pos, orn);
-                dde.draw(Aabb{{aabb.min.x, aabb.min.y, aabb.min.z}, {aabb.max.x, aabb.max.y, aabb.max.z}});
-
-                dde.pop();
-            }, sh.var);
-            #endif
-
             dde.pop();
         });
+    }
+
+    // Draw AABBs.
+    {
+        dde.push();
+
+        const uint32_t color = 0xff0000f2;
+        dde.setColor(color);
+        dde.setWireframe(true);
+
+        auto view = m_registry->view<edyn::AABB>();
+        view.each([&] (edyn::AABB &aabb) {
+            dde.draw(Aabb{{aabb.min.x, aabb.min.y, aabb.min.z}, {aabb.max.x, aabb.max.y, aabb.max.z}});
+        });
+
+        dde.pop();
     }
 
     // Draw static entities.
@@ -297,12 +297,12 @@ bool EdynExample::update()
 
     // Draw constraints.
     {
-        auto view = m_registry->view<edyn::constraint>();
-        view.each([&] (auto ent, auto &con) {
-            std::visit([&] (auto &&c) {
-                draw(dde, ent, c, con, *m_registry);
-            }, con.var);
-        });
+        std::apply([&] (auto ...c) {
+            (
+            m_registry->view<decltype(c)>().each([&] (auto ent, auto &con) {
+                draw(dde, ent, con, *m_registry);
+            }), ...);
+        }, edyn::constraints_tuple_t{});
     }
 
     dde.end();
@@ -375,13 +375,13 @@ bool EdynExample::update()
                     m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
 
                     auto &mass = view.get<edyn::mass>(picked_entity);
-                    auto constraint = edyn::soft_distance_constraint();
+                    auto [con_ent, constraint] = edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, picked_entity, m_pick_entity);
                     constraint.pivot[0] = pivot;
                     constraint.pivot[1] = edyn::vector3_zero;
                     constraint.distance = 0;
                     constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
                     constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
-                    m_pick_constraint_entity = edyn::make_constraint(*m_registry, constraint, picked_entity, m_pick_entity);
+                    m_pick_constraint_entity = con_ent;
                 }
             } else {
                 const auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
@@ -391,9 +391,10 @@ bool EdynExample::update()
                 auto next_pick_pos = cam_pos + ray_dir * s;
 
                 if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
-                    edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
+                    //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
+                    m_registry->get<edyn::position>(m_pick_entity) = next_pick_pos;
                     m_registry->get_or_emplace<edyn::dirty>(m_pick_entity)
-                        .updated<edyn::position, edyn::linvel>();
+                        .updated<edyn::position>();
                 }
             }
         } else if (m_pick_entity != entt::null) {

@@ -37,11 +37,12 @@ public:
         //def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
         def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
         
-        //auto obj_path = "../../../edyn-testbed/resources/box.obj";
+        auto obj_path = "../../../edyn-testbed/resources/box.obj";
         //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
         
         //def.gravity = {0,0,0};
         def.update_inertia();
+        def.continuous_contacts = true;
 
     #if 0
         const auto n = 3;
@@ -68,20 +69,24 @@ public:
             }
         } */
 
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 0; j < 5; ++j) {
-                for (int k = 0; k < 5; ++k) {
+        for (int i = 0; i < 10; ++i) {
+            for (int j = 0; j < 10; ++j) {
+                for (int k = 0; k < 10; ++k) {
                     for (int l = 0; l < 1; ++l) {
-
-                    def.position = {edyn::scalar(0.4 * j + l * 7), edyn::scalar(0.6 + 0.4 * i), edyn::scalar(0.4 * k)};
-                    edyn::make_rigidbody(*m_registry, def);
+                        /*if ((i + j + k) % 2 == 0) {
+                            def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+                        } else {
+                            def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+                        }
+                        def.update_inertia();*/
+                        
+                        def.position = {edyn::scalar(0.4 * j + l * 7), edyn::scalar(0.6 + 0.4 * i), edyn::scalar(0.4 * k)};
+                        edyn::make_rigidbody(*m_registry, def);
                     }
                 }
             }
         }
     #endif
-
-        m_registry->on_construct<edyn::contact_point>().connect<&EdynExample::onConstructContactPoint>(*this);
 
         m_pause = true;
         auto& world = m_registry->ctx<edyn::world>();
@@ -91,7 +96,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleBoxes
-	, "06-boxes"
+	,"06-boxes"
 	, "Boxes."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

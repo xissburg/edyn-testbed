@@ -52,11 +52,11 @@ void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh) {
     }
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
-    //auto &posA = reg.get<edyn::position>(rel.body[0]);
-    //auto &ornA = reg.get<edyn::orientation>(rel.body[0]);
-    auto &posB = reg.get<edyn::position>(rel.body[1]);
-    auto &ornB = reg.get<edyn::orientation>(rel.body[1]);
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const entt::registry &reg) {
+    //auto &posA = reg.get<edyn::position>(con.body[0]);
+    //auto &ornA = reg.get<edyn::orientation>(con.body[0]);
+    auto &posB = reg.get<edyn::position>(con.body[1]);
+    auto &ornB = reg.get<edyn::orientation>(con.body[1]);
     
     auto &cp = reg.get<edyn::contact_point>(entity);
     auto pB = posB + edyn::rotate(ornB, cp.pivotB);
@@ -72,32 +72,32 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     dde.pop();
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const entt::registry &reg) {
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(rel.body[0])) {
-        posA = reg.get<edyn::present_position>(rel.body[0]);
+    if (reg.has<edyn::present_position>(con.body[0])) {
+        posA = reg.get<edyn::present_position>(con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(rel.body[0]);
+        posA = reg.get<edyn::position>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(rel.body[0]);
+    if (reg.has<edyn::present_orientation>(con.body[0])) {
+        ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
-        ornA = reg.get<edyn::orientation>(rel.body[0]);
+        ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(rel.body[1])) {
-        posB = reg.get<edyn::present_position>(rel.body[1]);
+    if (reg.has<edyn::present_position>(con.body[1])) {
+        posB = reg.get<edyn::present_position>(con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(rel.body[1]);
+        posB = reg.get<edyn::position>(con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(rel.body[1]);
+    if (reg.has<edyn::present_orientation>(con.body[1])) {
+        ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
-        ornB = reg.get<edyn::orientation>(rel.body[1]);
+        ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
     auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
@@ -112,32 +112,32 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
     dde.pop();
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_constraint &con, const entt::registry &reg) {
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(rel.body[0])) {
-        posA = reg.get<edyn::present_position>(rel.body[0]);
+    if (reg.has<edyn::present_position>(con.body[0])) {
+        posA = reg.get<edyn::present_position>(con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(rel.body[0]);
+        posA = reg.get<edyn::position>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(rel.body[0]);
+    if (reg.has<edyn::present_orientation>(con.body[0])) {
+        ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
-        ornA = reg.get<edyn::orientation>(rel.body[0]);
+        ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(rel.body[1])) {
-        posB = reg.get<edyn::present_position>(rel.body[1]);
+    if (reg.has<edyn::present_position>(con.body[1])) {
+        posB = reg.get<edyn::present_position>(con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(rel.body[1]);
+        posB = reg.get<edyn::position>(con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(rel.body[1]);
+    if (reg.has<edyn::present_orientation>(con.body[1])) {
+        ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
-        ornB = reg.get<edyn::orientation>(rel.body[1]);
+        ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
     auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
@@ -152,32 +152,32 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
     dde.pop();
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const edyn::constraint &rel, const entt::registry &reg) {
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const entt::registry &reg) {
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(rel.body[0])) {
-        posA = reg.get<edyn::present_position>(rel.body[0]);
+    if (reg.has<edyn::present_position>(con.body[0])) {
+        posA = reg.get<edyn::present_position>(con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(rel.body[0]);
+        posA = reg.get<edyn::position>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(rel.body[0]);
+    if (reg.has<edyn::present_orientation>(con.body[0])) {
+        ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
-        ornA = reg.get<edyn::orientation>(rel.body[0]);
+        ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(rel.body[1])) {
-        posB = reg.get<edyn::present_position>(rel.body[1]);
+    if (reg.has<edyn::present_position>(con.body[1])) {
+        posB = reg.get<edyn::present_position>(con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(rel.body[1]);
+        posB = reg.get<edyn::position>(con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(rel.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(rel.body[1]);
+    if (reg.has<edyn::present_orientation>(con.body[1])) {
+        ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
-        ornB = reg.get<edyn::orientation>(rel.body[1]);
+        ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
     auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
