@@ -78,6 +78,7 @@ set(EdynTestbed_SOURCES
     src/hinge.cpp
     src/triangle_mesh.cpp
     src/boxes.cpp
+    src/compound.cpp
 )
 
 if (APPLE)
@@ -105,7 +106,7 @@ target_compile_features(EdynTestbed PUBLIC cxx_std_17)
 # Sanitize
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(EdynTestbed PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined)
+    #target_compile_options(EdynTestbed PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined)
 endif()
 
 # Link libraries
@@ -127,8 +128,8 @@ target_link_libraries(EdynTestbed
     debug ${Bx_LIBRARY_DEBUG}
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
-    -fsanitize=address 
-    -fsanitize=undefined
+    #-fsanitize=address 
+    #-fsanitize=undefined
 )
 
 if (APPLE)

@@ -222,6 +222,7 @@ bool EdynExample::update()
     }
 
     // Draw AABBs.
+    #if 0
     {
         dde.push();
 
@@ -236,6 +237,7 @@ bool EdynExample::update()
 
         dde.pop();
     }
+    #endif
 
     // Draw static entities.
     {

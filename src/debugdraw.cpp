@@ -1,5 +1,6 @@
 #include "debugdraw.hpp"
 #include <common/debugdraw/debugdraw.h>
+#include <edyn/shapes/compound_shape.hpp>
 #include <edyn/shapes/polyhedron_shape.hpp>
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
@@ -49,6 +50,32 @@ void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh) {
             };
             dde.draw(tri);
         }
+    }
+}
+
+void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
+    for (auto &node : sh.nodes) {
+        auto pos = node.position;
+        auto orn = node.orientation;
+
+        auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+        float rot[16];
+        bx::mtxQuat(rot, bxquat);
+        float rotT[16];
+        bx::mtxTranspose(rotT, rot);
+        float trans[16];
+        bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+
+        float mtx[16];
+        bx::mtxMul(mtx, rotT, trans);
+
+        dde.pushTransform(mtx);
+        
+        std::visit([&] (auto &&s) {
+            draw(dde, s);
+        }, node.var);
+
+        dde.popTransform();
     }
 }
 
