@@ -20,28 +20,35 @@ public:
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
         edyn::make_rigidbody(*m_registry, floor_def);
         
-        // Add some cylinders.
+        // Add some boxes.
         auto def = edyn::rigidbody_def();
-        def.presentation = true;
         def.restitution = 0;
         def.friction = 0.8;
         def.mass = 100;
-        def.shape_opt = {edyn::cylinder_shape{0.2, 0.5}};
+        def.shape_opt = {edyn::box_shape{0.2, 0.5, 0.05}};
         def.update_inertia();
+        def.continuous_contacts = true;
 
-        def.position = {0, 2, 0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi);
-        auto entA = edyn::make_rigidbody(*m_registry, def);
+        std::vector<entt::entity> boxes;
 
-        def.position = {0, 2, 0.8};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi/2);
-        auto entB = edyn::make_rigidbody(*m_registry, def);
+        for (size_t i = 0; i < 6; ++i) {
+            auto k = static_cast<edyn::scalar>(i);
+            auto z = static_cast<edyn::scalar>(i % 2);
+            def.position = {0, 1.f + k * 0.9f, z * 0.15f};
+            auto entity = edyn::make_rigidbody(*m_registry, def);
+            boxes.push_back(entity);
+        }
 
-        auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entA, entB);
-        hinge.pivot[0] = {0, 0, 0.4};
-        hinge.pivot[1] = {0, 0, -0.4};
-        hinge.set_axis(m_registry->get<edyn::orientation>(entA), edyn::vector3_z, -edyn::vector3_z);
-	}
+        for (int i = 0; i < boxes.size() - 1; ++i) {
+            auto entityA = boxes[i];
+            auto entityB = boxes[i + 1];
+            auto z = static_cast<edyn::scalar>((i % 2) * 2 - 1);
+            auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB);
+            hinge.pivot[0] = {0, 0.45, -0.075f * z};
+            hinge.pivot[1] = {0, -0.45, 0.075f * z};
+            hinge.set_axis(m_registry->get<edyn::orientation>(entityA), edyn::vector3_z, -edyn::vector3_z);
+        }
+	  }
 };
 
 ENTRY_IMPLEMENT_MAIN(

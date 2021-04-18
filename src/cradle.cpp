@@ -17,7 +17,6 @@ public:
         
         auto def = edyn::rigidbody_def();
         def.kind = edyn::rigidbody_kind::rb_dynamic;
-        def.presentation = true;
         def.friction = 0;
         def.restitution = 1;
 

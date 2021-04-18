@@ -123,7 +123,6 @@ public:
         std::vector<entt::entity> entities;        
         
         auto def = edyn::rigidbody_def();
-        def.presentation = true;
         def.gravity = edyn::vector3_zero;
 
         def.position = {3, 3, 0};

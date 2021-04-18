@@ -17,7 +17,6 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.presentation = true;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
@@ -26,7 +25,6 @@ public:
         // Add some cylinders.
         auto def = edyn::rigidbody_def();
         def.kind = edyn::rigidbody_kind::rb_static;
-        def.presentation = true;
         def.restitution = 0;
         def.friction = 0.8;
         def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
@@ -36,7 +34,6 @@ public:
 
         auto dyn_def = edyn::rigidbody_def();
         dyn_def.kind = edyn::rigidbody_kind::rb_dynamic;
-        dyn_def.presentation = true;
         dyn_def.mass = 100;
         dyn_def.shape_opt = {edyn::cylinder_shape{0.13, 0.2}};
         dyn_def.update_inertia();

@@ -26,7 +26,6 @@ public:
 
         // Add some bouncy spheres.
         auto def = edyn::rigidbody_def();
-        def.presentation = true;
         def.friction = 0.8;
         def.mass = 100;
         def.shape_opt = {edyn::sphere_shape{0.2}};

@@ -41,7 +41,6 @@ public:
     void createScene() override {
         // Create floor
         auto floor_def = edyn::rigidbody_def();
-        floor_def.presentation = true;
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
@@ -94,7 +93,7 @@ public:
         trimesh->vertices.push_back({2, 0, 2});
         trimesh->vertices.push_back({2, 0.1, -2});
         trimesh->vertices.push_back({-2, 0, -2});
-        trimesh->vertices.push_back({-1, 0.8, 1});
+        trimesh->vertices.push_back({-1, -0.8, 1});
 
         trimesh->indices.push_back(0);
         trimesh->indices.push_back(1);
@@ -160,16 +159,15 @@ public:
         // Add some dynamic entities.
         {
             auto def = edyn::rigidbody_def();
-            def.presentation = true;
             def.friction = 0.3;
             def.mass = 100;
             def.restitution = 0.5;
             def.position = {0, 5, 0};
 
-            const size_t n = 2;
+            const size_t n = 1;
             for (size_t i = 0; i < n; ++i) {
                 if (i % 2 == 0) {
-                    def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+                    def.shape_opt = {edyn::capsule_shape{0.15, 0.2}};
                 } else {
                     //def.shape_opt = {edyn::sphere_shape{0.2}};
                     auto obj_path = "../../../edyn-testbed/resources/cylinder.obj";
@@ -198,7 +196,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleTriangleMesh
-	, "01-triangle-mesh"
+	, "00-triangle-mesh"
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);

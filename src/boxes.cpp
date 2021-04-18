@@ -22,12 +22,10 @@ public:
         //floor_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(10));
         //floor_def.shape_opt = {edyn::box_shape{{2, 0.5, 2}}};// {edyn::plane_shape{{0, 1, 0}, 0}};
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
-        floor_def.presentation = true;
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some boxes.
         auto def = edyn::rigidbody_def();
-        def.presentation = true;
         def.friction = 0.8;
         def.mass = 10;
         def.restitution = 0;
