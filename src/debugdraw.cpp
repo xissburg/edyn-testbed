@@ -18,7 +18,8 @@ void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
 
 void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
     dde.setWireframe(false);
-    sh.trimesh->visit_cache_all([&] (auto, auto, const edyn::triangle_vertices &vertices) {
+    sh.trimesh->visit_cache_all([&] (auto mesh_idx, auto tri_idx) {
+        auto vertices = sh.trimesh->get_triangle_vertices(mesh_idx, tri_idx);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
         auto &v2 = vertices[2];

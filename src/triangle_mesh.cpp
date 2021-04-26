@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/math/matrix3x3.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -164,14 +163,14 @@ public:
             def.restitution = 0.5;
             def.position = {0, 5, 0};
 
-            const size_t n = 1;
+            const size_t n = 3;
             for (size_t i = 0; i < n; ++i) {
                 if (i % 2 == 0) {
-                    def.shape_opt = {edyn::capsule_shape{0.15, 0.2}};
+                    def.shape_opt = {edyn::sphere_shape{0.15}};
                 } else {
                     //def.shape_opt = {edyn::sphere_shape{0.2}};
-                    auto obj_path = "../../../edyn-testbed/resources/cylinder.obj";
-                    def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+                    auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
+                    def.shape_opt = {edyn::compound_shape(obj_path, edyn::vector3_zero, edyn::quaternion_identity, { 1.5, 1, 1})};
                 }
 
                 def.update_inertia();
