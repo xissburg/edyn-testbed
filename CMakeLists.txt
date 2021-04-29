@@ -31,13 +31,14 @@ endif()
 #
 
 set(Edyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "Edyn include directory.")
-find_library(Edyn_LIBRARY Edyn PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
-find_library(Edyn_LIBRARY_DEBUG Edyn_d PATHS ${CMAKE_SOURCE_DIR}/../edyn/build/lib)
+set(Edyn_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../edyn/build/lib CACHE PATH "Edyn library directory.")
+find_library(Edyn_LIBRARY Edyn PATHS ${Edyn_LIBRARY_DIR} PATH_SUFFIXES Debug Release RelWithDebInfo)
+find_library(Edyn_LIBRARY_DEBUG Edyn_d PATHS ${Edyn_LIBRARY_DIR} PATH_SUFFIXES Debug Release RelWithDebInfo)
 
 set(Bx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bx/include CACHE PATH "bx include directory.")
 set(Bgfx_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bgfx/include;${CMAKE_SOURCE_DIR}/../bgfx/examples;${CMAKE_SOURCE_DIR}/../bgfx/3rdparty CACHE PATH "bgfx include directory.")
 set(Bimg_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../bimg/include CACHE PATH "bimg include directory.")
-set(Bgfx_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../bgfx/.build/linux64_gcc/bin CACHE PATH "bgfx library directory.")
+set(Bgfx_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../bgfx/.build CACHE PATH "bgfx library directory.")
 
 find_library(Bx_LIBRARY_RELEASE bxRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bx_LIBRARY_DEBUG bxDebug PATHS ${Bgfx_LIBRARY_DIR})
@@ -117,8 +118,6 @@ target_link_libraries(EdynTestbed
     debug ${BgfxExampleCommon_LIBRARY_DEBUG}
     optimized ${BimgDecode_LIBRARY_RELEASE}
     debug ${BimgDecode_LIBRARY_DEBUG}
-    #optimized ${BimgEncode_LIBRARY_RELEASE}
-    #debug ${BimgEncode_LIBRARY_DEBUG}
     optimized ${Bimg_LIBRARY_RELEASE}
     debug ${Bimg_LIBRARY_DEBUG}
     optimized ${Bgfx_LIBRARY_RELEASE}
