@@ -15,7 +15,7 @@ endif()
 #
 
 if(MSVC)
-  add_compile_options(/W4 /WX)
+  add_compile_options(/W4)
 else()
   add_compile_options(-Wall -Wno-reorder -Wno-long-long -Wimplicit-fallthrough)
 endif()
@@ -51,8 +51,6 @@ find_library(Bimg_LIBRARY_RELEASE bimgRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bimg_LIBRARY_DEBUG bimgDebug PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_RELEASE bimg_decodeRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_DEBUG bimg_decodeDebug PATHS ${Bgfx_LIBRARY_DIR})
-find_library(BimgEncode_LIBRARY_RELEASE bimg_encodeRelease PATHS ${Bgfx_LIBRARY_DIR})
-find_library(BimgEncode_LIBRARY_DEBUG bimg_encodeDebug PATHS ${Bgfx_LIBRARY_DIR})
 
 #
 # Conan dependencies
@@ -84,6 +82,7 @@ set(EdynTestbed_SOURCES
 if (APPLE)
 	add_executable(EdynTestbed MACOSX_BUNDLE ${EdynTestbed_SOURCES})
 elseif (WIN32)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 	add_executable(EdynTestbed WIN32 ${EdynTestbed_SOURCES})
 else ()
 	add_executable(EdynTestbed ${EdynTestbed_SOURCES})
@@ -118,8 +117,8 @@ target_link_libraries(EdynTestbed
     debug ${BgfxExampleCommon_LIBRARY_DEBUG}
     optimized ${BimgDecode_LIBRARY_RELEASE}
     debug ${BimgDecode_LIBRARY_DEBUG}
-    optimized ${BimgEncode_LIBRARY_RELEASE}
-    debug ${BimgEncode_LIBRARY_DEBUG}
+    #optimized ${BimgEncode_LIBRARY_RELEASE}
+    #debug ${BimgEncode_LIBRARY_DEBUG}
     optimized ${Bimg_LIBRARY_RELEASE}
     debug ${Bimg_LIBRARY_DEBUG}
     optimized ${Bgfx_LIBRARY_RELEASE}
@@ -128,7 +127,7 @@ target_link_libraries(EdynTestbed
     debug ${Bx_LIBRARY_DEBUG}
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
-    #-fsanitize=address 
+    #-fsanitize=address
     #-fsanitize=undefined
 )
 
@@ -144,4 +143,8 @@ if (UNIX AND NOT APPLE)
         X11
         GL
     )
+endif ()
+
+if (WIN32)
+    target_link_libraries(EdynTestbed winmm)
 endif ()
