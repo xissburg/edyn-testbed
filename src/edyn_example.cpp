@@ -1,8 +1,5 @@
 #include "edyn_example.hpp"
-#include <edyn/comp/island.hpp>
-#include <edyn/comp/tag.hpp>
 #include <fenv.h>
-
 
 #include <iostream>
 
@@ -177,10 +174,12 @@ bool EdynExample::update()
     // Grid.
     dde.drawGrid(Axis::Y, { 0.0f, 0.0f, 0.0f });
 
+    auto shape_views_tuple = edyn::get_tuple_of_shape_views(*m_registry);
+
     // Draw dynamic entities.
     {
-        auto view = m_registry->view<edyn::shape, edyn::present_position, edyn::present_orientation>();
-        view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
+        auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
+        view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -209,9 +208,9 @@ bool EdynExample::update()
 
             dde.pushTransform(mtx);
             
-            std::visit([&] (auto &&s) {
+            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
                 draw(dde, s);
-            }, sh.var);
+            });
 
             dde.drawAxis(0, 0, 0, 0.15);
 
@@ -222,7 +221,7 @@ bool EdynExample::update()
     }
 
     // Draw AABBs.
-    #if 0
+    #if 1
     {
         dde.push();
 
@@ -241,8 +240,8 @@ bool EdynExample::update()
 
     // Draw static entities.
     {
-        auto view = m_registry->view<edyn::shape, edyn::position, edyn::orientation, edyn::static_tag>();
-        view.each([&] (auto ent, auto &sh, auto &pos, auto &orn) {
+        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation, edyn::static_tag>();
+        view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
             dde.push();
 
             uint32_t color = 0xffa0a0a0;
@@ -261,9 +260,9 @@ bool EdynExample::update()
             bx::mtxMul(mtx, rotT, trans);
             dde.pushTransform(mtx);
             
-            std::visit([&] (auto &&s) {
+            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
                 draw(dde, s);
-            }, sh.var);
+            });
 
             dde.drawAxis(0, 0, 0, 0.15);
             dde.popTransform();
@@ -273,7 +272,7 @@ bool EdynExample::update()
 
     // Draw amorphous entities.
     {
-        auto view = m_registry->view<edyn::present_position, edyn::present_orientation>(entt::exclude_t<edyn::shape>{});
+        auto view = m_registry->view<edyn::present_position, edyn::present_orientation>(entt::exclude_t<edyn::shape_index>{});
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 

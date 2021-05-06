@@ -74,7 +74,7 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
         
         std::visit([&] (auto &&s) {
             draw(dde, s);
-        }, node.var);
+        }, node.shape_var);
 
         dde.popTransform();
     }

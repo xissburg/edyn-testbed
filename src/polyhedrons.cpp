@@ -81,7 +81,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExamplePolyhedrons
-    , "00-polyhedrons"
+    , "02-polyhedrons"
     , "Polyhedrons."
     , "https://bkaradzic.github.io/bgfx/examples.html#cubes"
     );

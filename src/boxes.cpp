@@ -36,7 +36,7 @@ public:
         def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
         
         auto obj_path = "../../../edyn-testbed/resources/box.obj";
-        //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+        def.shape_opt = {edyn::polyhedron_shape(obj_path)};
         
         //def.gravity = {0,0,0};
         def.update_inertia();

@@ -49,7 +49,7 @@ public:
     #define PLANAR_TRI_MESH 3
     #define MANUAL_TRI_MESH 4
 
-    #define MESH_TYPE PLANAR_TRI_MESH
+    #define MESH_TYPE MANUAL_TRI_MESH
 
     #if MESH_TYPE == LOAD_TRI_MESH
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
@@ -160,13 +160,13 @@ public:
             auto def = edyn::rigidbody_def();
             def.friction = 0.3;
             def.mass = 100;
-            def.restitution = 0.5;
+            def.restitution = 0.1;
             def.position = {0, 5, 0};
 
-            const size_t n = 3;
+            const size_t n = 1;
             for (size_t i = 0; i < n; ++i) {
                 if (i % 2 == 0) {
-                    def.shape_opt = {edyn::sphere_shape{0.15}};
+                    def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
                 } else {
                     //def.shape_opt = {edyn::sphere_shape{0.2}};
                     auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
@@ -195,7 +195,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleTriangleMesh
-	, "03-triangle-mesh"
+	, "00-triangle-mesh"
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);
