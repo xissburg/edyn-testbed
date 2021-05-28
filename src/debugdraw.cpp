@@ -5,28 +5,32 @@
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
     dde.setWireframe(false);
-    sh.trimesh->visit_all([&] (auto, const edyn::triangle_vertices &vertices) {
+    dde.push();
+
+    auto &trimesh = sh.trimesh;
+
+    for (size_t i = 0; i < trimesh->num_edges(); ++i) {
+        dde.setColor(trimesh->is_boundary_edge(i) ? 0xff1081ea : 0xffc0c0c0);
+        auto vertices = trimesh->get_edge_vertices(i);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
-        auto &v2 = vertices[2];
         dde.moveTo(v0.x, v0.y, v0.z);
         dde.lineTo(v1.x, v1.y, v1.z);
-        dde.lineTo(v2.x, v2.y, v2.z);
-        dde.lineTo(v0.x, v0.y, v0.z);
-    });
+    }
+
+    dde.pop();
 }
 
 void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
     dde.setWireframe(false);
-    sh.trimesh->visit_cache_all([&] (auto mesh_idx, auto tri_idx) {
-        auto vertices = sh.trimesh->get_triangle_vertices(mesh_idx, tri_idx);
+    sh.trimesh->visit_all_cached_edges([&] (auto mesh_idx, auto edge_idx) {
+        auto trimesh = sh.trimesh->get_submesh(mesh_idx);
+        dde.setColor(trimesh->is_boundary_edge(edge_idx) ? 0xff1081ea : 0xffc0c0c0);
+        auto vertices = trimesh->get_edge_vertices(edge_idx);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
-        auto &v2 = vertices[2];
         dde.moveTo(v0.x, v0.y, v0.z);
         dde.lineTo(v1.x, v1.y, v1.z);
-        dde.lineTo(v2.x, v2.y, v2.z);
-        dde.lineTo(v0.x, v0.y, v0.z);
     });
 }
 
@@ -44,7 +48,7 @@ void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh) {
             auto &v1 = sh.mesh->vertices[i1];
             auto &v2 = sh.mesh->vertices[i2];
 
-            auto tri = Triangle { 
+            auto tri = Triangle {
                 bx::Vec3(v0.x, v0.y, v0.z),
                 bx::Vec3(v1.x, v1.y, v1.z),
                 bx::Vec3(v2.x, v2.y, v2.z)
@@ -71,7 +75,7 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
         bx::mtxMul(mtx, rotT, trans);
 
         dde.pushTransform(mtx);
-        
+
         std::visit([&] (auto &&s) {
             draw(dde, s);
         }, node.shape_var);
@@ -85,7 +89,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     //auto &ornA = reg.get<edyn::orientation>(con.body[0]);
     auto &posB = reg.get<edyn::position>(con.body[1]);
     auto &ornB = reg.get<edyn::orientation>(con.body[1]);
-    
+
     auto &cp = reg.get<edyn::contact_point>(entity);
     auto pB = posB + edyn::rotate(ornB, cp.pivotB);
     auto normal = edyn::rotate(ornB, cp.normalB);
@@ -219,10 +223,10 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
     dde.push();
 
     dde.setColor(0xff0000fe);
-    
+
     dde.moveTo(pA.x, pA.y, pA.z);
     dde.lineTo(pA1.x, pA1.y, pA1.z);
-    
+
     dde.moveTo(pB.x, pB.y, pB.z);
     dde.lineTo(pB1.x, pB1.y, pB1.z);
 

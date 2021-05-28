@@ -68,7 +68,7 @@ public:
 		m_height = _height;
 		m_debug  = BGFX_DEBUG_NONE;
 		m_reset  = BGFX_RESET_VSYNC;
-  
+
 		bgfx::Init init;
 		init.type     = args.m_type;
 		init.vendorId = args.m_pciId;
@@ -118,10 +118,10 @@ public:
         registry.clear();
 
         registry.set<edyn::world>(registry);
-        
+
         // Create a few particle entities.
-        std::vector<entt::entity> entities;        
-        
+        std::vector<entt::entity> entities;
+
         auto def = edyn::rigidbody_def();
         def.gravity = edyn::vector3_zero;
 
@@ -131,14 +131,14 @@ public:
         def.mass = 100;
         def.inertia = edyn::diagonal_matrix({40, 40, 40});
         entities.push_back(edyn::make_rigidbody(registry, def));
-    
+
         def.position = {-7, 3.2, 4.2};
         def.linvel = {0, 2.1, 0};
         def.angvel = edyn::vector3_zero;
         def.mass = 1e10;
         def.inertia = edyn::diagonal_matrix({1e9, 1e9, 1e9});
         entities.push_back(edyn::make_rigidbody(registry, def));
-        
+
         def.position = {0, 3, 0};
         def.linvel = {0, 0, 0};
         def.angvel = edyn::vector3_zero;
@@ -319,7 +319,7 @@ public:
                 const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
                 const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
-                if (pick_entity == entt::null) {                    
+                if (pick_entity == entt::null) {
                     auto view = registry.view<edyn::present_position>();
                     view.each([&] (auto ent, auto &pos) {
                         if (pick_entity != entt::null) {
@@ -392,7 +392,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleParticles
-	, "01-particles"
+	, "06-particles"
 	, "Particle entities orbiting one another with gravity."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

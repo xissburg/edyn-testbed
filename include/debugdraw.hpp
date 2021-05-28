@@ -26,7 +26,7 @@ inline void draw(DebugDrawEncoder &dde, const edyn::capsule_shape &sh) {
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
-    auto aabb = Aabb{bx::Vec3(-sh.half_extents.x, -sh.half_extents.y, -sh.half_extents.z), 
+    auto aabb = Aabb{bx::Vec3(-sh.half_extents.x, -sh.half_extents.y, -sh.half_extents.z),
                      bx::Vec3( sh.half_extents.x,  sh.half_extents.y,  sh.half_extents.z)};
     dde.draw(aabb);
 }

@@ -54,7 +54,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleRestitution
-	, "02-restitution"
+	, "08-restitution"
 	, "Restitution."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

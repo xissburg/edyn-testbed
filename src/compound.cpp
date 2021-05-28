@@ -12,7 +12,7 @@ public:
     virtual ~ExampleCompound() {}
 
     void createScene() override
-    {        
+    {
         // Create entities.
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -67,7 +67,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleCompound
-    , "01-compound"
+    , "02-compound"
     , "Compound Shapes."
     , "https://github.com/xissburg/edyn"
     );

@@ -33,7 +33,7 @@ public:
         def.position = {0, 0.7, 0};
         edyn::make_rigidbody(*m_registry, def);
 
-        def.position = {0.1, 1.2, 0};
+        //def.position = {0.1, 1.2, 0};
         edyn::make_rigidbody(*m_registry, def);
 
         def.position = {-0.2, 1.9, 0};
@@ -53,17 +53,20 @@ public:
         def.shape_opt = {edyn::capsule_shape{0.22, 0.5}};
         def.position = {3, 0.5, 0};
         edyn::make_rigidbody(*m_registry, def);
-        
+
         def.position = {2.87, 2.3, 0};
         def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), 1.57);
         edyn::make_rigidbody(*m_registry, def);
 
+        m_pause = true;
+        auto& world = m_registry->ctx<edyn::world>();
+        world.set_paused(m_pause);
 	}
 };
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCapsules
-	, "04-capsules"
+	, "01-capsules"
 	, "Capsules."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

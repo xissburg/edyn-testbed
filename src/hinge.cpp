@@ -9,7 +9,7 @@ public:
 
 	}
 
-    void createScene() override 
+    void createScene() override
     {
         // Create entities.
         // Create floor
@@ -19,7 +19,7 @@ public:
         floor_def.friction = 0.5;
         floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
         edyn::make_rigidbody(*m_registry, floor_def);
-        
+
         // Add some boxes.
         auto def = edyn::rigidbody_def();
         def.restitution = 0;
@@ -53,7 +53,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleHinge
-	, "08-hinge"
+	, "05-hinge"
 	, "Hinge constraint."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

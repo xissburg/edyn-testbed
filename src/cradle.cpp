@@ -9,12 +9,12 @@ public:
 
 	}
 
-    void createScene() override 
+    void createScene() override
     {
         //auto& world = m_registry->ctx<edyn::world>();
 
         // Create entities.
-        
+
         auto def = edyn::rigidbody_def();
         def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.friction = 0;

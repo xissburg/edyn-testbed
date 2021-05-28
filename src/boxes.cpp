@@ -32,12 +32,12 @@ public:
         def.position = {0, 4, 0};
         def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi * 0.5);
         //def.shape_opt = {edyn::sphere_shape{0.2}};
-        //def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
-        def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
-        
+        def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
+        //def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+
         auto obj_path = "../../../edyn-testbed/resources/box.obj";
-        def.shape_opt = {edyn::polyhedron_shape(obj_path)};
-        
+        //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+
         //def.gravity = {0,0,0};
         def.update_inertia();
         def.continuous_contacts = true;
@@ -46,12 +46,9 @@ public:
         const auto n = 3;
 
         for (int i = 0; i < n; ++i) {
-            //def.position = {edyn::scalar(-0.6 + i * 1.2), 1.8, 0};
-            def.position = {edyn::scalar(0.6 + i * 0.99), 0.6, 0};
-            if (i == 1) {
-                def.position.x += 0.01;
-                def.position.z -= 0.01;
-            }
+            def.position = {edyn::scalar(0.6 + i * 0.4), 0.6, 0};
+            //def.position = {edyn::scalar(0.6 + i * 0.99), 0.6, 0};
+
             edyn::make_rigidbody(*m_registry, def);
         }
     #else
@@ -71,13 +68,13 @@ public:
             for (int j = 0; j < 5; ++j) {
                 for (int k = 0; k < 5; ++k) {
                     for (int l = 0; l < 1; ++l) {
-                        /*if ((i + j + k) % 2 == 0) {
-                            def.shape_opt = {edyn::polyhedron_shape(obj_path)};
+                        /* if ((i + j + k) % 2 == 0) {
+                            def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
                         } else {
                             def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
                         }
-                        def.update_inertia();*/
-                        
+                        def.update_inertia(); */
+
                         def.position = {edyn::scalar(0.4 * j + l * 7), edyn::scalar(0.6 + 0.4 * i), edyn::scalar(0.4 * k)};
                         edyn::make_rigidbody(*m_registry, def);
                     }
@@ -94,7 +91,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleBoxes
-	,"06-boxes"
+	,"09-boxes"
 	, "Boxes."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

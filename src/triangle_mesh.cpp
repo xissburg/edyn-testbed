@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/math/quaternion.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -41,15 +42,15 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
-        floor_def.friction = 0.5;
+        floor_def.restitution = 0;
+        floor_def.friction = 0.8;
 
     #define LOAD_TRI_MESH 1
     #define LOAD_PAGED_TRI_MESH 2
     #define PLANAR_TRI_MESH 3
     #define MANUAL_TRI_MESH 4
 
-    #define MESH_TYPE MANUAL_TRI_MESH
+    #define MESH_TYPE LOAD_PAGED_TRI_MESH
 
     #if MESH_TYPE == LOAD_TRI_MESH
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
@@ -59,7 +60,7 @@ public:
             edyn::serialize(input, *trimesh);
         } else {
             // If binary is not found, load obj then export binary.
-            edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj", 
+            edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj",
                                          trimesh->vertices, trimesh->indices);
             trimesh->initialize();
             auto output = edyn::file_output_archive("terrain.bin");
@@ -72,16 +73,25 @@ public:
         auto extent_z = 12;
         auto num_vertices_x = 4;
         auto num_vertices_z = 24;
-        edyn::make_plane_mesh(extent_x, extent_z, num_vertices_x, num_vertices_z, 
-                              trimesh->vertices, trimesh->indices);
+        std::vector<edyn::vector3> vertices;
+        std::vector<uint16_t> indices;
+        edyn::make_plane_mesh(extent_x, extent_z,
+                              num_vertices_x, num_vertices_z,
+                              vertices, indices);
+
+        trimesh->m_vertices = std::move(vertices);
+
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            trimesh->m_indices.push_back({indices[i], indices[i+1], indices[i+2]});
+        }
 
         // Make it not so planar.
         for (int z = 0; z < num_vertices_z; ++z) {
             auto t = (edyn::scalar(z) / edyn::scalar(num_vertices_z - 1)) * 2 - 1;
             auto y = (t*t*t*t - t*t) * 1.2;
-            
+
             for (int x = 0; x < num_vertices_x; ++x) {
-                trimesh->vertices[z * num_vertices_x + x].y = y + (x == 0 || x == num_vertices_x - 1 ? 0.1 : 0);
+                trimesh->m_vertices[z * num_vertices_x + x].y = y + (x == 0 || x == num_vertices_x - 1 ? 0.1 : 0);
             }
         }
         trimesh->initialize();
@@ -89,18 +99,27 @@ public:
         floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
     #elif MESH_TYPE == MANUAL_TRI_MESH
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
-        trimesh->vertices.push_back({2, 0, 2});
-        trimesh->vertices.push_back({2, 0.1, -2});
-        trimesh->vertices.push_back({-2, 0, -2});
-        trimesh->vertices.push_back({-1, -0.8, 1});
+        trimesh->m_vertices.push_back({2, 0, 2});
+        trimesh->m_vertices.push_back({2, 0, -2});
+        trimesh->m_vertices.push_back({-2, 0, -2});
+        trimesh->m_vertices.push_back({-2, 0, 2});
+        trimesh->m_vertices.push_back({0, 0.5, 0});
+        trimesh->m_vertices.push_back({3, 0, 0});
 
-        trimesh->indices.push_back(0);
-        trimesh->indices.push_back(1);
-        trimesh->indices.push_back(2);
+        trimesh->m_vertices.push_back({2, -0.1, 2});
+        trimesh->m_vertices.push_back({2, -0.1, -2});
+        trimesh->m_vertices.push_back({3, -0.1, 0});
 
-        trimesh->indices.push_back(0);
-        trimesh->indices.push_back(2);
-        trimesh->indices.push_back(3);
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {0, 1, 4});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {1, 2, 4});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {2, 3, 4});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {3, 0, 4});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {0, 5, 1});
+
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {6, 5, 0});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {6, 8, 5});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {5, 8, 7});
+        trimesh->m_indices.insert(trimesh->m_indices.end(), {7, 1, 5});
 
         trimesh->initialize();
 
@@ -122,8 +141,8 @@ public:
             auto obj_path = "../../../edyn-testbed/resources/terrain_large.obj";
             edyn::load_tri_mesh_from_obj(obj_path, vertices, indices);
 
-            // Generate triangle mesh from .obj file. This splits the mesh into 
-            // a bunch of smaller `triangle_mesh` which are stored in the 
+            // Generate triangle mesh from .obj file. This splits the mesh into
+            // a bunch of smaller `triangle_mesh` which are stored in the
             // `paged_triangle_mesh` nodes.
             edyn::create_paged_triangle_mesh(
                 *paged_trimesh,
@@ -162,19 +181,25 @@ public:
             def.mass = 100;
             def.restitution = 0.1;
             def.position = {0, 5, 0};
+            //def.shape_opt = {edyn::cylinder_shape{0.3, 0.2}};
+            def.shape_opt = {edyn::cylinder_shape{0.3, 0.2}};
+
+            auto obj_path = "../../../edyn-testbed/resources/box.obj";
+            //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
 
             const size_t n = 1;
             for (size_t i = 0; i < n; ++i) {
-                if (i % 2 == 0) {
-                    def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+                /* if (i % 2 == 0) {w
+                    def.shape_opt = {edyn::box_shape{0.3, 0.15, 0.5}};
                 } else {
-                    //def.shape_opt = {edyn::sphere_shape{0.2}};
-                    auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
-                    def.shape_opt = {edyn::compound_shape(obj_path, edyn::vector3_zero, edyn::quaternion_identity, { 1.5, 1, 1})};
-                }
+                    def.shape_opt = {edyn::sphere_shape{0.222}};
+                    //auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
+                    //def.shape_opt = {edyn::compound_shape(obj_path, edyn::vector3_zero, edyn::quaternion_identity, { 1.5, 1, 1})};
+                } */
 
                 def.update_inertia();
-                def.position = {0, edyn::scalar(0.8 + i * 0.7), 0};
+                def.position = {2.5, edyn::scalar(0.18 + i * 0.7), 0.3};
+                def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi * -0.5 + edyn::scalar(i) * 10 * edyn::pi / 180);
                 edyn::make_rigidbody(*m_registry, def);
             }
         }
@@ -199,5 +224,3 @@ ENTRY_IMPLEMENT_MAIN(
 	, "Triangle Mesh."
 	, "https://github.com/xissburg/edyn-testbed"
 	);
-
-

@@ -221,7 +221,7 @@ bool EdynExample::update()
     }
 
     // Draw AABBs.
-    #if 1
+    #if 0
     {
         dde.push();
 
