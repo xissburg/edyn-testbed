@@ -78,5 +78,5 @@ ENTRY_IMPLEMENT_MAIN(
     ExamplePolyhedrons
     , "07-polyhedrons"
     , "Polyhedrons."
-    , "https://bkaradzic.github.io/bgfx/examples.html#cubes"
+    , "https://github.com/xissburg/edyn-testbed"
     );

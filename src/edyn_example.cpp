@@ -70,8 +70,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     edyn::init();
 
     // Setup world.
-    auto& world = m_registry->set<edyn::world>(*m_registry);
-    world.m_fixed_dt = 1.0/60;
+    m_registry->set<edyn::world>(*m_registry);
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);

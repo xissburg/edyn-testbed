@@ -53,7 +53,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleRestitution
-	, "06-restitution"
+	, "08-restitution"
 	, "Restitution."
-	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
+    , "https://github.com/xissburg/edyn-testbed"
 	);

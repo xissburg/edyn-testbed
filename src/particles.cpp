@@ -394,5 +394,5 @@ ENTRY_IMPLEMENT_MAIN(
 	  ExampleParticles
 	, "06-particles"
 	, "Particle entities orbiting one another with gravity."
-	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
+    , "https://github.com/xissburg/edyn-testbed"
 	);
