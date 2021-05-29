@@ -52,4 +52,10 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::generic_constr
 
 }
 
+inline
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::null_constraint &con, const entt::registry &reg) {}
+
+inline
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::gravity_constraint &con, const entt::registry &reg) {}
+
 #endif // EDYN_TESTBED_DEBUG_DRAW_HPP

@@ -11,7 +11,6 @@ public:
 
     void createScene() override
     {
-        // Create entities.
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
@@ -39,6 +38,7 @@ public:
             boxes.push_back(entity);
         }
 
+        // Create hinges.
         for (int i = 0; i < boxes.size() - 1; ++i) {
             auto entityA = boxes[i];
             auto entityB = boxes[i + 1];
