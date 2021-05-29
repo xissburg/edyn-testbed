@@ -11,10 +11,6 @@ public:
 
     void createScene() override
     {
-        //auto& world = m_registry->ctx<edyn::world>();
-
-        // Create entities.
-
         auto def = edyn::rigidbody_def();
         def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.friction = 0;
@@ -54,7 +50,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCradle
-	, "03-cradle"
+	, "07-cradle"
 	, "Newton's Cradle."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);

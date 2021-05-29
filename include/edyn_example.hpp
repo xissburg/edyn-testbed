@@ -35,10 +35,10 @@ struct ColorComponent {
     uint32_t value;
     operator uint32_t & () {
         return value;
-    } 
+    }
     operator uint32_t () const {
         return value;
-    } 
+    }
 };
 
 class EdynExample : public entry::AppI
@@ -60,8 +60,7 @@ public:
     virtual void updatePhysics(float deltaTime);
     void togglePausePhysics();
     void stepPhysics();
-
-	void onConstructContactPoint(entt::registry &registry, entt::entity entity);
+	void setPaused(bool);
 
 	entry::MouseState m_mouseState;
 

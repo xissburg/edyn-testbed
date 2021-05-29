@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/math/quaternion.hpp>
+#include <edyn/math/vector3.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -182,23 +183,29 @@ public:
             def.restitution = 0.1;
             def.position = {0, 5, 0};
             //def.shape_opt = {edyn::cylinder_shape{0.3, 0.2}};
-            def.shape_opt = {edyn::cylinder_shape{0.3, 0.2}};
+            def.shape_opt = {edyn::cylinder_shape{1.2, 1.5}};
+            //def.shape_opt = {edyn::box_shape{1.2, 0.6, 1.5}};
 
-            auto obj_path = "../../../edyn-testbed/resources/box.obj";
+            //auto obj_path = "../../../edyn-testbed/resources/box.obj";
             //def.shape_opt = {edyn::polyhedron_shape(obj_path)};
 
+            auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
+        auto compound = edyn::compound_shape(obj_path, edyn::vector3_zero,
+                                             edyn::quaternion_axis_angle({0, 1, 0}, edyn::pi * 0.5),
+                                             edyn::vector3_one * 2);
+            def.shape_opt = {compound};
             const size_t n = 1;
             for (size_t i = 0; i < n; ++i) {
-                /* if (i % 2 == 0) {w
+                /* if (i % 2 == 0) {
                     def.shape_opt = {edyn::box_shape{0.3, 0.15, 0.5}};
                 } else {
                     def.shape_opt = {edyn::sphere_shape{0.222}};
-                    //auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
-                    //def.shape_opt = {edyn::compound_shape(obj_path, edyn::vector3_zero, edyn::quaternion_identity, { 1.5, 1, 1})};
+                    auto obj_path = "../../../edyn-testbed/resources/rock.obj";
+                    def.shape_opt = {edyn::compound_shape(obj_path, edyn::vector3_zero, edyn::quaternion_identity, { 1.5, 1, 1})};
                 } */
 
                 def.update_inertia();
-                def.position = {2.5, edyn::scalar(0.18 + i * 0.7), 0.3};
+                def.position = {2.5, edyn::scalar(1 + i * 0.7), 0.3};
                 def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi * -0.5 + edyn::scalar(i) * 10 * edyn::pi / 180);
                 edyn::make_rigidbody(*m_registry, def);
             }
@@ -208,11 +215,7 @@ public:
         m_registry->on_construct<edyn::constraint_impulse>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
 
-        m_registry->on_construct<edyn::contact_point>().connect<&EdynExample::onConstructContactPoint>(*this);
-
-        m_pause = true;
-        auto& world = m_registry->ctx<edyn::world>();
-        world.set_paused(m_pause);
+        setPaused(true);
     }
 
     std::shared_ptr<edyn::paged_triangle_mesh_file_input_archive> m_input;

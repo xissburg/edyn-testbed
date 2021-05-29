@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/math/quaternion.hpp>
 
 class ExampleCylinders : public EdynExample
 {
@@ -13,68 +14,66 @@ public:
 
 	void createScene() override
 	{
-        // Create entities.
         // Create floor
+        auto extent_x = 25;
+        auto extent_z = 25;
+        auto num_vertices_x = 32;
+        auto num_vertices_z = 32;
+        std::vector<edyn::vector3> vertices;
+        std::vector<uint16_t> indices;
+        edyn::make_plane_mesh(extent_x, extent_z,
+                              num_vertices_x, num_vertices_z,
+                              vertices, indices);
+
+        // Make a slight bowl shape.
+        for (int i = 0; i < num_vertices_x; ++i) {
+            auto x = (edyn::scalar(i) /edyn::scalar(num_vertices_x) * 2 - 1) * extent_x;
+            for (int j = 0; j < num_vertices_z; ++j) {
+                auto z = (edyn::scalar(j) /edyn::scalar(num_vertices_z) * 2 - 1) * extent_z;
+                vertices[i * num_vertices_x + j].y = (x * x + z * z) * 0.001;
+            }
+        }
+
+        auto trimesh = std::make_shared<edyn::triangle_mesh>();
+        trimesh->insert_vertices(vertices.begin(), vertices.end());
+        trimesh->insert_indices(indices.begin(), indices.end());
+        trimesh->initialize();
+
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
+        floor_def.restitution = 0;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::plane_shape{edyn::normalize(edyn::vector3{0.01, 1, 0}), 0}};
+        floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
         edyn::make_rigidbody(*m_registry, floor_def);
 
-        // Add some cylinders.
+        // Add many cylinders.
         auto def = edyn::rigidbody_def();
-        def.kind = edyn::rigidbody_kind::rb_static;
-        def.restitution = 0;
         def.friction = 0.8;
+        def.mass = 10;
+        def.restitution = 0;
         def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
-        def.position = {0, 0.5, 0};
-        def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), 3 * edyn::pi/2);
-        edyn::make_rigidbody(*m_registry, def);
+        def.update_inertia();
+        def.continuous_contacts = true;
+        def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi / 2);
 
-        auto dyn_def = edyn::rigidbody_def();
-        dyn_def.kind = edyn::rigidbody_kind::rb_dynamic;
-        dyn_def.mass = 100;
-        dyn_def.shape_opt = {edyn::cylinder_shape{0.2, 0.2}};
-        dyn_def.update_inertia();
-        dyn_def.position = {0.1, 0.9, -0.05};
-        //dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{1, 0, 0}), edyn::pi * -30 / 180) * edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi / 2);
-        //dyn_def.position = {0.1, 1, 0};
-        dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 1, 0}), -edyn::pi * 0.5);
-        edyn::make_rigidbody(*m_registry, dyn_def);
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                for (int k = 0; k < 5; ++k) {
+                    def.position = {edyn::scalar(0.4 * j),
+                                    edyn::scalar(0.4 * i + 0.6),
+                                    edyn::scalar(0.4 * k)};
+                    edyn::make_rigidbody(*m_registry, def);
+                }
+            }
+        }
 
-        /* const size_t n = 10;
-        for (size_t i = 0; i < n; ++i) {
-            def.restitution = edyn::scalar(i) / n;
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 5, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 6, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 7, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 8, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * 0.8, 9, 0};
-            edyn::make_rigidbody(*m_registry, def);
-        } */
-
-        m_registry->on_construct<edyn::contact_point>().connect<&EdynExample::onConstructContactPoint>(*this);
-
-        m_pause = true;
-        auto& world = m_registry->ctx<edyn::world>();
-        world.set_paused(m_pause);
+        setPaused(true);
 	}
 };
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleCylinders
-	, "04-cylinders"
+	, "03-cylinders"
 	, "Cylinders."
-	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
+    , "https://github.com/xissburg/edyn-testbed"
 	);
-
-

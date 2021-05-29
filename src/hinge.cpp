@@ -55,5 +55,5 @@ ENTRY_IMPLEMENT_MAIN(
 	  ExampleHinge
 	, "05-hinge"
 	, "Hinge constraint."
-	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
+    , "https://github.com/xissburg/edyn"
 	);

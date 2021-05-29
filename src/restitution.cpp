@@ -13,8 +13,6 @@ public:
 
 	void createScene() override
 	{
-        auto& world = m_registry->ctx<edyn::world>();
-
         // Create entities.
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -30,6 +28,7 @@ public:
         def.mass = 100;
         def.shape_opt = {edyn::sphere_shape{0.2}};
         def.update_inertia();
+        def.continuous_contacts = true;
 
         const size_t n = 10;
         for (size_t i = 0; i < n; ++i) {
@@ -54,9 +53,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	  ExampleRestitution
-	, "08-restitution"
+	, "06-restitution"
 	, "Restitution."
 	, "https://bkaradzic.github.io/bgfx/examples.html#cubes"
 	);
-
-

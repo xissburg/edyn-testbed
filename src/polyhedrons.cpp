@@ -71,10 +71,6 @@ public:
 
         m_registry->on_construct<edyn::constraint_impulse>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
-
-        m_pause = true;
-        auto& world = m_registry->ctx<edyn::world>();
-        world.set_paused(m_pause);
     }
 };
 
@@ -84,5 +80,3 @@ ENTRY_IMPLEMENT_MAIN(
     , "Polyhedrons."
     , "https://bkaradzic.github.io/bgfx/examples.html#cubes"
     );
-
-

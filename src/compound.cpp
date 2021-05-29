@@ -59,15 +59,13 @@ public:
             edyn::make_rigidbody(*m_registry, dyn_def);
         }
 
-        m_pause = true;
-        auto& world = m_registry->ctx<edyn::world>();
-        world.set_paused(m_pause);
+        setPaused(true);
     }
 };
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleCompound
-    , "02-compound"
+    , "04-compound"
     , "Compound Shapes."
     , "https://github.com/xissburg/edyn"
     );

@@ -22,7 +22,7 @@ void OnDestroyIsland(entt::registry &registry, entt::entity entity) {
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
     //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
-    
+
     Args args(_argc, _argv);
 
     m_width  = _width;
@@ -183,7 +183,7 @@ bool EdynExample::update()
             dde.push();
 
             uint32_t color = 0xffffffff;
-            
+
             if (m_registry->has<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
             } else {
@@ -207,7 +207,7 @@ bool EdynExample::update()
             bx::mtxMul(mtx, rotT, trans);
 
             dde.pushTransform(mtx);
-            
+
             edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
                 draw(dde, s);
             });
@@ -259,7 +259,7 @@ bool EdynExample::update()
             float mtx[16];
             bx::mtxMul(mtx, rotT, trans);
             dde.pushTransform(mtx);
-            
+
             edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
                 draw(dde, s);
             });
@@ -338,7 +338,7 @@ bool EdynExample::update()
             const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
             const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
-            if (m_pick_entity == entt::null) {      
+            if (m_pick_entity == entt::null) {
                 entt::entity picked_entity = entt::null;
 
                 auto view = m_registry->view<edyn::present_position, edyn::mass>();
@@ -369,7 +369,7 @@ bool EdynExample::update()
                     auto pick_pos = cam_pos + ray_dir * t;
                     auto &orientation = m_registry->get<edyn::orientation>(picked_entity);
                     auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
-                    
+
                     auto pick_def = edyn::rigidbody_def{};
                     pick_def.position = pick_pos;
                     pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
@@ -425,7 +425,8 @@ void EdynExample::stepPhysics() {
     world.step();
 }
 
-void EdynExample::onConstructContactPoint(entt::registry &registry, entt::entity entity) {
-    registry.emplace<edyn::continuous>(entity).insert<edyn::contact_point>();
-    registry.emplace<edyn::dirty>(entity).created<edyn::continuous>();
+void EdynExample::setPaused(bool paused) {
+    m_pause = paused;
+    auto& world = m_registry->ctx<edyn::world>();
+    world.set_paused(m_pause);
 }
