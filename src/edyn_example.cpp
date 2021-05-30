@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <dear-imgui/imgui.h>
 #include <edyn/comp/dirty.hpp>
 #include <edyn/math/constants.hpp>
 #include <fenv.h>
@@ -141,10 +142,7 @@ bool EdynExample::update()
 
     updateSettings();
 
-    // Update physics.
     updatePhysics(deltaTime);
-
-    bgfx::dbgTextPrintf(0, 1, 0x2f, "Press 'P' to pause and 'L' to step simulation while paused.");
 
     // Draw stuff.
     DebugDrawEncoder dde;
@@ -422,8 +420,8 @@ void EdynExample::updateGUI() {
         );
 
     showExampleDialog(this);
-
     showSettings();
+    showFooter();
 
     imguiEndFrame();
 }
@@ -442,6 +440,20 @@ void EdynExample::showSettings() {
     ImGui::SliderInt("Time Step (ms)", &m_fixed_dt_ms, 1, 50);
 
     ImGui::SliderFloat("Gravity (m/s^2)", &m_gui_gravity, 0, 50, "%.2f");
+
+    ImGui::End();
+}
+
+void EdynExample::showFooter() {
+    ImGui::SetNextWindowPos(ImVec2(10.0f, m_height - 40.0f));
+    ImGui::SetNextWindowSize(ImVec2(m_width - 20.f, 20.f));
+    ImGui::SetNextWindowBgAlpha(0.4f);
+
+    ImGui::Begin("Footer", NULL, ImGuiWindowFlags_NoTitleBar |
+                                 ImGuiWindowFlags_NoScrollbar |
+                                 ImGuiWindowFlags_NoMouseInputs);
+
+    ImGui::Text("Press 'P' to pause and 'L' to step simulation while paused.");
 
     ImGui::End();
 }

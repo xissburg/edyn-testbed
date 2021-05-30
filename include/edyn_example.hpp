@@ -63,6 +63,7 @@ public:
 	void setPaused(bool);
 	void updateGUI();
 	void showSettings();
+	void showFooter();
 	void updateSettings();
 
 	entry::MouseState m_mouseState;
