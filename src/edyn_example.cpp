@@ -70,7 +70,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     edyn::init();
 
     // Setup world.
-    m_registry->set<edyn::world>(*m_registry);
+    auto &world = m_registry->set<edyn::world>(*m_registry);
+    m_fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
@@ -145,21 +146,15 @@ bool EdynExample::update()
 
     showExampleDialog(this);
 
-    ImGui::SetNextWindowPos(
-            ImVec2(m_width - m_width / 5.0f - 10.0f, 10.0f)
-        , ImGuiCond_FirstUseEver
-        );
-    ImGui::SetNextWindowSize(
-            ImVec2(m_width / 5.0f, m_height / 3.5f)
-        , ImGuiCond_FirstUseEver
-        );
-    ImGui::Begin("Settings"
-        , NULL
-        );
-
-    ImGui::End();
+    showSettings();
 
     imguiEndFrame();
+
+    auto &world = m_registry->ctx<edyn::world>();
+    auto fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
+    if (fixed_dt_ms != m_fixed_dt_ms) {
+        world.set_fixed_dt(m_fixed_dt_ms * edyn::scalar(0.001));
+    }
 
     // Update physics.
     updatePhysics(deltaTime);
@@ -302,7 +297,7 @@ bool EdynExample::update()
             m_registry->view<decltype(c)>().each([&] (auto ent, auto &con) {
                 draw(dde, ent, con, *m_registry);
             }), ...);
-        }, edyn::constraints_tuple_t{});
+        }, edyn::constraints_tuple);
     }
 
     dde.end();
@@ -428,4 +423,20 @@ void EdynExample::setPaused(bool paused) {
     m_pause = paused;
     auto& world = m_registry->ctx<edyn::world>();
     world.set_paused(m_pause);
+}
+
+void EdynExample::showSettings() {
+    ImGui::SetNextWindowPos(
+        ImVec2(m_width - m_width / 4.0f - 10.0f, 10.0f)
+        , ImGuiCond_FirstUseEver
+        );
+    ImGui::SetNextWindowSize(
+        ImVec2(m_width / 4.0f, m_height / 3.5f)
+        , ImGuiCond_FirstUseEver
+        );
+    ImGui::Begin("Settings");
+
+    ImGui::SliderInt("Time Step (ms)", &m_fixed_dt_ms, 1, 50);
+
+    ImGui::End();
 }

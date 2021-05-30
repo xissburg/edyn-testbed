@@ -61,6 +61,7 @@ public:
     void togglePausePhysics();
     void stepPhysics();
 	void setPaused(bool);
+	void showSettings();
 
 	entry::MouseState m_mouseState;
 
@@ -73,6 +74,7 @@ public:
 
     InputBinding* m_bindings;
 
+	int m_fixed_dt_ms;
     bool m_pause;
 
     std::unique_ptr<entt::registry> m_registry;
