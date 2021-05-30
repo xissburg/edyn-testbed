@@ -1,4 +1,6 @@
 #include "edyn_example.hpp"
+#include <edyn/comp/dirty.hpp>
+#include <edyn/math/constants.hpp>
 #include <fenv.h>
 
 #include <iostream>
@@ -72,6 +74,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     // Setup world.
     auto &world = m_registry->set<edyn::world>(*m_registry);
     m_fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
+    m_gui_gravity = m_gravity = -edyn::gravity_earth.y;
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
@@ -134,27 +137,9 @@ bool EdynExample::update()
     bgfx::setViewTransform(0, viewMtx, proj);
     bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
 
-    imguiBeginFrame(m_mouseState.m_mx
-        ,  m_mouseState.m_my
-        , (m_mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT   : 0)
-        | (m_mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT  : 0)
-        | (m_mouseState.m_buttons[entry::MouseButton::Middle] ? IMGUI_MBUT_MIDDLE : 0)
-        ,  m_mouseState.m_mz
-        , uint16_t(m_width)
-        , uint16_t(m_height)
-        );
+    updateGUI();
 
-    showExampleDialog(this);
-
-    showSettings();
-
-    imguiEndFrame();
-
-    auto &world = m_registry->ctx<edyn::world>();
-    auto fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
-    if (fixed_dt_ms != m_fixed_dt_ms) {
-        world.set_fixed_dt(m_fixed_dt_ms * edyn::scalar(0.001));
-    }
+    updateSettings();
 
     // Update physics.
     updatePhysics(deltaTime);
@@ -425,6 +410,24 @@ void EdynExample::setPaused(bool paused) {
     world.set_paused(m_pause);
 }
 
+void EdynExample::updateGUI() {
+    imguiBeginFrame(m_mouseState.m_mx
+        ,  m_mouseState.m_my
+        , (m_mouseState.m_buttons[entry::MouseButton::Left  ] ? IMGUI_MBUT_LEFT   : 0)
+        | (m_mouseState.m_buttons[entry::MouseButton::Right ] ? IMGUI_MBUT_RIGHT  : 0)
+        | (m_mouseState.m_buttons[entry::MouseButton::Middle] ? IMGUI_MBUT_MIDDLE : 0)
+        ,  m_mouseState.m_mz
+        , uint16_t(m_width)
+        , uint16_t(m_height)
+        );
+
+    showExampleDialog(this);
+
+    showSettings();
+
+    imguiEndFrame();
+}
+
 void EdynExample::showSettings() {
     ImGui::SetNextWindowPos(
         ImVec2(m_width - m_width / 4.0f - 10.0f, 10.0f)
@@ -438,5 +441,25 @@ void EdynExample::showSettings() {
 
     ImGui::SliderInt("Time Step (ms)", &m_fixed_dt_ms, 1, 50);
 
+    ImGui::SliderFloat("Gravity (m/s^2)", &m_gui_gravity, 0, 50, "%.2f");
+
     ImGui::End();
+}
+
+void EdynExample::updateSettings() {
+    auto &world = m_registry->ctx<edyn::world>();
+    auto fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
+    if (fixed_dt_ms != m_fixed_dt_ms) {
+        world.set_fixed_dt(m_fixed_dt_ms * edyn::scalar(0.001));
+    }
+
+    if (m_gui_gravity != m_gravity) {
+        m_gravity = m_gui_gravity;
+
+        auto view = m_registry->view<edyn::linacc>();
+        view.each([&] (entt::entity entity, edyn::linacc &acc) {
+            acc.y = -m_gravity;
+            m_registry->get_or_emplace<edyn::dirty>(entity).updated<edyn::linacc>();
+        });
+    }
 }

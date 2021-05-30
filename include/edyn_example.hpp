@@ -61,7 +61,9 @@ public:
     void togglePausePhysics();
     void stepPhysics();
 	void setPaused(bool);
+	void updateGUI();
 	void showSettings();
+	void updateSettings();
 
 	entry::MouseState m_mouseState;
 
@@ -75,6 +77,8 @@ public:
     InputBinding* m_bindings;
 
 	int m_fixed_dt_ms;
+	float m_gui_gravity;
+	edyn::scalar m_gravity;
     bool m_pause;
 
     std::unique_ptr<entt::registry> m_registry;
