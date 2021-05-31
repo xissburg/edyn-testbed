@@ -76,6 +76,7 @@ set(EdynTestbed_SOURCES
     src/capsules.cpp
     src/hinge.cpp
     src/triangle_mesh.cpp
+    src/paged_triangle_mesh.cpp
     src/boxes.cpp
     src/compound.cpp
 )
