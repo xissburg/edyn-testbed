@@ -1,5 +1,7 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/linvel.hpp>
+#include <edyn/comp/orientation.hpp>
+#include <edyn/math/quaternion.hpp>
 #include <edyn/util/rigidbody.hpp>
 
 class ExamplePlatforms : public EdynExample
@@ -36,7 +38,7 @@ public:
             for (int j = 0; j < 5; ++j) {
                 for (int k = 0; k < 5; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
-                                    edyn::scalar(0.4 * i + 1),
+                                    edyn::scalar(0.4 * i + 1.6),
                                     edyn::scalar(0.4 * k)};
                     edyn::make_rigidbody(*m_registry, def);
                 }
@@ -47,9 +49,14 @@ public:
         plat_def.friction = 0.5;
         plat_def.restitution = 0;
         plat_def.kind = edyn::rigidbody_kind::rb_kinematic;
-        plat_def.shape_opt = {edyn::box_shape{1, 0.1, 1.2}};
-        plat_def.position = {0, 0.5, 0};
-        m_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
+        plat_def.shape_opt = {edyn::box_shape{1, 0.07, 1.2}};
+        plat_def.position = {-0.3, 0.5, 0};
+        m_square_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
+
+        plat_def.shape_opt = {edyn::cylinder_shape{1.5, 0.1}};
+        plat_def.position = {0.8, 1.2, 0.8};
+        plat_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(89.1));
+        m_disc_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
 
         setPaused(true);
 	}
@@ -57,18 +64,26 @@ public:
     void updatePhysics(float deltaTime) override {
         if (!m_pause) {
             m_total_time += deltaTime;
-            auto &vel = m_registry->get<edyn::linvel>(m_platform_entity);
-            vel.x = std::sin(m_total_time * 7) * 4;
-            auto &pos = m_registry->get<edyn::position>(m_platform_entity);
-            pos += vel * deltaTime;
-            m_registry->get_or_emplace<edyn::dirty>(m_platform_entity)
+
+            auto &linvel = m_registry->get<edyn::linvel>(m_square_platform_entity);
+            linvel.x = std::sin(m_total_time * 7) * 4;
+            m_registry->get<edyn::position>(m_square_platform_entity) += linvel * deltaTime;
+            m_registry->get_or_emplace<edyn::dirty>(m_square_platform_entity)
                 .updated<edyn::position, edyn::linvel>();
+
+            auto &angvel = m_registry->get<edyn::angvel>(m_disc_platform_entity);
+            angvel.y = edyn::pi * 0.25;
+            auto &orn = m_registry->get<edyn::orientation>(m_disc_platform_entity);
+            orn = edyn::integrate(orn, angvel, deltaTime);
+            m_registry->get_or_emplace<edyn::dirty>(m_disc_platform_entity)
+                .updated<edyn::orientation, edyn::angvel>();
         }
 
         return EdynExample::updatePhysics(deltaTime);
     }
 
-    entt::entity m_platform_entity;
+    entt::entity m_square_platform_entity;
+    entt::entity m_disc_platform_entity;
     float m_total_time {0};
 };
 
