@@ -215,7 +215,7 @@ bool EdynExample::update()
 
     // Draw static entities.
     {
-        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation, edyn::static_tag>();
+        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation, edyn::kinematic_tag>();
         view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
             dde.push();
 

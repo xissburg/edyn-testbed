@@ -79,6 +79,7 @@ set(EdynTestbed_SOURCES
     src/paged_triangle_mesh.cpp
     src/boxes.cpp
     src/compound.cpp
+    src/platforms.cpp
 )
 
 if (APPLE)
