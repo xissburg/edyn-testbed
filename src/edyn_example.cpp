@@ -390,9 +390,7 @@ void EdynExample::updatePhysics(float deltaTime) {
 }
 
 void EdynExample::togglePausePhysics() {
-    m_pause = !m_pause;
-    auto& world = m_registry->ctx<edyn::world>();
-    world.set_paused(m_pause);
+    setPaused(!m_pause);
 }
 
 void EdynExample::stepPhysics() {

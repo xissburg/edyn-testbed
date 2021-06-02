@@ -58,8 +58,6 @@ public:
             dyn_def.orientation = edyn::quaternion_axis_angle({1, 0, 0}, j * edyn::pi * 0.5);
             edyn::make_rigidbody(*m_registry, dyn_def);
         }
-
-        setPaused(true);
     }
 };
 

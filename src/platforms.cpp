@@ -57,8 +57,6 @@ public:
         plat_def.position = {0.8, 1.2, 0.8};
         plat_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(89.1));
         m_disc_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
-
-        setPaused(true);
 	}
 
     void updatePhysics(float deltaTime) override {

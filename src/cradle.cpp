@@ -49,8 +49,6 @@ public:
             constraint.pivot[1] = edyn::vector3_zero;
             constraint.distance = 3;
         }
-
-        setPaused(true);
 	}
 };
 

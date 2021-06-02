@@ -65,8 +65,6 @@ public:
                 }
             }
         }
-
-        setPaused(true);
 	}
 };
 

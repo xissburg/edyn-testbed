@@ -40,8 +40,6 @@ public:
                 }
             }
         }
-
-        setPaused(true);
 	}
 };
 
