@@ -213,10 +213,15 @@ bool EdynExample::update()
     }
     #endif
 
-    // Draw static entities.
+    // Draw static and kinematic entities.
     {
-        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation, edyn::kinematic_tag>();
+        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation>();
         view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
+            if (!m_registry->has<edyn::static_tag>(ent) &&
+                !m_registry->has<edyn::kinematic_tag>(ent)) {
+                return;
+            }
+
             dde.push();
 
             uint32_t color = 0xffa0a0a0;
