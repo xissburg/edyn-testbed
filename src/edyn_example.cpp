@@ -1,7 +1,5 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
-#include <edyn/comp/dirty.hpp>
-#include <edyn/math/constants.hpp>
 #include <fenv.h>
 
 #include <iostream>

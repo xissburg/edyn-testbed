@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/math/quaternion.hpp>
 
 class ExampleCylinders : public EdynExample
 {

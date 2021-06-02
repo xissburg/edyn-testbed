@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/util/constraint_util.hpp>
 
 class ExampleParticles : public EdynExample
 {

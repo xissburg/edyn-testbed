@@ -1,7 +1,5 @@
 #include "debugdraw.hpp"
 #include <common/debugdraw/debugdraw.h>
-#include <edyn/shapes/compound_shape.hpp>
-#include <edyn/shapes/polyhedron_shape.hpp>
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
     dde.setWireframe(false);

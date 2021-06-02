@@ -1,8 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/math/quaternion.hpp>
-#include <edyn/math/vector3.hpp>
-#include <fstream>
-#include <sstream>
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {
