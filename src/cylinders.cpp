@@ -69,7 +69,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleCylinders
+	ExampleCylinders
 	, "03-cylinders"
 	, "Cylinders."
     , "https://github.com/xissburg/edyn-testbed"

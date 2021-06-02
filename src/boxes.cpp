@@ -44,7 +44,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleBoxes
+	ExampleBoxes
 	,"01-boxes"
 	, "Box stacking."
     , "https://github.com/xissburg/edyn-testbed"

@@ -118,7 +118,7 @@ private:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExamplePagedTriangleMesh
+	ExamplePagedTriangleMesh
 	, "11-paged-triangle-mesh"
 	, "Paged Triangle Mesh."
     , "https://github.com/xissburg/edyn-testbed"

@@ -53,7 +53,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleCradle
+	ExampleCradle
 	, "09-cradle"
 	, "Newton's Cradle."
     , "https://github.com/xissburg/edyn-testbed"

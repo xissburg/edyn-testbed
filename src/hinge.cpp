@@ -52,7 +52,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleHinge
+	ExampleHinge
 	, "05-hinge"
 	, "Hinge constraint."
     , "https://github.com/xissburg/edyn"

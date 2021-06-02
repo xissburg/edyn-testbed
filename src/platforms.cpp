@@ -86,7 +86,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExamplePlatforms
+	ExamplePlatforms
 	,"12-platforms"
 	, "Kinematic Platforms."
     , "https://github.com/xissburg/edyn-testbed"

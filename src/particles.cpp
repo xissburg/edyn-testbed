@@ -47,7 +47,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleParticles
+	ExampleParticles
 	, "06-particles"
 	, "Particles orbiting one another with gravity."
     , "https://github.com/xissburg/edyn-testbed"

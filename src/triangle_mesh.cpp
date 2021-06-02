@@ -102,7 +102,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleTriangleMesh
+	ExampleTriangleMesh
 	, "10-triangle-mesh"
 	, "Triangle Mesh."
     , "https://github.com/xissburg/edyn-testbed"

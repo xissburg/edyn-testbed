@@ -52,7 +52,7 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	  ExampleRestitution
+	ExampleRestitution
 	, "08-restitution"
 	, "Restitution."
     , "https://github.com/xissburg/edyn-testbed"
