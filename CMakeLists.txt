@@ -80,6 +80,7 @@ set(EdynTestbed_SOURCES
     src/boxes.cpp
     src/compound.cpp
     src/platforms.cpp
+    src/external_systems.cpp
 )
 
 if (APPLE)
