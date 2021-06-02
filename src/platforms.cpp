@@ -46,7 +46,7 @@ public:
         }
 
         auto plat_def = edyn::rigidbody_def{};
-        plat_def.friction = 0.5;
+        plat_def.friction = 0.9;
         plat_def.restitution = 0;
         plat_def.kind = edyn::rigidbody_kind::rb_kinematic;
         plat_def.shape_opt = {edyn::box_shape{1, 0.07, 1.2}};
@@ -56,16 +56,17 @@ public:
         plat_def.shape_opt = {edyn::cylinder_shape{1.5, 0.1}};
         plat_def.position = {0.8, 1.2, 0.8};
         plat_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(89.1));
+        plat_def.friction = 0.5;
         m_disc_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
 	}
 
     void updatePhysics(float deltaTime) override {
         if (!m_pause) {
             m_total_time += deltaTime;
+            auto angle = m_total_time * 4;
 
-            auto &linvel = m_registry->get<edyn::linvel>(m_square_platform_entity);
-            linvel.x = std::sin(m_total_time * 7) * 4;
-            m_registry->get<edyn::position>(m_square_platform_entity) += linvel * deltaTime;
+            m_registry->get<edyn::linvel>(m_square_platform_entity).x = std::sin(angle) * -4 * 0.8;
+            m_registry->get<edyn::position>(m_square_platform_entity).x = -0.3 + std::cos(angle) * 0.8;
             m_registry->get_or_emplace<edyn::dirty>(m_square_platform_entity)
                 .updated<edyn::position, edyn::linvel>();
 
