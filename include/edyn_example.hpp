@@ -72,7 +72,7 @@ public:
 	uint32_t m_height;
 	uint32_t m_debug;
 	uint32_t m_reset;
-	int64_t m_timeOffset;
+	int64_t m_timestamp;
     NullCallback m_callback;
 
     InputBinding* m_bindings;

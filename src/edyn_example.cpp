@@ -61,7 +61,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     cameraSetPosition({ 0.0f, 2.0f, -12.0f });
     cameraSetVerticalAngle(0.0f);
 
-    m_timeOffset = bx::getHPCounter();
+    m_timestamp = bx::getHPCounter();
 
     m_registry.reset(new entt::registry);
 
@@ -69,10 +69,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry->on_destroy<edyn::island>().connect<&OnDestroyIsland>();
 
     edyn::init();
-
-    // Setup world.
-    auto &world = m_registry->set<edyn::world>(*m_registry);
-    m_fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
+    edyn::attach(*m_registry);
+    m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
     m_gui_gravity = m_gravity = -edyn::gravity_earth.y;
 
     // Input bindings
@@ -101,6 +99,9 @@ int EdynExample::shutdown()
     // Shutdown bgfx.
     bgfx::shutdown();
 
+    edyn::detach(*m_registry);
+    edyn::deinit();
+
     m_registry.reset();
 
     return 0;
@@ -117,10 +118,9 @@ bool EdynExample::update()
 
     bgfx::touch(0);
 
-    int64_t now = bx::getHPCounter() - m_timeOffset;
-    static int64_t last = now;
-    const int64_t frameTime = now - last;
-    last = now;
+    int64_t now = bx::getHPCounter();
+    const int64_t frameTime = now - m_timestamp;
+    m_timestamp = now;
     const double freq = double(bx::getHPFrequency());
     const float deltaTime = float(frameTime/freq);
 
@@ -390,8 +390,7 @@ bool EdynExample::update()
 }
 
 void EdynExample::updatePhysics(float deltaTime) {
-    auto& world = m_registry->ctx<edyn::world>();
-    world.update();
+    edyn::update(*m_registry);
 }
 
 void EdynExample::togglePausePhysics() {
@@ -399,14 +398,12 @@ void EdynExample::togglePausePhysics() {
 }
 
 void EdynExample::stepPhysics() {
-    auto& world = m_registry->ctx<edyn::world>();
-    world.step();
+    edyn::step_simulation(*m_registry);
 }
 
 void EdynExample::setPaused(bool paused) {
     m_pause = paused;
-    auto& world = m_registry->ctx<edyn::world>();
-    world.set_paused(m_pause);
+    edyn::set_paused(*m_registry, m_pause);
 }
 
 void EdynExample::updateGUI() {
@@ -460,10 +457,9 @@ void EdynExample::showFooter() {
 }
 
 void EdynExample::updateSettings() {
-    auto &world = m_registry->ctx<edyn::world>();
-    auto fixed_dt_ms = static_cast<int>(world.get_fixed_dt() * 1000);
+    auto fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
     if (fixed_dt_ms != m_fixed_dt_ms) {
-        world.set_fixed_dt(m_fixed_dt_ms * edyn::scalar(0.001));
+        edyn::set_fixed_dt(*m_registry, m_fixed_dt_ms * edyn::scalar(0.001));
     }
 
     if (m_gui_gravity != m_gravity) {

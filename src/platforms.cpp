@@ -65,6 +65,8 @@ public:
             m_total_time += deltaTime;
             auto angle = m_total_time * 4;
 
+            // It's important to assign a proper velocity to the kinematic
+            // entities for correct constraint behavior, i.e. friction.
             m_registry->get<edyn::linvel>(m_square_platform_entity).x = std::sin(angle) * -4 * 0.8;
             m_registry->get<edyn::position>(m_square_platform_entity).x = -0.3 + std::cos(angle) * 0.8;
             m_registry->get_or_emplace<edyn::dirty>(m_square_platform_entity)

@@ -1,7 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/comp/dirty.hpp>
-#include <edyn/comp/tag.hpp>
-#include <edyn/parallel/external_system.hpp>
 #include <random>
 
 struct ClimbBehavior {
@@ -108,8 +105,8 @@ public:
 
 	void createScene() override
 	{
-        edyn::register_external_components<ClimbBehavior>();
-        edyn::set_external_system_pre_step(&UpdateClimbers);
+        edyn::register_external_components<ClimbBehavior>(*m_registry);
+        edyn::set_external_system_pre_step(*m_registry, &UpdateClimbers);
 
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -169,7 +166,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleExternalSystems
-	, "00-external-systems"
+	, "13-external-systems"
 	, "External Systems."
     , "https://github.com/xissburg/edyn-testbed"
     );
