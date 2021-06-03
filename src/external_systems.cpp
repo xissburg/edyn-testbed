@@ -16,6 +16,7 @@ void UpdateClimbers(entt::registry &registry) {
     auto contactView = registry.view<edyn::contact_constraint>();
     auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();
     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
+        // Find contact manifolds for this entity.
         graph.visit_edges(node.node_index, [&] (auto manifoldEntity) {
             if (!manifoldView.contains(manifoldEntity)) {
                 return;
@@ -72,6 +73,7 @@ void UpdateClimbers(entt::registry &registry) {
                 climber.direction = dir;
             }
 
+            // Calculate angular impulse.
             auto axis = edyn::normalize(edyn::cross(normal, climber.direction));
             auto tangentialImpulse = edyn::scalar(1);
 
@@ -85,6 +87,7 @@ void UpdateClimbers(entt::registry &registry) {
 
             auto distance = length(posClimber - pivot);
             auto angularImpulse = axis * tangentialImpulse * distance;
+
             // Apply impulse.
             auto &inertiaInv = registry.get<edyn::inertia_world_inv>(entity);
             registry.get<edyn::angvel>(entity) += inertiaInv * angularImpulse;
@@ -113,27 +116,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 0;
         floor_def.friction = 1;
-    #if 0
-        auto trimesh = std::make_shared<edyn::triangle_mesh>();
-        auto input = edyn::file_input_archive("terrain.bin");
 
-        if (input.is_file_open()) {
-            edyn::serialize(input, *trimesh);
-        } else {
-            // If binary is not found, load obj then export binary.
-            auto vertices = std::vector<edyn::vector3>{};
-            auto indices = std::vector<uint16_t>{};
-            edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj",
-                                         vertices, indices);
-            trimesh->insert_vertices(vertices.begin(), vertices.end());
-            trimesh->insert_indices(indices.begin(), indices.end());
-            trimesh->initialize();
-            auto output = edyn::file_output_archive("terrain.bin");
-            edyn::serialize(output, *trimesh);
-        }
-
-        floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
-    #else
         auto extent_x = 25;
         auto extent_z = 25;
         auto num_vertices_x = 32;
@@ -144,7 +127,6 @@ public:
                               num_vertices_x, num_vertices_z,
                               vertices, indices);
 
-        // Make a slight bowl shape.
         for (int i = 0; i < num_vertices_x; ++i) {
             auto x = (edyn::scalar(i) /edyn::scalar(num_vertices_x) * 2 - 1) * extent_x;
             for (int j = 0; j < num_vertices_z; ++j) {
@@ -159,10 +141,9 @@ public:
         trimesh->initialize();
 
         floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
-    #endif
         edyn::make_rigidbody(*m_registry, floor_def);
 
-        // Create climber.
+        // Create climbers.
         auto def = edyn::rigidbody_def();
         def.friction = 1;
         def.mass = 50;
@@ -188,7 +169,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleExternalSystems
-	,"00-external-systems"
+	, "00-external-systems"
 	, "External Systems."
     , "https://github.com/xissburg/edyn-testbed"
     );
