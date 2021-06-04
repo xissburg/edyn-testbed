@@ -50,14 +50,18 @@ public:
         dyn_def.shape_opt = {compound};
         dyn_def.update_inertia();
 
+        std::vector<edyn::rigidbody_def> defs;
+
         // Instantiate multiple links to create a chain.
         for (size_t i = 0; i < 6; ++i) {
             auto j = static_cast<edyn::scalar>(i % 2 + 1);
             auto k = static_cast<edyn::scalar>(i) * 0.725f;
             dyn_def.position = {k, 0.6, 0.0};
             dyn_def.orientation = edyn::quaternion_axis_angle({1, 0, 0}, j * edyn::pi * 0.5);
-            edyn::make_rigidbody(*m_registry, dyn_def);
+            defs.push_back(dyn_def);
         }
+
+        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

@@ -22,6 +22,8 @@ public:
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some polyhedrons.
+        std::vector<edyn::rigidbody_def> defs;
+
         auto dyn_def = edyn::rigidbody_def();
         dyn_def.kind = edyn::rigidbody_kind::rb_dynamic;
         dyn_def.mass = 100;
@@ -38,7 +40,7 @@ public:
         dyn_def.update_inertia();
         dyn_def.position = {0.0, 0.5, 0.0};
         dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), edyn::pi * -0.5);
-        edyn::make_rigidbody(*m_registry, dyn_def);
+        defs.push_back(dyn_def);
 
         dyn_def.shape_opt = {
             edyn::polyhedron_shape("../../../edyn-testbed/resources/cylinder.obj")
@@ -46,7 +48,7 @@ public:
         dyn_def.update_inertia();
         dyn_def.position = {-0., 1.2, 0.0};
         dyn_def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{2, 0.6, 1}), edyn::pi * -0.667);
-        edyn::make_rigidbody(*m_registry, dyn_def);
+        defs.push_back(dyn_def);
 
         dyn_def.shape_opt = {
             edyn::compound_shape("../../../edyn-testbed/resources/chain_link.obj")
@@ -54,7 +56,7 @@ public:
         dyn_def.update_inertia();
         dyn_def.position = {-0., 1.8, 0.0};
         dyn_def.orientation = edyn::quaternion_identity;
-        edyn::make_rigidbody(*m_registry, dyn_def);
+        defs.push_back(dyn_def);
 
         dyn_def.shape_opt = {
             edyn::compound_shape("../../../edyn-testbed/resources/rock.obj",
@@ -65,7 +67,9 @@ public:
         dyn_def.update_inertia();
         dyn_def.position = {0.0, 2.3, 0.0};
         dyn_def.orientation = edyn::quaternion_identity;
-        edyn::make_rigidbody(*m_registry, dyn_def);
+        defs.push_back(dyn_def);
+
+        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 
