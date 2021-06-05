@@ -81,6 +81,7 @@ set(EdynTestbed_SOURCES
     src/compound.cpp
     src/platforms.cpp
     src/external_systems.cpp
+    src/center_of_mass.cpp
 )
 
 if (APPLE)

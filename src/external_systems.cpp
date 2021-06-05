@@ -5,6 +5,10 @@ struct ClimbBehavior {
     edyn::vector3 direction;
 };
 
+// This function is called in the island worker, in a worker thread. The
+// provided registry is the private registry of that island worker. Entities
+// in this registry do not match up with the entities created in the main
+// registry.
 void UpdateClimbers(entt::registry &registry) {
     auto &graph = registry.ctx<edyn::entity_graph>();
     auto manifoldView = registry.view<edyn::contact_manifold>();
@@ -12,6 +16,7 @@ void UpdateClimbers(entt::registry &registry) {
     auto impulseView = registry.view<edyn::constraint_impulse>();
     auto contactView = registry.view<edyn::contact_constraint>();
     auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();
+
     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
         // Find contact manifolds for this entity.
         graph.visit_edges(node.node_index, [&] (auto manifoldEntity) {

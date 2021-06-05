@@ -59,7 +59,7 @@ public:
         defs.push_back(dyn_def);
 
         dyn_def.shape_opt = {
-            edyn::compound_shape("../../../edyn-testbed/resources/rock.obj",
+            edyn::polyhedron_shape("../../../edyn-testbed/resources/rock.obj",
                                    edyn::vector3_zero, // position offset
                                    edyn::quaternion_identity, // orientation
                                    {1.1, 0.9, 1.3}) // scaling
