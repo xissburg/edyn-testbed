@@ -27,7 +27,6 @@ public:
         std::vector<edyn::rigidbody_def> defs;
 
         auto dyn_def = edyn::rigidbody_def();
-        dyn_def.kind = edyn::rigidbody_kind::rb_dynamic;
         dyn_def.mass = 100;
         dyn_def.restitution = 0;
         dyn_def.friction = 0.7;

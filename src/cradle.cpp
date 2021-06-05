@@ -15,7 +15,6 @@ public:
         // being applied in a manner where the shock would be propagated as
         // expected.
         auto def = edyn::rigidbody_def();
-        def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.friction = 0;
         def.restitution = 1;
         def.linvel = edyn::vector3_zero;
