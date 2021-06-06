@@ -46,7 +46,8 @@ public:
             auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB);
             hinge.pivot[0] = {0, 0.45, -0.075f * z};
             hinge.pivot[1] = {0, -0.45, 0.075f * z};
-            hinge.set_axis(m_registry->get<edyn::orientation>(entityA), edyn::vector3_z, -edyn::vector3_z);
+            hinge.axis[0] = {0, 0, 1};
+            hinge.axis[1] = {0, 0, 1};
         }
 	  }
 };
