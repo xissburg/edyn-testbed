@@ -86,6 +86,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
 int EdynExample::shutdown()
 {
+    destroyScene();
+
     // Cleanup.
     ddShutdown();
 

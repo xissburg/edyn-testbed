@@ -2,8 +2,6 @@
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {
-    if (!registry.has<edyn::contact_constraint>(entity)) return;
-
     auto &imp = registry.get<edyn::constraint_impulse>(entity);
     auto normal_impulse = imp.values[0];
 
@@ -96,7 +94,7 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::constraint_impulse>().connect<&ContactStarted>();
+        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
     }
 };

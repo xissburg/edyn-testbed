@@ -8,7 +8,6 @@ class ExamplePagedTriangleMesh : public EdynExample
 public:
 	ExamplePagedTriangleMesh(const char* _name, const char* _description, const char* _url)
 		: EdynExample(_name, _description, _url)
-        , m_input(std::make_shared<edyn::paged_triangle_mesh_file_input_archive>())
 	{
 
 	}
@@ -22,6 +21,7 @@ public:
         floor_def.restitution = 0;
         floor_def.friction = 0.8;
 
+        m_input = std::make_shared<edyn::paged_triangle_mesh_file_input_archive>();
         auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh>(std::static_pointer_cast<edyn::triangle_mesh_page_loader_base>(m_input));
         paged_trimesh->m_max_cache_num_vertices = 1 << 14;
         m_input->open("terrain_large.bin");
@@ -109,8 +109,13 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::constraint_impulse>().connect<&ContactStarted>();
+        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();
         m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+    }
+
+    void destroyScene() override {
+        m_input->close();
+        m_input.reset();
     }
 
 private:

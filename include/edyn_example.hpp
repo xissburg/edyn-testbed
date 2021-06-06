@@ -57,6 +57,7 @@ public:
 	bool update() override;
 
     virtual void createScene() = 0;
+    virtual void destroyScene() {};
     virtual void updatePhysics(float deltaTime);
     void togglePausePhysics();
     void stepPhysics();
