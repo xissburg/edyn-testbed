@@ -84,7 +84,7 @@ public:
                 .updated<edyn::orientation, edyn::angvel>();
         }
 
-        return EdynExample::updatePhysics(deltaTime);
+        EdynExample::updatePhysics(deltaTime);
     }
 
     entt::entity m_square_platform_entity;

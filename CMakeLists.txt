@@ -82,6 +82,7 @@ set(EdynTestbed_SOURCES
     src/platforms.cpp
     src/external_systems.cpp
     src/center_of_mass.cpp
+    src/raycasting.cpp
 )
 
 if (APPLE)

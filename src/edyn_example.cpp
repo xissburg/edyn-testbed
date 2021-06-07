@@ -1,5 +1,11 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/collision/raycast.hpp>
+#include <edyn/comp/present_orientation.hpp>
+#include <edyn/comp/present_position.hpp>
+#include <edyn/comp/tag.hpp>
+#include <edyn/math/quaternion.hpp>
+#include <edyn/shapes/box_shape.hpp>
 #include <fenv.h>
 
 #include <iostream>
@@ -141,6 +147,8 @@ bool EdynExample::update()
     updateGUI();
 
     updateSettings();
+
+    updatePicking(viewMtx, proj);
 
     updatePhysics(deltaTime);
 
@@ -288,107 +296,142 @@ bool EdynExample::update()
         }, edyn::constraints_tuple);
     }
 
+    // Draw raycast.
+    {
+        dde.push();
+        dde.setColor(0xff0000ff);
+        dde.setWireframe(false);
+
+        auto view = m_registry->view<edyn::shape_raycast_result, edyn::box_shape, edyn::present_position, edyn::present_orientation>();
+        view.each([&] (edyn::shape_raycast_result &result, edyn::box_shape &box,
+                       edyn::present_position &pos, edyn::present_orientation &orn) {
+            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+
+            float rot[16];
+            bx::mtxQuat(rot, bxquat);
+            float rotT[16];
+            bx::mtxTranspose(rotT, rot);
+            float trans[16];
+            bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+
+            float mtx[16];
+            bx::mtxMul(mtx, rotT, trans);
+
+            dde.pushTransform(mtx);
+
+            auto feature = std::get<edyn::box_feature>(result.feature.feature);
+            switch (feature) {
+            case edyn::box_feature::vertex: {
+                auto v = box.get_vertex(result.feature.index);
+                auto normal = edyn::rotate(edyn::conjugate(orn), m_rayDir);
+                dde.drawQuad({normal.x, normal.y, normal.z}, {v.x, v.y, v.z}, 0.01f);
+                break;
+            } case edyn::box_feature::edge: {
+                auto v = box.get_edge(result.feature.index);
+                dde.moveTo(v[0].x, v[0].y, v[0].z);
+                dde.lineTo(v[1].x, v[1].y, v[1].z);
+                break;
+            } case edyn::box_feature::face: {
+                auto v = box.get_face(result.feature.index);
+                dde.moveTo(v[0].x, v[0].y, v[0].z);
+                for (auto i = 0; i < 4; ++i) {
+                    auto j = (i + 1) % 4;
+                    dde.lineTo(v[j].x, v[j].y, v[j].z);
+                }
+            }}
+
+            dde.popTransform();
+        });
+
+        dde.pop();
+    }
+
     dde.end();
 
     // Advance to next frame. Rendering thread will be kicked to
     // process submitted rendering primitives.
     bgfx::frame();
 
-    if (!ImGui::MouseOverArea()) {
-        if (!!m_mouseState.m_buttons[entry::MouseButton::Left]) {
-            float ray_clip[4];
-            ray_clip[0] = ( (2.0f * m_mouseState.m_mx) / m_width - 1.0f) * -1.0f;
-            ray_clip[1] = ( (1.0f - (2.0f * m_mouseState.m_my) / m_height) ) * -1.0f;
-            ray_clip[2] = -1.0f;
-            ray_clip[3] =  1.0f;
+    return true;
+}
 
-            float invProjMtx[16];
-            bx::mtxInverse(invProjMtx, proj);
+void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
+    float ray_clip[4];
+    ray_clip[0] = ( (2.0f * m_mouseState.m_mx) / m_width - 1.0f) * -1.0f;
+    ray_clip[1] = ( (1.0f - (2.0f * m_mouseState.m_my) / m_height) ) * -1.0f;
+    ray_clip[2] = -1.0f;
+    ray_clip[3] =  1.0f;
 
-            float ray_eye[4];
-            bx::vec4MulMtx(ray_eye, ray_clip, invProjMtx);
-            ray_eye[2] = -1.0f;
-            ray_eye[3] = 0.0f;
+    float invProjMtx[16];
+    bx::mtxInverse(invProjMtx, proj);
 
-            float invViewMtx[16];
-            bx::mtxInverse(invViewMtx, viewMtx);
+    float ray_eye[4];
+    bx::vec4MulMtx(ray_eye, ray_clip, invProjMtx);
+    ray_eye[2] = -1.0f;
+    ray_eye[3] = 0.0f;
 
-            float ray_world[4];
-            bx::vec4MulMtx(ray_world, ray_eye, invViewMtx);
+    float invViewMtx[16];
+    bx::mtxInverse(invViewMtx, viewMtx);
 
-            const edyn::vector3 ray_dir = edyn::normalize(edyn::vector3{ray_world[0], ray_world[1], ray_world[2]}) * -1.0f;
-            const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
-            const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
+    float ray_world[4];
+    bx::vec4MulMtx(ray_world, ray_eye, invViewMtx);
 
-            if (m_pick_entity == entt::null) {
-                entt::entity picked_entity = entt::null;
+    m_rayDir = edyn::normalize(edyn::vector3{ray_world[0], ray_world[1], ray_world[2]}) * -1.0f;
 
-                auto view = m_registry->view<edyn::present_position, edyn::mass>();
-                view.each([&] (auto ent, auto &pos, auto &mass) {
-                    if (picked_entity != entt::null || mass == EDYN_SCALAR_MAX) {
-                        return;
-                    }
-
-                    const auto v = pos - cam_pos;
-                    const auto s = edyn::dot(v, ray_dir);
-
-                    if (s > 0) {
-                        const auto dist = std::sqrt(edyn::length_sqr(v) - s * s);
-                        if (dist < 1) {
-                            picked_entity = ent;
-                            // Do not create kinematic entity and constraint while iterating view.
-                            // Do it afterwards to avoid possible undefined behavior when changing
-                            // the storage while iterating.
-                        }
-                    }
-                });
-
-                if (picked_entity != entt::null) {
-                    const auto plane_normal = edyn::normalize(cam_at - cam_pos);
-                    auto &pos = view.get<edyn::present_position>(picked_entity);
-                    auto cam_dist = edyn::dot(pos - cam_pos, plane_normal);
-                    auto t = cam_dist / edyn::dot(ray_dir, plane_normal);
-                    auto pick_pos = cam_pos + ray_dir * t;
-                    auto &orientation = m_registry->get<edyn::orientation>(picked_entity);
-                    auto pivot = edyn::rotate(edyn::conjugate(orientation), pick_pos - pos);
-
-                    auto pick_def = edyn::rigidbody_def{};
-                    pick_def.position = pick_pos;
-                    pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
-                    m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
-
-                    auto &mass = view.get<edyn::mass>(picked_entity);
-                    auto [con_ent, constraint] = edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, picked_entity, m_pick_entity);
-                    constraint.pivot[0] = pivot;
-                    constraint.pivot[1] = edyn::vector3_zero;
-                    constraint.distance = 0;
-                    constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
-                    constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
-                    m_pick_constraint_entity = con_ent;
-                }
-            } else {
-                const auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
-                const auto plane_normal = edyn::normalize(cam_at - cam_pos);
-                auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
-                auto s = dist / edyn::dot(ray_dir, plane_normal);
-                auto next_pick_pos = cam_pos + ray_dir * s;
-
-                if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
-                    //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
-                    m_registry->get<edyn::position>(m_pick_entity) = next_pick_pos;
-                    m_registry->get_or_emplace<edyn::dirty>(m_pick_entity)
-                        .updated<edyn::position>();
-                }
-            }
-        } else if (m_pick_entity != entt::null) {
-            m_registry->destroy(m_pick_constraint_entity);
-            m_registry->destroy(m_pick_entity);
-            m_pick_constraint_entity = entt::null;
-            m_pick_entity = entt::null;
-        }
+    if (ImGui::MouseOverArea()) {
+        return;
     }
 
-    return true;
+    if (m_mouseState.m_buttons[entry::MouseButton::Left]) {
+        const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
+        const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
+
+        if (m_pick_entity == entt::null) {
+            auto p1 = cam_pos + m_rayDir * 10.f;
+            auto result = edyn::raycast(*m_registry, cam_pos, p1);
+
+            if (result.entity != entt::null && m_registry->has<edyn::dynamic_tag>(result.entity)) {
+                auto pick_pos = edyn::lerp(cam_pos, p1, result.proportion);
+
+                auto &pos = m_registry->get<edyn::position>(result.entity);
+                auto &orn = m_registry->get<edyn::orientation>(result.entity);
+                auto pivot = edyn::to_object_space(pick_pos, pos, orn);
+
+                auto pick_def = edyn::rigidbody_def{};
+                pick_def.position = pick_pos;
+                pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
+                m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
+
+                auto &mass = m_registry->get<edyn::mass>(result.entity);
+                auto [con_ent, constraint] = edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, result.entity, m_pick_entity);
+                constraint.pivot[0] = pivot;
+                constraint.pivot[1] = edyn::vector3_zero;
+                constraint.distance = 0;
+                constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
+                constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
+                m_pick_constraint_entity = con_ent;
+            }
+        } else {
+            // Move kinematic on plane parallel to view axis.
+            const auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
+            const auto plane_normal = edyn::normalize(cam_at - cam_pos);
+            auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
+            auto s = dist / edyn::dot(m_rayDir, plane_normal);
+            auto next_pick_pos = cam_pos + m_rayDir * s;
+
+            if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
+                //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
+                m_registry->get<edyn::position>(m_pick_entity) = next_pick_pos;
+                m_registry->get_or_emplace<edyn::dirty>(m_pick_entity)
+                    .updated<edyn::position>();
+            }
+        }
+    } else if (m_pick_entity != entt::null) {
+        m_registry->destroy(m_pick_constraint_entity);
+        m_registry->destroy(m_pick_entity);
+        m_pick_constraint_entity = entt::null;
+        m_pick_entity = entt::null;
+    }
 }
 
 void EdynExample::updatePhysics(float deltaTime) {
