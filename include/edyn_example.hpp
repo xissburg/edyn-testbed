@@ -68,6 +68,8 @@ public:
 	void showFooter();
 	void updateSettings();
 
+	void drawRaycast(DebugDrawEncoder &dde);
+
 	entry::MouseState m_mouseState;
 
 	uint32_t m_width;

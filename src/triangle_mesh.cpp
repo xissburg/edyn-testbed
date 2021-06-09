@@ -49,7 +49,7 @@ public:
             edyn::serialize(output, *trimesh);
         }
 
-        floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
+        floor_def.shape = edyn::mesh_shape{trimesh};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some dynamic entities.
@@ -87,7 +87,7 @@ public:
 
             for (auto [shape, pos] : shapes_and_positions) {
                 def.position = pos;
-                def.shape_opt = {shape};
+                def.shape = shape;
                 def.update_inertia();
                 edyn::make_rigidbody(*m_registry, def);
             }

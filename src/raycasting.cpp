@@ -19,7 +19,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 0;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
+        floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some boxes.
@@ -27,13 +27,13 @@ public:
         def.friction = 0.8;
         def.mass = 10;
         def.restitution = 0;
-        def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+        def.shape = edyn::polyhedron_shape("../../../edyn-testbed/resources/rock.obj");
         def.update_inertia();
         def.continuous_contacts = true;
 
         std::vector<edyn::rigidbody_def> defs;
 
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 1; ++i) {
             for (int j = 0; j < 1; ++j) {
                 for (int k = 0; k < 1; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
@@ -51,7 +51,7 @@ public:
         EdynExample::updatePhysics(deltaTime);
 
         auto p0 = edyn::vector3{cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
-        auto p1 = p0 + m_rayDir * 10.f;
+        auto p1 = p0 + m_rayDir * 100.f;
 
         auto result = edyn::raycast(*m_registry, p0, p1);
 

@@ -142,7 +142,7 @@ public:
         trimesh->insert_indices(indices.begin(), indices.end());
         trimesh->initialize();
 
-        floor_def.shape_opt = {edyn::mesh_shape{trimesh}};
+        floor_def.shape = edyn::mesh_shape{trimesh};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Create climbers.
@@ -151,7 +151,7 @@ public:
         def.mass = 50;
         def.restitution = 0;
         def.position = {0, 1, 0};
-        def.shape_opt = {edyn::sphere_shape{0.2}};
+        def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
 
         for (size_t i = 0; i < 10; ++i) {

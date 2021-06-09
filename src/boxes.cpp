@@ -18,7 +18,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 0;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
+        floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some boxes.
@@ -26,7 +26,7 @@ public:
         def.friction = 0.8;
         def.mass = 10;
         def.restitution = 0;
-        def.shape_opt = {edyn::box_shape{0.2, 0.2, 0.2}};
+        def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         def.update_inertia();
         def.continuous_contacts = true;
 
