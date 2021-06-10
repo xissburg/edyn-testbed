@@ -20,7 +20,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
+        floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some dynamic rigid bodies.
@@ -37,7 +37,7 @@ public:
             compound.add_shape(edyn::box_shape{0.2, 0.2, 0.2}, {0.1, 0.1, 0.1}, edyn::quaternion_identity);
             compound.finish();
 
-            dyn_def.shape_opt = {compound};
+            dyn_def.shape = compound;
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 0.5, 0.0};
             defs.push_back(dyn_def);
@@ -48,7 +48,7 @@ public:
             compound.add_shape(edyn::cylinder_shape{0.15, 0.2}, {-0.1, 0.05, 0.01}, edyn::quaternion_identity);
             compound.finish();
 
-            dyn_def.shape_opt = {compound};
+            dyn_def.shape = compound;
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 1, 0.0};
             defs.push_back(dyn_def);

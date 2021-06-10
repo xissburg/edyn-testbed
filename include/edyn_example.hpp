@@ -63,9 +63,12 @@ public:
     void stepPhysics();
 	void setPaused(bool);
 	void updateGUI();
+	void updatePicking(float viewMtx[16], float proj[16]);
 	void showSettings();
 	void showFooter();
 	void updateSettings();
+
+	void drawRaycast(DebugDrawEncoder &dde);
 
 	entry::MouseState m_mouseState;
 
@@ -86,6 +89,8 @@ public:
     std::unique_ptr<entt::registry> m_registry;
     entt::entity m_pick_entity {entt::null};
     entt::entity m_pick_constraint_entity {entt::null};
+    edyn::vector3 m_rayDir;
+    edyn::scalar m_rayLength {100.f};
 };
 
 

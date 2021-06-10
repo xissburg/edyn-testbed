@@ -20,7 +20,7 @@ public:
         def.linvel = edyn::vector3_zero;
         def.angvel = edyn::vector3_zero;
         def.mass = 100;
-        def.shape_opt = {edyn::sphere_shape{0.2}};
+        def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
 
         auto def_st = edyn::rigidbody_def();

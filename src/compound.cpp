@@ -19,7 +19,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.restitution = 1;
         floor_def.friction = 0.5;
-        floor_def.shape_opt = {edyn::plane_shape{{0, 1, 0}, 0}};
+        floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Create a chain link using multiple shapes.
@@ -46,7 +46,7 @@ public:
         auto dyn_def = edyn::rigidbody_def();
         dyn_def.continuous_contacts = true;
         dyn_def.mass = 50;
-        dyn_def.shape_opt = {compound};
+        dyn_def.shape = compound;
         dyn_def.update_inertia();
 
         std::vector<edyn::rigidbody_def> defs;
