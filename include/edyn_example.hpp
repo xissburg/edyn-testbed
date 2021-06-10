@@ -90,6 +90,7 @@ public:
     entt::entity m_pick_entity {entt::null};
     entt::entity m_pick_constraint_entity {entt::null};
 	edyn::vector3 m_rayDir;
+	edyn::scalar m_rayLength {100.f};
 };
 
 
