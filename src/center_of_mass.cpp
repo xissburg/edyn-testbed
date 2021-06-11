@@ -55,8 +55,6 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-
-        setPaused(true);
     }
 };
 
