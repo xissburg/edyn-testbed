@@ -305,7 +305,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::box_shape &box,
                        edyn::vector3 pos, edyn::quaternion orn) {
     auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
     auto rayDirLocal = edyn::rotate(edyn::conjugate(orn), rayDir);
-    auto intersection = rayPosLocal + rayDirLocal * result.proportion;
+    auto intersection = rayPosLocal + rayDirLocal * result.fraction;
 
     auto face_idx = std::get<edyn::box_raycast_info>(result.info_var).face_index;
     auto [feature, feature_idx] =
@@ -338,7 +338,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::cylinder_shape &cylinder,
                        edyn::vector3 pos, edyn::quaternion orn) {
     auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
     auto rayDirLocal = edyn::rotate(edyn::conjugate(orn), rayDir);
-    auto intersection = rayPosLocal + rayDirLocal * result.proportion;
+    auto intersection = rayPosLocal + rayDirLocal * result.fraction;
 
     auto info = std::get<edyn::cylinder_raycast_info>(result.info_var);
     edyn::vector3 vertices[] = {
@@ -412,7 +412,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::capsule_shape &capsule,
     } case edyn::capsule_feature::side: {
         auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
         auto rayDirLocal = edyn::rotate(edyn::conjugate(orn), rayDir);
-        auto intersection = rayPosLocal + rayDirLocal * result.proportion;
+        auto intersection = rayPosLocal + rayDirLocal * result.fraction;
 
         auto p0 = edyn::vector3 {vertices[0].x, intersection.y, intersection.z};
         auto p1 = edyn::vector3 {vertices[1].x, intersection.y, intersection.z};
@@ -427,7 +427,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
                        edyn::vector3 pos, edyn::quaternion orn) {
     auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
     auto rayDirLocal = edyn::rotate(edyn::conjugate(orn), rayDir);
-    auto intersection = rayPosLocal + rayDirLocal * result.proportion;
+    auto intersection = rayPosLocal + rayDirLocal * result.fraction;
 
     auto face_idx = std::get<edyn::polyhedron_raycast_info>(result.info_var).face_index;
     auto tolerance = edyn::scalar(0.01);
@@ -498,7 +498,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::compound_shape &compound,
 
     std::visit([&] (auto &&shape) {
         auto child_result = edyn::shape_raycast_result{
-            result.proportion,
+            result.fraction,
             result.normal
         };
 
@@ -617,7 +617,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             auto result = edyn::raycast(*m_registry, cam_pos, p1);
 
             if (result.entity != entt::null && m_registry->has<edyn::dynamic_tag>(result.entity)) {
-                auto pick_pos = edyn::lerp(cam_pos, p1, result.proportion);
+                auto pick_pos = edyn::lerp(cam_pos, p1, result.fraction);
 
                 auto &pos = m_registry->get<edyn::position>(result.entity);
                 auto &orn = m_registry->get<edyn::orientation>(result.entity);
