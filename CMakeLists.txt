@@ -21,12 +21,6 @@ else()
 endif()
 
 #
-# Options
-#
-
-#add_compile_definitions(ENTT_DISABLE_ASSERT)
-
-#
 # Dependencies
 #
 

@@ -42,7 +42,7 @@ public:
         }
 
         // Create hinges.
-        for (int i = 0; i < boxes.size() - 1; ++i) {
+        for (int i = 0; i < size_t(boxes.size() - 1); ++i) {
             auto entityA = boxes[i];
             auto entityB = boxes[i + 1];
             auto z = static_cast<edyn::scalar>((i % 2) * 2 - 1);

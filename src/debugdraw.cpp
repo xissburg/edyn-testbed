@@ -40,7 +40,7 @@ void draw(DebugDrawEncoder &dde, const edyn::polyhedron_shape &sh) {
         auto i0 = sh.mesh->indices[first];
         auto &v0 = sh.mesh->vertices[i0];
 
-        for (size_t j = 1; j < count - 1; ++j) {
+        for (size_t j = 1; j < size_t(count - 1); ++j) {
             auto i1 = sh.mesh->indices[first + j];
             auto i2 = sh.mesh->indices[first + j + 1];
             auto &v1 = sh.mesh->vertices[i1];
