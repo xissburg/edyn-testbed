@@ -69,7 +69,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     edyn::init();
     edyn::attach(*m_registry);
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
-    m_gui_gravity = m_gravity = -edyn::gravity_earth.y;
+    m_gui_gravity = m_gravity = -edyn::get_gravity(*m_registry).y;
 
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
@@ -735,11 +735,6 @@ void EdynExample::updateSettings() {
 
     if (m_gui_gravity != m_gravity) {
         m_gravity = m_gui_gravity;
-
-        auto view = m_registry->view<edyn::linacc>();
-        view.each([&] (entt::entity entity, edyn::linacc &acc) {
-            acc.y = -m_gravity;
-            m_registry->get_or_emplace<edyn::dirty>(entity).updated<edyn::linacc>();
-        });
+        edyn::set_gravity(*m_registry, {0, -m_gravity, 0});
     }
 }
