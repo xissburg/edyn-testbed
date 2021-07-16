@@ -42,10 +42,10 @@ public:
         }
 
         // Create hinges.
-        for (int i = 0; i < size_t(boxes.size() - 1); ++i) {
+        for (size_t i = 0; i < size_t(boxes.size() - 1); ++i) {
             auto entityA = boxes[i];
             auto entityB = boxes[i + 1];
-            auto z = static_cast<edyn::scalar>((i % 2) * 2 - 1);
+            auto z = static_cast<edyn::scalar>((static_cast<int>(i) % 2) * 2 - 1);
             auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB);
             hinge.pivot[0] = {0, 0.45, -0.05f * z};
             hinge.pivot[1] = {0, -0.45, 0.05f * z};
