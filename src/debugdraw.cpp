@@ -85,13 +85,12 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const entt::registry &reg) {
     //auto &posA = reg.get<edyn::position>(con.body[0]);
     //auto &ornA = reg.get<edyn::orientation>(con.body[0]);
-    auto &posB = reg.get<edyn::position>(con.body[1]);
-    auto &ornB = reg.get<edyn::orientation>(con.body[1]);
+    auto posB = edyn::get_rigidbody_origin(reg, con.body[1]);
+    auto ornB = reg.get<edyn::orientation>(con.body[1]);
 
     auto &cp = reg.get<edyn::contact_point>(entity);
-    auto pB = posB + edyn::rotate(ornB, cp.pivotB);
-    auto normal = edyn::rotate(ornB, cp.normalB);
-    auto tip = pB + normal * 0.3;
+    auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
+    auto tip = pB + cp.normal * 0.3;
 
     dde.push();
 
@@ -107,9 +106,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
     edyn::quaternion ornA, ornB;
 
     if (reg.has<edyn::present_position>(con.body[0])) {
-        posA = reg.get<edyn::present_position>(con.body[0]);
+        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(con.body[0]);
+        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[0])) {
@@ -119,9 +118,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
     }
 
     if (reg.has<edyn::present_position>(con.body[1])) {
-        posB = reg.get<edyn::present_position>(con.body[1]);
+        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(con.body[1]);
+        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[1])) {
@@ -130,8 +129,8 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
         ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
-    auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
-    auto pB = posB + edyn::rotate(ornB, con.pivot[1]);
+    auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
+    auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
 
     dde.push();
 
@@ -147,9 +146,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
     edyn::quaternion ornA, ornB;
 
     if (reg.has<edyn::present_position>(con.body[0])) {
-        posA = reg.get<edyn::present_position>(con.body[0]);
+        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(con.body[0]);
+        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[0])) {
@@ -159,9 +158,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
     }
 
     if (reg.has<edyn::present_position>(con.body[1])) {
-        posB = reg.get<edyn::present_position>(con.body[1]);
+        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(con.body[1]);
+        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[1])) {
@@ -170,8 +169,8 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
         ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
-    auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
-    auto pB = posB + edyn::rotate(ornB, con.pivot[1]);
+    auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
+    auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
 
     dde.push();
 
@@ -187,9 +186,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
     edyn::quaternion ornA, ornB;
 
     if (reg.has<edyn::present_position>(con.body[0])) {
-        posA = reg.get<edyn::present_position>(con.body[0]);
+        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
-        posA = reg.get<edyn::position>(con.body[0]);
+        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[0])) {
@@ -199,9 +198,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
     }
 
     if (reg.has<edyn::present_position>(con.body[1])) {
-        posB = reg.get<edyn::present_position>(con.body[1]);
+        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
-        posB = reg.get<edyn::position>(con.body[1]);
+        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
     if (reg.has<edyn::present_orientation>(con.body[1])) {
@@ -210,8 +209,8 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
         ornB = reg.get<edyn::orientation>(con.body[1]);
     }
 
-    auto pA = posA + edyn::rotate(ornA, con.pivot[0]);
-    auto pB = posB + edyn::rotate(ornB, con.pivot[1]);
+    auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
+    auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
     auto axisA = edyn::rotate(ornA, con.axis[0]);
     auto axisB = edyn::rotate(ornB, con.axis[1]);
 

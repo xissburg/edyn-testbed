@@ -40,8 +40,9 @@ public:
             // If binary is not found, load obj then export binary.
             auto vertices = std::vector<edyn::vector3>{};
             auto indices = std::vector<uint16_t>{};
+            auto scale = edyn::scalar(0.05) * edyn::vector3_one;
             edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/terrain.obj",
-                                         vertices, indices);
+                                         vertices, indices, {0,0,0}, {0,0,0,1}, scale);
             trimesh->insert_vertices(vertices.begin(), vertices.end());
             trimesh->insert_indices(indices.begin(), indices.end());
             trimesh->initialize();

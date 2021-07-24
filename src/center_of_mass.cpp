@@ -33,22 +33,16 @@ public:
         dyn_def.continuous_contacts = true;
 
         {
-            auto compound = edyn::compound_shape{};
-            compound.add_shape(edyn::box_shape{0.2, 0.2, 0.2}, {0.1, 0.1, 0.1}, edyn::quaternion_identity);
-            compound.finish();
-
-            dyn_def.shape = compound;
+            dyn_def.shape = edyn::box_shape{0.2, 0.2, 0.2};
+            dyn_def.center_of_mass = {0.1, 0.1, 0.1};
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 0.5, 0.0};
             defs.push_back(dyn_def);
         }
 
         {
-            auto compound = edyn::compound_shape{};
-            compound.add_shape(edyn::cylinder_shape{0.15, 0.2}, {-0.1, 0.05, 0.01}, edyn::quaternion_identity);
-            compound.finish();
-
-            dyn_def.shape = compound;
+            dyn_def.shape = edyn::cylinder_shape{0.15, 0.2};
+            dyn_def.center_of_mass = {-0.1, 0.05, 0.01};
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 1, 0.0};
             defs.push_back(dyn_def);

@@ -53,22 +53,20 @@ void UpdateClimbers(entt::registry &registry) {
 
             auto &point = pointView.get(pointEntity);
             // Calculate direction which goes up.
-            edyn::vector3 normal;
             edyn::vector3 pivot;
 
             if (manifold.body[0] == entity) {
                 auto pos = registry.get<edyn::position>(manifold.body[1]);
                 auto orn = registry.get<edyn::orientation>(manifold.body[1]);
-                normal = edyn::rotate(orn, point.normalB);
                 pivot = edyn::to_world_space(point.pivotB, pos, orn);
             } else {
                 EDYN_ASSERT(manifold.body[1] == entity);
-                normal = edyn::rotate(registry.get<edyn::orientation>(entity), point.normalB);
                 auto pos = registry.get<edyn::position>(manifold.body[0]);
                 auto orn = registry.get<edyn::orientation>(manifold.body[0]);
                 pivot = edyn::to_world_space(point.pivotA, pos, orn);
             }
 
+            auto normal = point.normal;
             auto dir = -edyn::project_direction(normal, {0, 1, 0});
 
             if (edyn::try_normalize(dir)) {

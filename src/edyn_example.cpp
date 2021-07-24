@@ -175,10 +175,13 @@ bool EdynExample::update()
             auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
             float rot[16];
             bx::mtxQuat(rot, bxquat);
+
             float rotT[16];
             bx::mtxTranspose(rotT, rot);
+
             float trans[16];
-            bx::mtxTranslate(trans, pos.x, pos.y, pos.z);
+            auto origin = edyn::get_rigidbody_origin(*m_registry, ent);
+            bx::mtxTranslate(trans, origin.x, origin.y, origin.z);
 
             float mtx[16];
             bx::mtxMul(mtx, rotT, trans);
@@ -619,8 +622,8 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             if (result.entity != entt::null && m_registry->has<edyn::dynamic_tag>(result.entity)) {
                 auto pick_pos = edyn::lerp(cam_pos, p1, result.fraction);
 
-                auto &pos = m_registry->get<edyn::position>(result.entity);
-                auto &orn = m_registry->get<edyn::orientation>(result.entity);
+                auto pos = edyn::get_rigidbody_origin(*m_registry, result.entity);
+                auto orn = m_registry->get<edyn::orientation>(result.entity);
                 auto pivot = edyn::to_object_space(pick_pos, pos, orn);
 
                 auto pick_def = edyn::rigidbody_def{};
