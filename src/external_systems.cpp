@@ -114,8 +114,8 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 0;
-        floor_def.friction = 1;
+        floor_def.material->restitution = 0;
+        floor_def.material->friction = 1;
 
         auto extent_x = 25;
         auto extent_z = 25;
@@ -145,9 +145,9 @@ public:
 
         // Create climbers.
         auto def = edyn::rigidbody_def();
-        def.friction = 1;
         def.mass = 50;
-        def.restitution = 0;
+        def.material->friction = 1;
+        def.material->restitution = 0;
         def.position = {0, 1, 0};
         def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();

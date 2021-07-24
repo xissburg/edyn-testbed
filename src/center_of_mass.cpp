@@ -18,8 +18,7 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
-        floor_def.friction = 0.5;
+        floor_def.material = {1, 0.5}; // {restitution, friction}
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
@@ -28,8 +27,8 @@ public:
 
         auto dyn_def = edyn::rigidbody_def();
         dyn_def.mass = 100;
-        dyn_def.restitution = 0;
-        dyn_def.friction = 0.7;
+        dyn_def.material->restitution = 0;
+        dyn_def.material->friction = 0.7;
         dyn_def.continuous_contacts = true;
 
         {

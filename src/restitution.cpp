@@ -17,22 +17,22 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
-        floor_def.friction = 0.5;
+        floor_def.material->restitution = 1;
+        floor_def.material->friction = 0.5;
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some bouncy spheres.
         auto def = edyn::rigidbody_def();
-        def.friction = 0.8;
         def.mass = 100;
+        def.material->friction = 0.8;
         def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
         def.continuous_contacts = true;
 
         const size_t n = 10;
         for (size_t i = 0; i < n; ++i) {
-            def.restitution = edyn::scalar(i) / n;
+            def.material->restitution = edyn::scalar(i) / n;
             def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 5, 0};
             edyn::make_rigidbody(*m_registry, def);
 

@@ -14,15 +14,15 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
-        floor_def.friction = 0.5;
+        floor_def.material->restitution = 1;
+        floor_def.material->friction = 0.5;
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some boxes.
         auto def = edyn::rigidbody_def();
-        def.restitution = 0;
-        def.friction = 0.8;
+        def.material->restitution = 0;
+        def.material->friction = 0.8;
         def.mass = 100;
         def.shape = edyn::box_shape{0.2, 0.5, 0.05};
         def.update_inertia();

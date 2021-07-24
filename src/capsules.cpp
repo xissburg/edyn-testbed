@@ -14,20 +14,19 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 1;
-        floor_def.friction = 0.5;
+        floor_def.material = {0, 0.5}; // {restitution, friction}
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some capsules.
         auto def = edyn::rigidbody_def();
         def.continuous_contacts = true;
-        def.friction = 0.8;
+        def.material->friction = 0.8;
         def.mass = 100;
         def.shape = edyn::capsule_shape{0.2, 0.35};
         def.update_inertia();
 
-        def.restitution = 0;
+        def.material->restitution = 0;
         def.position = {0, 0.7, 0};
         edyn::make_rigidbody(*m_registry, def);
 
@@ -36,7 +35,7 @@ public:
         def.position = {-0.2, 1.9, 0};
         edyn::make_rigidbody(*m_registry, def);
 
-        def.restitution = 0;
+        def.material->restitution = 0;
         def.position = {-1.5, 0.7, 0};
         def.orientation = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, 0, 1}), 1.4);
         def.angvel = {0, 4, 0};

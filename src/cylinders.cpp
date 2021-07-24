@@ -40,16 +40,16 @@ public:
 
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 0;
-        floor_def.friction = 0.5;
+        floor_def.material->restitution = 0;
+        floor_def.material->friction = 0.5;
         floor_def.shape = edyn::mesh_shape{trimesh};
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add many cylinders.
         auto def = edyn::rigidbody_def();
-        def.friction = 0.8;
         def.mass = 10;
-        def.restitution = 0;
+        def.material->friction = 0.8;
+        def.material->restitution = 0;
         def.shape = edyn::cylinder_shape{0.2, 0.2};
         def.update_inertia();
         def.continuous_contacts = true;

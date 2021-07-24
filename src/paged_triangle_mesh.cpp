@@ -18,8 +18,8 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.restitution = 0;
-        floor_def.friction = 0.8;
+        floor_def.material->restitution = 0;
+        floor_def.material->friction = 0.8;
 
         m_input = std::make_shared<edyn::paged_triangle_mesh_file_input_archive>();
         auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh>(std::static_pointer_cast<edyn::triangle_mesh_page_loader_base>(m_input));
@@ -70,9 +70,9 @@ public:
         // Add some dynamic entities.
         {
             auto def = edyn::rigidbody_def();
-            def.friction = 0.4;
             def.mass = 50;
-            def.restitution = 0;
+            def.material->friction = 0.4;
+            def.material->restitution = 0;
 
             auto shapes_and_positions = std::vector<std::pair<edyn::shapes_variant_t, edyn::vector3>>{};
 
