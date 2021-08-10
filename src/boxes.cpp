@@ -1,15 +1,16 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/position.hpp>
+#include <edyn/comp/tag.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/packet/entity_request.hpp>
-#include <edyn/networking/packet/packet.hpp>
+#include <edyn/networking/packet/edyn_packet.hpp>
 #include <edyn/networking/packet/transient_snapshot.hpp>
 #include <edyn/networking/remote_client.hpp>
 #include <edyn/networking/server_side.hpp>
 #include <edyn/networking/client_side.hpp>
-#include <edyn/util/vector.hpp>
+#include <unordered_set>
 
 class ExampleBoxes : public EdynExample
 {
@@ -33,6 +34,7 @@ public:
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.material = {0, 0.5}; // {restitution, friction}
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
+        floor_def.networked = true;
         edyn::make_rigidbody(*m_server_registry, floor_def);
 
         // Add some boxes.
@@ -44,6 +46,7 @@ public:
         def.update_inertia();
         def.continuous_contacts = true;
         def.sleeping_disabled = true;
+        def.networked = true;
 
         std::vector<edyn::rigidbody_def> defs;
 
@@ -70,7 +73,7 @@ public:
         client_ctx.packet_sink().connect<&ExampleBoxes::serverProcessPacket>(*this);
 	}
 
-    void serverProcessPacket(const edyn::edyn_packet &packet) {
+    void serverProcessPacket(const edyn::packet::edyn_packet &packet) {
         edyn::server_process_packet(*m_server_registry, m_client_entity, packet);
     }
 
@@ -84,54 +87,52 @@ public:
 
         if (m_counter++ % 10 == 0) {
             auto snapshot = edyn::server_get_transient_snapshot(*m_server_registry);
-            edyn::client_process_packet(*m_registry, edyn::edyn_packet{std::move(snapshot)});
+            edyn::client_process_packet(*m_registry, edyn::packet::edyn_packet{std::move(snapshot)});
         }
 
         if (!m_entities_to_be_requested.empty()) {
-            edyn::entity_request req;
+            edyn::packet::entity_request req;
 
             for (auto entity : m_entities_to_be_requested) {
-                if (!edyn::vector_contains(m_entities_already_requested, entity)) {
+                if (!m_entities_already_requested.count(entity)) {
                     req.entities.push_back(entity);
                 }
             }
 
-            edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::edyn_packet{std::move(req)});
+            edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::packet::edyn_packet{std::move(req)});
 
-            m_entities_already_requested.insert(m_entities_already_requested.end(),
-                                                m_entities_to_be_requested.begin(),
+            m_entities_already_requested.insert(m_entities_to_be_requested.begin(),
                                                 m_entities_to_be_requested.end());
             m_entities_to_be_requested.clear();
         }
 
-        edyn::update_networking_client(*m_registry);
-
         if (m_pick_entity != entt::null) {
+            if (!m_registry->has<edyn::networked_tag>(m_pick_entity)) {
+                m_registry->emplace<edyn::networked_tag>(m_pick_entity);
+                m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
+            }
+
             auto &client_ctx = m_registry->ctx<edyn::client_networking_context>();
 
             if (client_ctx.entity_map.has_loc(m_pick_entity)) {
-                //auto remote_entity = client_ctx.entity_map.locrem(m_pick_entity);
-                auto snapshot = edyn::transient_snapshot{};
-
-                auto pool = std::make_unique<edyn::pool_snapshot<edyn::position>>();
-                pool->component_index = edyn::tuple_index_of<edyn::position, unsigned>(edyn::networked_components);
-                pool->pairs.emplace_back(m_pick_entity, m_registry->get<edyn::position>(m_pick_entity));
-                snapshot.pools.push_back(std::move(pool));
-
-                edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::edyn_packet{std::move(snapshot)});
+                auto snapshot = edyn::packet::transient_snapshot{};
+                snapshot.positions.emplace_back(m_pick_entity, m_registry->get<edyn::position>(m_pick_entity));
+                edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::packet::edyn_packet{std::move(snapshot)});
             }
         }
+
+        edyn::update_networking_client(*m_registry);
 
         EdynExample::updatePhysics(deltaTime);
     }
 
     void addToEntityRequest(entt::entity remoteEntity) {
-        m_entities_to_be_requested.push_back(remoteEntity);
+        m_entities_to_be_requested.insert(remoteEntity);
     }
 
     std::unique_ptr<entt::registry> m_server_registry;
-    std::vector<entt::entity> m_entities_to_be_requested;
-    std::vector<entt::entity> m_entities_already_requested;
+    std::unordered_set<entt::entity> m_entities_to_be_requested;
+    std::unordered_set<entt::entity> m_entities_already_requested;
     entt::entity m_client_entity;
     size_t m_counter{0};
 };
