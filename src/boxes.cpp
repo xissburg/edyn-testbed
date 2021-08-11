@@ -85,7 +85,10 @@ public:
         edyn::update(*m_server_registry);
         edyn::update_networking_server(*m_server_registry);
 
-        if (m_counter++ % 10 == 0) {
+        edyn::update_networking_client(*m_registry);
+        EdynExample::updatePhysics(deltaTime);
+
+        if (m_counter++ % 60 == 0) {
             auto snapshot = edyn::server_get_transient_snapshot(*m_server_registry);
             edyn::client_process_packet(*m_registry, edyn::packet::edyn_packet{std::move(snapshot)});
         }
@@ -104,10 +107,6 @@ public:
                 edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::packet::edyn_packet{std::move(snapshot)});
             }
         }
-
-        edyn::update_networking_client(*m_registry);
-
-        EdynExample::updatePhysics(deltaTime);
     }
 
     std::unique_ptr<entt::registry> m_server_registry;
