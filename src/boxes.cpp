@@ -50,9 +50,9 @@ public:
 
         std::vector<edyn::rigidbody_def> defs;
 
-        for (int i = 0; i < 1; ++i) {
-            for (int j = 0; j < 1; ++j) {
-                for (int k = 0; k < 1; ++k) {
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                for (int k = 0; k < 5; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
                                     edyn::scalar(0.4 * i + 1.6),
                                     edyn::scalar(0.4 * k)};
@@ -69,7 +69,6 @@ public:
 
         edyn::init_networking_client(*m_registry);
         auto &client_ctx = m_registry->ctx<edyn::client_networking_context>();
-        client_ctx.request_entity_sink().connect<&ExampleBoxes::addToEntityRequest>(*this);
         client_ctx.packet_sink().connect<&ExampleBoxes::serverProcessPacket>(*this);
 	}
 
@@ -84,26 +83,11 @@ public:
     void updatePhysics(float deltaTime) override {
 
         edyn::update(*m_server_registry);
+        edyn::update_networking_server(*m_server_registry);
 
         if (m_counter++ % 10 == 0) {
             auto snapshot = edyn::server_get_transient_snapshot(*m_server_registry);
             edyn::client_process_packet(*m_registry, edyn::packet::edyn_packet{std::move(snapshot)});
-        }
-
-        if (!m_entities_to_be_requested.empty()) {
-            edyn::packet::entity_request req;
-
-            for (auto entity : m_entities_to_be_requested) {
-                if (!m_entities_already_requested.count(entity)) {
-                    req.entities.push_back(entity);
-                }
-            }
-
-            edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::packet::edyn_packet{std::move(req)});
-
-            m_entities_already_requested.insert(m_entities_to_be_requested.begin(),
-                                                m_entities_to_be_requested.end());
-            m_entities_to_be_requested.clear();
         }
 
         if (m_pick_entity != entt::null) {
@@ -126,13 +110,7 @@ public:
         EdynExample::updatePhysics(deltaTime);
     }
 
-    void addToEntityRequest(entt::entity remoteEntity) {
-        m_entities_to_be_requested.insert(remoteEntity);
-    }
-
     std::unique_ptr<entt::registry> m_server_registry;
-    std::unordered_set<entt::entity> m_entities_to_be_requested;
-    std::unordered_set<entt::entity> m_entities_already_requested;
     entt::entity m_client_entity;
     size_t m_counter{0};
 };
