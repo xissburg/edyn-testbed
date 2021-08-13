@@ -10,6 +10,7 @@
 #include <edyn/networking/remote_client.hpp>
 #include <edyn/networking/server_side.hpp>
 #include <edyn/networking/client_side.hpp>
+#include <edyn/time/time.hpp>
 #include <unordered_set>
 
 class ExampleBoxes : public EdynExample
@@ -50,11 +51,11 @@ public:
 
         std::vector<edyn::rigidbody_def> defs;
 
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 0; j < 5; ++j) {
-                for (int k = 0; k < 5; ++k) {
+        for (int i = 0; i < 1; ++i) {
+            for (int j = 0; j <2; ++j) {
+                for (int k = 0; k < 1; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
-                                    edyn::scalar(0.4 * i + 1.6),
+                                    edyn::scalar(0.4 * i + 0.6),
                                     edyn::scalar(0.4 * k)};
                     defs.push_back(def);
                 }
@@ -66,31 +67,70 @@ public:
         m_client_entity = edyn::server_make_client(*m_server_registry);
         auto &client = m_server_registry->get<edyn::remote_client>(m_client_entity);
         client.packet_sink().connect<&edyn::client_process_packet>(*m_registry);
+        edyn::server_set_client_latency(*m_server_registry, m_client_entity, 2);
 
         edyn::init_networking_client(*m_registry);
         auto &client_ctx = m_registry->ctx<edyn::client_networking_context>();
-        client_ctx.packet_sink().connect<&ExampleBoxes::serverProcessPacket>(*this);
+        client_ctx.packet_sink().connect<&ExampleBoxes::serverEnqueuePacket>(*this);
 	}
 
-    void serverProcessPacket(const edyn::packet::edyn_packet &packet) {
-        edyn::server_process_packet(*m_server_registry, m_client_entity, packet);
+    void serverEnqueuePacket(const edyn::packet::edyn_packet &packet) {
+        auto p = packet;
+        p.timestamp = edyn::performance_time() + 2;
+        m_server_packet_queue.push_back(p);
+    }
+
+    void clientEnqueuePacket(const edyn::packet::edyn_packet &packet) {
+        auto p = packet;
+        p.timestamp = edyn::performance_time() + 2;
+        m_client_packet_queue.push_back(p);
     }
 
     void destroyScene() override {
         m_server_registry.reset();
     }
 
-    void updatePhysics(float deltaTime) override {
+    void serverProcessPackets() {
+        auto timestamp = edyn::performance_time();
+        auto first = m_server_packet_queue.begin();
+        auto last = std::find_if(first, m_server_packet_queue.end(), [&] (auto &&packet) {
+            return packet.timestamp > timestamp;
+        });
 
+        for (auto it = first; it != last; ++it) {
+            edyn::server_process_packet(*m_server_registry, m_client_entity, *it);
+        }
+
+        m_server_packet_queue.erase(first, last);
+    }
+
+    void clientProcessPackets() {
+        auto timestamp = edyn::performance_time();
+        auto first = m_client_packet_queue.begin();
+        auto last = std::find_if(first, m_client_packet_queue.end(), [&] (auto &&packet) {
+            return packet.timestamp > timestamp;
+        });
+
+        for (auto it = first; it != last; ++it) {
+            edyn::client_process_packet(*m_registry, *it);
+        }
+
+        m_client_packet_queue.erase(first, last);
+    }
+
+    void updatePhysics(float deltaTime) override {
+        serverProcessPackets();
         edyn::update(*m_server_registry);
         edyn::update_networking_server(*m_server_registry);
 
+        clientProcessPackets();
         edyn::update_networking_client(*m_registry);
         EdynExample::updatePhysics(deltaTime);
 
-        if (m_counter++ % 60 == 0) {
+        if (m_counter++ % 5 == 0) {
             auto snapshot = edyn::server_get_transient_snapshot(*m_server_registry);
-            edyn::client_process_packet(*m_registry, edyn::packet::edyn_packet{std::move(snapshot)});
+            auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
+            clientEnqueuePacket(packet);
         }
 
         if (m_pick_entity != entt::null) {
@@ -104,7 +144,8 @@ public:
             if (client_ctx.entity_map.has_loc(m_pick_entity)) {
                 auto snapshot = edyn::packet::transient_snapshot{};
                 snapshot.positions.emplace_back(m_pick_entity, m_registry->get<edyn::position>(m_pick_entity));
-                edyn::server_process_packet(*m_server_registry, m_client_entity, edyn::packet::edyn_packet{std::move(snapshot)});
+                auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
+                serverEnqueuePacket(packet);
             }
         }
     }
@@ -112,6 +153,8 @@ public:
     std::unique_ptr<entt::registry> m_server_registry;
     entt::entity m_client_entity;
     size_t m_counter{0};
+    std::vector<edyn::packet::edyn_packet> m_server_packet_queue;
+    std::vector<edyn::packet::edyn_packet> m_client_packet_queue;
 };
 
 ENTRY_IMPLEMENT_MAIN(
