@@ -14,7 +14,6 @@ void UpdateClimbers(entt::registry &registry) {
     auto manifoldView = registry.view<edyn::contact_manifold>();
     auto pointView = registry.view<edyn::contact_point>();
     auto impulseView = registry.view<edyn::constraint_impulse>();
-    auto contactView = registry.view<edyn::contact_constraint>();
     auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();
 
     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
@@ -79,9 +78,8 @@ void UpdateClimbers(entt::registry &registry) {
 
             if (impulseView.contains(pointEntity)) {
                 auto applied_impulse = impulseView.get(pointEntity);
-                auto contact = contactView.get(pointEntity);
                 auto normalImpulse = applied_impulse.values[0];
-                auto maxTangentialImpulse = normalImpulse * contact.m_friction;
+                auto maxTangentialImpulse = normalImpulse * point.friction;
                 tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);
             }
 
@@ -115,7 +113,7 @@ public:
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
         floor_def.material->restitution = 0;
-        floor_def.material->friction = 1;
+        floor_def.material->friction = 1.8;
 
         auto extent_x = 25;
         auto extent_z = 25;
@@ -146,7 +144,7 @@ public:
         // Create climbers.
         auto def = edyn::rigidbody_def();
         def.mass = 50;
-        def.material->friction = 1;
+        def.material->friction = 0.6;
         def.material->restitution = 0;
         def.position = {0, 1, 0};
         def.shape = edyn::sphere_shape{0.2};

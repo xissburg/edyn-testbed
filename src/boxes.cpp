@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/edyn.hpp>
 
 class ExampleBoxes : public EdynExample
 {

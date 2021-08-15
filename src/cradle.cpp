@@ -26,10 +26,10 @@ public:
         auto def_st = edyn::rigidbody_def();
         def_st.kind = edyn::rigidbody_kind::rb_static;
 
-        const size_t n = 8;
+        const size_t n = 10;
 
         for (size_t i = 0; i < n; ++i) {
-            def.position = {edyn::scalar(i * 0.4), 0, 0};
+            def.position = {edyn::scalar(i * 0.421), 0, 0};
 
             if (i == n - 1) {
                 auto angle = edyn::pi * 0.25;
@@ -40,7 +40,7 @@ public:
 
             auto ent = edyn::make_rigidbody(*m_registry, def);
 
-            def_st.position = {edyn::scalar(i * 0.4), 3, 0};
+            def_st.position = {edyn::scalar(i * 0.421), 3, 0};
             auto ent_st = edyn::make_rigidbody(*m_registry, def_st);
 
             auto [con_ent, constraint] = edyn::make_constraint<edyn::distance_constraint>(*m_registry, ent, ent_st);

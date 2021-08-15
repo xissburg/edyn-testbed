@@ -27,7 +27,7 @@ public:
         // Add some boxes.
         auto def = edyn::rigidbody_def();
         def.mass = 10;
-        def.material->friction = 0.8;
+        def.material->friction = 0.4;
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         def.update_inertia();
