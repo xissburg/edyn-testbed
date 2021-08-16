@@ -1,6 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/comp/position.hpp>
-#include <edyn/comp/tag.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
@@ -10,7 +8,6 @@
 #include <edyn/networking/remote_client.hpp>
 #include <edyn/networking/server_side.hpp>
 #include <edyn/networking/client_side.hpp>
-#include <edyn/time/time.hpp>
 #include <unordered_set>
 
 class ExampleBoxes : public EdynExample
@@ -52,7 +49,7 @@ public:
         std::vector<edyn::rigidbody_def> defs;
 
         for (int i = 0; i < 1; ++i) {
-            for (int j = 0; j <2; ++j) {
+            for (int j = 0; j < 2; ++j) {
                 for (int k = 0; k < 1; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
                                     edyn::scalar(0.4 * i + 0.6),
@@ -66,8 +63,8 @@ public:
 
         m_client_entity = edyn::server_make_client(*m_server_registry);
         auto &client = m_server_registry->get<edyn::remote_client>(m_client_entity);
-        client.packet_sink().connect<&edyn::client_process_packet>(*m_registry);
-        edyn::server_set_client_latency(*m_server_registry, m_client_entity, 2);
+        client.packet_sink().connect<&ExampleBoxes::clientEnqueuePacket>(*this);
+        edyn::server_set_client_latency(*m_server_registry, m_client_entity, 1);
 
         edyn::init_networking_client(*m_registry);
         auto &client_ctx = m_registry->ctx<edyn::client_networking_context>();
@@ -76,13 +73,13 @@ public:
 
     void serverEnqueuePacket(const edyn::packet::edyn_packet &packet) {
         auto p = packet;
-        p.timestamp = edyn::performance_time() + 2;
+        p.timestamp = edyn::performance_time() + 1;
         m_server_packet_queue.push_back(p);
     }
 
     void clientEnqueuePacket(const edyn::packet::edyn_packet &packet) {
         auto p = packet;
-        p.timestamp = edyn::performance_time() + 2;
+        p.timestamp = edyn::performance_time() + 1;
         m_client_packet_queue.push_back(p);
     }
 
@@ -124,10 +121,10 @@ public:
         edyn::update_networking_server(*m_server_registry);
 
         clientProcessPackets();
-        edyn::update_networking_client(*m_registry);
         EdynExample::updatePhysics(deltaTime);
+        edyn::update_networking_client(*m_registry);
 
-        if (m_counter++ % 5 == 0) {
+        if (m_counter++ % 10 == 0) {
             auto snapshot = edyn::server_get_transient_snapshot(*m_server_registry);
             auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
             clientEnqueuePacket(packet);

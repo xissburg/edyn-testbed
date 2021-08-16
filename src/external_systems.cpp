@@ -81,7 +81,7 @@ void UpdateClimbers(entt::registry &registry) {
                 auto applied_impulse = impulseView.get(pointEntity);
                 auto contact = contactView.get(pointEntity);
                 auto normalImpulse = applied_impulse.values[0];
-                auto maxTangentialImpulse = normalImpulse * contact.m_friction;
+                auto maxTangentialImpulse = normalImpulse * point.friction;
                 tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);
             }
 
