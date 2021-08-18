@@ -69,6 +69,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     edyn::init();
     edyn::attach(*m_registry);
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
+    m_num_velocity_iterations = edyn::get_solver_velocity_iterations(*m_registry);
+    m_num_position_iterations = edyn::get_solver_position_iterations(*m_registry);
     m_gui_gravity = m_gravity = -edyn::get_gravity(*m_registry).y;
 
     // Input bindings
@@ -192,7 +194,7 @@ bool EdynExample::update()
                 draw(dde, s);
             });
 
-            dde.drawAxis(0, 0, 0, 0.15);
+            dde.drawAxis(0, 0, 0, m_rigid_body_axes_size);
 
             dde.popTransform();
 
@@ -249,7 +251,7 @@ bool EdynExample::update()
                 draw(dde, s);
             });
 
-            dde.drawAxis(0, 0, 0, 0.15);
+            dde.drawAxis(0, 0, 0, m_rigid_body_axes_size);
             dde.popTransform();
             dde.pop();
         });
@@ -672,7 +674,9 @@ void EdynExample::togglePausePhysics() {
 }
 
 void EdynExample::stepPhysics() {
-    edyn::step_simulation(*m_registry);
+    if (m_pause) {
+        edyn::step_simulation(*m_registry);
+    }
 }
 
 void EdynExample::setPaused(bool paused) {
@@ -710,7 +714,8 @@ void EdynExample::showSettings() {
     ImGui::Begin("Settings");
 
     ImGui::SliderInt("Time Step (ms)", &m_fixed_dt_ms, 1, 50);
-
+    ImGui::SliderInt("Velocity Iterations", &m_num_velocity_iterations, 1, 100);
+    ImGui::SliderInt("Position Iterations", &m_num_position_iterations, 1, 100);
     ImGui::SliderFloat("Gravity (m/s^2)", &m_gui_gravity, 0, 50, "%.2f");
 
     ImGui::End();
@@ -734,6 +739,16 @@ void EdynExample::updateSettings() {
     auto fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
     if (fixed_dt_ms != m_fixed_dt_ms) {
         edyn::set_fixed_dt(*m_registry, m_fixed_dt_ms * edyn::scalar(0.001));
+    }
+
+    int num_velocity_iterations = edyn::get_solver_velocity_iterations(*m_registry);
+    if (num_velocity_iterations != m_num_velocity_iterations) {
+        edyn::set_solver_velocity_iterations(*m_registry, m_num_velocity_iterations);
+    }
+
+    int num_position_iterations = edyn::get_solver_position_iterations(*m_registry);
+    if (num_position_iterations != m_num_position_iterations) {
+        edyn::set_solver_position_iterations(*m_registry, m_num_position_iterations);
     }
 
     if (m_gui_gravity != m_gravity) {
