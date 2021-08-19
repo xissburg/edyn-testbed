@@ -69,7 +69,7 @@ public:
         std::vector<edyn::rigidbody_def> defs;
 
         // Cue ball.
-        def.position = {0, table_size.y + radius, -0.5};
+        def.position = {0, table_size.y + radius, -(table_size.z / 2 - 0.15f) / 2};
         def.linvel = {0, 0, 3};
         defs.push_back(def);
 
@@ -78,7 +78,8 @@ public:
 
         for (auto i = 0; i < 5; ++i) {
             auto n = i + 1;
-            def.position.z = float(i) * diameter * std::sin(edyn::to_radians(60));
+            def.position.z = float(i) * diameter * std::sin(edyn::to_radians(60)) +
+                             (table_size.z / 2 - 0.15f) / 2;
 
             for (auto j = 0; j < n; ++j) {
                 def.position.x = (j - float(i) / 2) * diameter;
@@ -88,6 +89,9 @@ public:
 
         edyn::batch_rigidbodies(*m_registry, defs);
 
+        cameraSetPosition({0.0f, 1.6f, -2.f});
+        cameraSetVerticalAngle(-0.25f);
+
         m_rigid_body_axes_size = radius + 0.003f;
         setPaused(true);
 	}
@@ -95,7 +99,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleBilliards
-	,"17-billiards"
+	, "17-billiards"
 	, "Billiards."
     , "https://github.com/xissburg/edyn-testbed"
     );
