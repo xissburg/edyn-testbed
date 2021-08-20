@@ -17,11 +17,30 @@ public:
 	{
         // Material properties obtained from
         // https://billiards.colostate.edu/faq/physics/physical-properties/
+        auto ball_mat_id = 0;
+        auto table_mat_id = 1;
+        auto rail_mat_id = 2;
+
+        auto ball_ball_mat = edyn::material_base{};
+        ball_ball_mat.friction = 0.05;
+        ball_ball_mat.restitution = 0.95;
+        edyn::insert_material_mixing(*m_registry, ball_mat_id, ball_mat_id, ball_ball_mat);
+
+        auto table_ball_mat = edyn::material_base{};
+        table_ball_mat.friction = 0.2;
+        table_ball_mat.restitution = 0.5;
+        edyn::insert_material_mixing(*m_registry, ball_mat_id, table_mat_id, table_ball_mat);
+
+        auto rail_ball_mat = edyn::material_base{};
+        rail_ball_mat.friction = 0.2;
+        rail_ball_mat.restitution = 0.7;
+        edyn::insert_material_mixing(*m_registry, ball_mat_id, rail_mat_id, rail_ball_mat);
 
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.material = {0.1, 0.2}; // {restitution, friction}
+        floor_def.material->restitution = 0.1;
+        floor_def.material->friction = 0.2;
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
@@ -29,7 +48,9 @@ public:
         auto table_size = edyn::vector3{1.268, 0.76, 2.385};
         auto table_def = edyn::rigidbody_def();
         table_def.kind = edyn::rigidbody_kind::rb_static;
-        table_def.material = {0.5, 0.2};
+        table_def.material->id = table_mat_id;
+        table_def.material->restitution = 0.5;
+        table_def.material->friction = 0.2;
         table_def.shape = edyn::box_shape{table_size / 2};
         table_def.position = {0, table_size.y / 2, 0};
         edyn::make_rigidbody(*m_registry, table_def);
@@ -37,7 +58,9 @@ public:
         // Rail top.
         auto rail_def = edyn::rigidbody_def();
         rail_def.kind = edyn::rigidbody_kind::rb_static;
-        rail_def.material = {0.7, 0.2};
+        rail_def.material->id = rail_mat_id;
+        rail_def.material->restitution = 0.7;
+        rail_def.material->friction = 0.2;
         rail_def.shape = edyn::box_shape{table_size.x / 2, 0.025, 0.075};
         rail_def.position = {0, table_size.y + 0.025f, table_size.z / 2.f - 0.075f};
         edyn::make_rigidbody(*m_registry, rail_def);
@@ -60,6 +83,7 @@ public:
         auto radius = edyn::scalar(diameter / 2);
         auto def = edyn::rigidbody_def();
         def.mass = 0.17;
+        def.material->id = ball_mat_id;
         def.material->friction = 0.2;
         def.material->restitution = 0.95;
         def.shape = edyn::sphere_shape{radius};
@@ -70,7 +94,7 @@ public:
 
         // Cue ball.
         def.position = {0, table_size.y + radius, -(table_size.z / 2 - 0.15f) / 2};
-        def.linvel = {0, 0, 3};
+        def.linvel = {0.01, 0, 3};
         defs.push_back(def);
 
         // Other balls.

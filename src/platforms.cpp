@@ -20,7 +20,8 @@ public:
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.material = {1, 0.5}; // {restitution, friction}
+        floor_def.material->restitution = 1;
+        floor_def.material->friction = 0.5;
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
@@ -49,7 +50,8 @@ public:
         edyn::batch_rigidbodies(*m_registry, defs);
 
         auto plat_def = edyn::rigidbody_def{};
-        plat_def.material = {0, 0.9}; // {restitution, friction}
+        plat_def.material->restitution = 0;
+        plat_def.material->friction = 0.9;
         plat_def.kind = edyn::rigidbody_kind::rb_kinematic;
         plat_def.shape = edyn::box_shape{1, 0.07, 1.2};
         plat_def.position = {-0.3, 0.5, 0};
