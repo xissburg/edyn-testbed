@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <cfloat>
 #include <edyn/edyn.hpp>
 #include <edyn/math/math.hpp>
 
@@ -20,6 +21,8 @@ public:
         auto ball_mat_id = 0;
         auto table_mat_id = 1;
         auto rail_mat_id = 2;
+        auto ball_diameter = edyn::scalar(0.05715);
+        auto ball_radius = edyn::scalar(ball_diameter / 2);
 
         auto ball_ball_mat = edyn::material_base{};
         ball_ball_mat.friction = 0.05;
@@ -29,6 +32,10 @@ public:
         auto table_ball_mat = edyn::material_base{};
         table_ball_mat.friction = 0.2;
         table_ball_mat.restitution = 0.5;
+        table_ball_mat.spin_friction = 0.000057;
+        // Multiply rolling resistance by the ball radius because in Edyn the
+        // rolling friction applies torque.
+        table_ball_mat.roll_friction = 0.006 * ball_radius;
         edyn::insert_material_mixing(*m_registry, ball_mat_id, table_mat_id, table_ball_mat);
 
         auto rail_ball_mat = edyn::material_base{};
@@ -79,34 +86,34 @@ public:
         edyn::make_rigidbody(*m_registry, rail_def);
 
         // Add the balls.
-        auto diameter = edyn::scalar(0.05715);
-        auto radius = edyn::scalar(diameter / 2);
         auto def = edyn::rigidbody_def();
         def.mass = 0.17;
         def.material->id = ball_mat_id;
         def.material->friction = 0.2;
         def.material->restitution = 0.95;
-        def.shape = edyn::sphere_shape{radius};
+        def.shape = edyn::sphere_shape{ball_radius};
         def.update_inertia();
         def.continuous_contacts = true;
 
         std::vector<edyn::rigidbody_def> defs;
 
         // Cue ball.
-        def.position = {0, table_size.y + radius, -(table_size.z / 2 - 0.15f) / 2};
-        def.linvel = {0.01, 0, 3};
+        def.position = {0, table_size.y + ball_radius, -(table_size.z / 2 - 0.15f) / 2};
+        def.linvel = {0.001, 0, 3};
+        def.angvel = {0, -3, 1};
         defs.push_back(def);
 
         // Other balls.
         def.linvel = {0, 0, 0};
+        def.angvel = {0, 0, 0};
 
         for (auto i = 0; i < 5; ++i) {
             auto n = i + 1;
-            def.position.z = float(i) * diameter * std::sin(edyn::to_radians(60)) +
+            def.position.z = float(i) * ball_diameter * std::sin(edyn::to_radians(60)) +
                              (table_size.z / 2 - 0.15f) / 2;
 
             for (auto j = 0; j < n; ++j) {
-                def.position.x = (j - float(i) / 2) * diameter;
+                def.position.x = (j - float(i) / 2) * ball_diameter;
                 defs.push_back(def);
             }
         }
@@ -116,7 +123,7 @@ public:
         cameraSetPosition({0.0f, 1.6f, -2.f});
         cameraSetVerticalAngle(-0.25f);
 
-        m_rigid_body_axes_size = radius + 0.003f;
+        m_rigid_body_axes_size = ball_radius + 0.003f;
         setPaused(true);
 	}
 };

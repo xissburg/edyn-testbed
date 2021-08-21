@@ -26,6 +26,8 @@ public:
         auto def = edyn::rigidbody_def();
         def.mass = 100;
         def.material->friction = 0.8;
+        def.material->spin_friction = 0.0005;
+        def.material->roll_friction = 0.0002;
         def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
         def.continuous_contacts = true;
@@ -47,7 +49,6 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-        setPaused(true);
 	}
 };
 
