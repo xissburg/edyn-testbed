@@ -31,4 +31,4 @@ After running `cmake ..`, the _Edyn.sln_ solution should be in the _build_ direc
 
 Press `P` to pause/unpause the simulation. Press `L` to step the simulation when paused.
 
-![Screenshot from 2020-08-01 16-39-21](https://user-images.githubusercontent.com/762769/111734026-3947e280-8847-11eb-9ee5-a284295af185.png)
+https://user-images.githubusercontent.com/762769/130337435-867377a0-32b3-4083-b5be-d07f1ffb50d4.mp4
