@@ -26,28 +26,29 @@ public:
         auto def = edyn::rigidbody_def();
         def.mass = 100;
         def.material->friction = 0.8;
+        def.material->spin_friction = 0.0005;
+        def.material->roll_friction = 0.0002;
         def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
         def.continuous_contacts = true;
+        //def.linvel = {0, -2, 0};
+        //def.angvel = {0, 0, -32};
+        auto defs = std::vector<edyn::rigidbody_def>{};
 
         const size_t n = 10;
+
         for (size_t i = 0; i < n; ++i) {
-            def.material->restitution = edyn::scalar(i) / n;
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 5, 0};
-            edyn::make_rigidbody(*m_registry, def);
+            def.material->restitution = 1 - edyn::scalar(i) / n;
+            auto x = (edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8);
 
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 6, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 7, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 8, 0};
-            edyn::make_rigidbody(*m_registry, def);
-
-            def.position = {(edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8), 9, 0};
-            edyn::make_rigidbody(*m_registry, def);
+            for (size_t j = 0; j < 2; ++j) {
+                auto y = edyn::scalar(3 + 0.4 * j);
+                def.position = {x, y, 0};
+                defs.push_back(def);
+            }
         }
+
+        edyn::batch_rigidbodies(*m_registry, defs);
 	}
 };
 

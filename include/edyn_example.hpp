@@ -82,6 +82,8 @@ public:
     InputBinding* m_bindings;
 
 	int m_fixed_dt_ms;
+	int m_num_velocity_iterations;
+	int m_num_position_iterations;
 	float m_gui_gravity;
 	edyn::scalar m_gravity;
     bool m_pause;
@@ -91,6 +93,7 @@ public:
     entt::entity m_pick_constraint_entity {entt::null};
     edyn::vector3 m_rayDir;
     edyn::scalar m_rayLength {100.f};
+    edyn::scalar m_rigid_body_axes_size {0.15f};
 };
 
 

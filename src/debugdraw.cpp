@@ -90,7 +90,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
 
     auto &cp = reg.get<edyn::contact_point>(entity);
     auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
-    auto tip = pB + cp.normal * 0.2;
+    auto tip = pB + cp.normal * 0.1;
 
     dde.push();
 

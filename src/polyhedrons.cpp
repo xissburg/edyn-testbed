@@ -62,6 +62,13 @@ public:
         dyn_def.orientation = edyn::quaternion_identity;
         defs.push_back(dyn_def);
 
+        dyn_def.shape = edyn::polyhedron_shape("../../../edyn-testbed/resources/box_subdiv.obj");
+        dyn_def.mass = 255;
+        dyn_def.update_inertia();
+        dyn_def.position = {2, 1, 0.0};
+        dyn_def.orientation = edyn::quaternion_axis_angle(edyn::vector3{0, 0, 1}, edyn::pi * -0.667);
+        defs.push_back(dyn_def);
+
         edyn::batch_rigidbodies(*m_registry, defs);
     }
 };

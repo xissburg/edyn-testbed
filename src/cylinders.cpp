@@ -50,6 +50,7 @@ public:
         def.mass = 10;
         def.material->friction = 0.8;
         def.material->restitution = 0;
+        def.material->roll_friction = 0.005;
         def.shape = edyn::cylinder_shape{0.2, 0.2};
         def.update_inertia();
         def.continuous_contacts = true;
