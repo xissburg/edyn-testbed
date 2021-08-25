@@ -42,7 +42,7 @@ public:
                             edyn::scalar(std::sin(angle) * radius)};
             def.linvel = {edyn::scalar(std::cos(angle)), edyn::scalar(0), edyn::scalar(std::sin(angle))};
             def.linvel *= 5;
-            def.material->friction = 1 - float(i) / float(num_boxes);
+            def.material->friction = 1 - std::sqrt(float(i) / float(num_boxes));
             defs.push_back(def);
         }
 
