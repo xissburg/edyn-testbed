@@ -105,25 +105,25 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(con.body[0])) {
+    if (reg.any_of<edyn::present_position>(con.body[0])) {
         posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
         posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[0])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
         ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
         ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(con.body[1])) {
+    if (reg.any_of<edyn::present_position>(con.body[1])) {
         posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
         posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[1])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
         ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
         ornB = reg.get<edyn::orientation>(con.body[1]);
@@ -145,25 +145,25 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(con.body[0])) {
+    if (reg.any_of<edyn::present_position>(con.body[0])) {
         posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
         posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[0])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
         ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
         ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(con.body[1])) {
+    if (reg.any_of<edyn::present_position>(con.body[1])) {
         posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
         posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[1])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
         ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
         ornB = reg.get<edyn::orientation>(con.body[1]);
@@ -185,25 +185,25 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
     edyn::vector3 posA, posB;
     edyn::quaternion ornA, ornB;
 
-    if (reg.has<edyn::present_position>(con.body[0])) {
+    if (reg.any_of<edyn::present_position>(con.body[0])) {
         posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
     } else {
         posA = edyn::get_rigidbody_origin(reg, con.body[0]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[0])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
         ornA = reg.get<edyn::present_orientation>(con.body[0]);
     } else {
         ornA = reg.get<edyn::orientation>(con.body[0]);
     }
 
-    if (reg.has<edyn::present_position>(con.body[1])) {
+    if (reg.any_of<edyn::present_position>(con.body[1])) {
         posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
     } else {
         posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     }
 
-    if (reg.has<edyn::present_orientation>(con.body[1])) {
+    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
         ornB = reg.get<edyn::present_orientation>(con.body[1]);
     } else {
         ornB = reg.get<edyn::orientation>(con.body[1]);
