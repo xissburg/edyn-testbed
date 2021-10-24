@@ -50,7 +50,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleBoxes
-	,"01-boxes"
+	, "01-boxes"
 	, "Box stacking."
     , "https://github.com/xissburg/edyn-testbed"
     );

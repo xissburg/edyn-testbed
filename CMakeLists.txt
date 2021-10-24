@@ -24,6 +24,13 @@ endif()
 # Dependencies
 #
 
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
+conan_basic_setup()
+
+find_package(EnTT REQUIRED)
+#find_package(Edyn REQUIRED)
+
 set(Edyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "Edyn include directory.")
 set(Edyn_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../edyn/build/lib CACHE PATH "Edyn library directory.")
 find_library(Edyn_LIBRARY Edyn PATHS ${Edyn_LIBRARY_DIR} PATH_SUFFIXES Debug Release RelWithDebInfo)
@@ -46,13 +53,6 @@ find_library(Bimg_LIBRARY_RELEASE bimgRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bimg_LIBRARY_DEBUG bimgDebug PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_RELEASE bimg_decodeRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_DEBUG bimg_decodeDebug PATHS ${Bgfx_LIBRARY_DIR})
-
-#
-# Conan dependencies
-#
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
 
 #
 # Executable
@@ -79,6 +79,7 @@ set(EdynTestbed_SOURCES
     src/raycasting.cpp
     src/friction.cpp
     src/billiards.cpp
+    src/per_vertex_materials.cpp
 )
 
 if (APPLE)
@@ -97,6 +98,7 @@ target_include_directories(EdynTestbed
 target_include_directories(EdynTestbed SYSTEM
     PUBLIC ${Edyn_INCLUDE_DIR}
     PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
+    #PUBLIC ${CONAN_INCLUDE_DIRS_EDYN}
     PUBLIC ${Bx_INCLUDE_DIR}
     PUBLIC ${Bgfx_INCLUDE_DIR}
     PUBLIC ${Bimg_INCLUDE_DIR}
@@ -125,6 +127,7 @@ target_link_libraries(EdynTestbed
     debug ${Bgfx_LIBRARY_DEBUG}
     optimized ${Bx_LIBRARY_RELEASE}
     debug ${Bx_LIBRARY_DEBUG}
+    EnTT::EnTT
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
     #-fsanitize=address
