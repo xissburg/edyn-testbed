@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/collision/raycast.hpp>
 
 class ExamplePerVertexMaterials : public EdynExample
 {
@@ -15,55 +14,54 @@ public:
 	void createScene() override
 	{
         // Create floor
-        auto extent_x = 12;
-        auto extent_z = 12;
-        auto num_vertices_x = 32;
-        auto num_vertices_z = 32;
-        std::vector<edyn::vector3> vertices;
-        std::vector<uint16_t> indices;
-        std::vector<edyn::scalar> friction_coefficients;
-        edyn::make_plane_mesh(extent_x, extent_z,
-                              num_vertices_x, num_vertices_z,
-                              vertices, indices);
-        friction_coefficients.resize(vertices.size());
+        auto vertices = std::vector<edyn::vector3>{};
+        auto colors = std::vector<edyn::vector3>{};
+        auto indices = std::vector<uint16_t>{};
+        auto scale = edyn::scalar(1) * edyn::vector3_one;
+        auto rotation = edyn::quaternion_axis_angle({1,0,0}, -edyn::half_pi);
+        edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/plane_per_vert.obj",
+                                        vertices, indices, &colors, {0,0,0}, rotation, scale);
 
-        // Make a slight bowl shape.
-        for (int i = 0; i < num_vertices_x; ++i) {
-            auto fraction_x = edyn::scalar(i) /edyn::scalar(num_vertices_x) * 2 - 1;
-            auto x = fraction_x * extent_x;
-            for (int j = 0; j < num_vertices_z; ++j) {
-                auto fraction_z = edyn::scalar(j) /edyn::scalar(num_vertices_z) * 2 - 1;
-                auto z = fraction_z * extent_z;
-                vertices[i * num_vertices_x + j].y = (x * x + z * z) * 0.001;
-                friction_coefficients[i * num_vertices_x + j] = fraction_x * fraction_x + fraction_z * fraction_z;
-            }
+        // Get friction and restitution from vertex colors.
+        EDYN_ASSERT(!colors.empty());
+        auto friction = std::vector<edyn::scalar>{};
+        auto restitution = std::vector<edyn::scalar>{};
+
+        for (auto color : colors) {
+            friction.push_back(color.x);
+            restitution.push_back(color.y);
         }
 
         auto trimesh = std::make_shared<edyn::triangle_mesh>();
         trimesh->insert_vertices(vertices.begin(), vertices.end());
         trimesh->insert_indices(indices.begin(), indices.end());
-        trimesh->insert_friction_coefficients(friction_coefficients.begin(), friction_coefficients.end());
+        trimesh->insert_friction_coefficients(friction.begin(), friction.end());
+        trimesh->insert_restitution_coefficients(restitution.begin(), restitution.end());
         trimesh->initialize();
 
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.material->restitution = 0;
-        floor_def.material->friction = 0.5;
         floor_def.shape = edyn::mesh_shape{trimesh};
+        // Restitution of the trimesh must be non-zero or else the restitution
+        // solver would ignore this rigid body. More precisely, a
+        // `edyn::contact_manifold_with_restitution` tag would not be assigned
+        // to contact manifolds containing this body. The exact value is not used
+        // because the per-vertex restitution will be considered instead.
+        floor_def.material->restitution = 1;
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add boxes.
         auto def = edyn::rigidbody_def();
         def.mass = 10;
         def.material->friction = 0.8;
-        def.material->restitution = 0;
+        def.material->restitution = 0.7;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         def.update_inertia();
         def.continuous_contacts = true;
 
         std::vector<edyn::rigidbody_def> defs;
 
-        for (int i = 0; i < 1; ++i) {
+        for (int i = 0; i < 14; ++i) {
             for (int j = 0; j < 1; ++j) {
                 for (int k = 0; k < 1; ++k) {
                     def.position = {edyn::scalar(0.4 * j),

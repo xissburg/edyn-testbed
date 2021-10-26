@@ -12,7 +12,23 @@ void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
         auto vertices = trimesh->get_edge_vertices(i);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
+
+        if (trimesh->has_per_vertex_friction()) {
+            auto friction = trimesh->get_vertex_friction(trimesh->get_edge_vertex_indices(i)[0]);
+            auto b = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+            auto g = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+            auto r = static_cast<uint32_t>(edyn::lerp(0xc0, 0xff, friction));
+            dde.setColor(0xff000000 | (b << 16) | (g << 8) | r);
+        }
         dde.moveTo(v0.x, v0.y, v0.z);
+
+        if (trimesh->has_per_vertex_friction()) {
+            auto friction = trimesh->get_vertex_friction(trimesh->get_edge_vertex_indices(i)[1]);
+            auto b = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+            auto g = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+            auto r = static_cast<uint32_t>(edyn::lerp(0xc0, 0xff, friction));
+            dde.setColor(0xff000000 | (b << 16) | (g << 8) | r);
+        }
         dde.lineTo(v1.x, v1.y, v1.z);
     }
 
