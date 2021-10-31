@@ -1,5 +1,14 @@
 #include "debugdraw.hpp"
 #include <common/debugdraw/debugdraw.h>
+#include <edyn/shapes/triangle_mesh.hpp>
+
+void assignVertexFrictionColor(DebugDrawEncoder &dde, edyn::triangle_mesh &trimesh, size_t edge_idx, size_t v_idx) {
+    auto friction = trimesh.get_vertex_friction(trimesh.get_edge_vertex_indices(edge_idx)[v_idx]);
+    auto b = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+    auto g = static_cast<uint32_t>(edyn::lerp(0xc0, 0x00, friction));
+    auto r = static_cast<uint32_t>(edyn::lerp(0xc0, 0xff, friction));
+    dde.setColor(0xff000000 | (b << 16) | (g << 8) | r);
+}
 
 void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
     dde.setWireframe(false);
@@ -12,7 +21,15 @@ void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
         auto vertices = trimesh->get_edge_vertices(i);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
+
+        if (trimesh->has_per_vertex_friction()) {
+            assignVertexFrictionColor(dde, *trimesh, i, 0);
+        }
         dde.moveTo(v0.x, v0.y, v0.z);
+
+        if (trimesh->has_per_vertex_friction()) {
+            assignVertexFrictionColor(dde, *trimesh, i, 1);
+        }
         dde.lineTo(v1.x, v1.y, v1.z);
     }
 
@@ -27,7 +44,16 @@ void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
         auto vertices = trimesh->get_edge_vertices(edge_idx);
         auto &v0 = vertices[0];
         auto &v1 = vertices[1];
+
+        if (trimesh->has_per_vertex_friction()) {
+            assignVertexFrictionColor(dde, *trimesh, edge_idx, 0);
+        }
         dde.moveTo(v0.x, v0.y, v0.z);
+
+
+        if (trimesh->has_per_vertex_friction()) {
+            assignVertexFrictionColor(dde, *trimesh, edge_idx, 1);
+        }
         dde.lineTo(v1.x, v1.y, v1.z);
     });
 }

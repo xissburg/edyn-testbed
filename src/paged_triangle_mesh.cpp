@@ -32,7 +32,7 @@ public:
             // Load a large mesh, split it into smaller submeshes, write them to files
             // and setup the paged triangle mesh to read them on demand.
             std::vector<edyn::vector3> vertices;
-            std::vector<uint16_t> indices;
+            std::vector<uint32_t> indices;
             // Note: the working directory is bgfx/examples/runtime and it is
             // assumed the edyn-testbed directory is at the same level.
             auto obj_path = "../../../edyn-testbed/resources/terrain_large.obj";
@@ -45,7 +45,7 @@ public:
                 *paged_trimesh,
                 vertices.begin(), vertices.end(),
                 indices.begin(), indices.end(),
-                1 << 11);
+                1 << 11, {});
 
             {
                 // After creating the paged triangle mesh all nodes are loaded into
