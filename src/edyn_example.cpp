@@ -439,7 +439,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
     auto tolerance_sqr = tolerance * tolerance;
     auto num_vertices = poly.mesh->vertex_count(face_idx);
 
-    for (auto i = 0; i < num_vertices; ++i) {
+    for (unsigned i = 0; i < num_vertices; ++i) {
         auto v_idx = poly.mesh->face_vertex_index(face_idx, i);
         auto v = poly.mesh->vertices[v_idx];
 
@@ -450,7 +450,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
         }
     }
 
-    for (auto i = 0; i < num_vertices; ++i) {
+    for (unsigned i = 0; i < num_vertices; ++i) {
         auto v0_idx = poly.mesh->face_vertex_index(face_idx, i);
         auto v1_idx = poly.mesh->face_vertex_index(face_idx, (i + 1) % num_vertices);
         auto v0 = poly.mesh->vertices[v0_idx];

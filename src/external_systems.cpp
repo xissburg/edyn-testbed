@@ -121,7 +121,7 @@ public:
         auto num_vertices_x = 32;
         auto num_vertices_z = 32;
         std::vector<edyn::vector3> vertices;
-        std::vector<uint16_t> indices;
+        std::vector<uint32_t> indices;
         edyn::make_plane_mesh(extent_x, extent_z,
                               num_vertices_x, num_vertices_z,
                               vertices, indices);

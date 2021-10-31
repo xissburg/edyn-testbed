@@ -16,11 +16,11 @@ public:
         // Create floor
         auto vertices = std::vector<edyn::vector3>{};
         auto colors = std::vector<edyn::vector3>{};
-        auto indices = std::vector<uint16_t>{};
+        auto indices = std::vector<uint32_t>{};
         auto scale = edyn::scalar(1) * edyn::vector3_one;
         auto rotation = edyn::quaternion_axis_angle({1,0,0}, -edyn::half_pi);
         edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/plane_per_vert.obj",
-                                        vertices, indices, &colors, {0,0,0}, rotation, scale);
+                                     vertices, indices, &colors, {0,0,0}, rotation, scale);
 
         // Get friction and restitution from vertex colors.
         EDYN_ASSERT(!colors.empty());
