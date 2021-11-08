@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/comp/orientation.hpp>
 #include <random>
 
 struct ClimbBehavior {
@@ -23,18 +24,18 @@ void UpdateClimbers(entt::registry &registry) {
                 return;
             }
 
-            auto &manifold = manifoldView.get(manifoldEntity);
+            auto [manifold] = manifoldView.get(manifoldEntity);
 
             if (manifold.num_points() == 0) {
                 return;
             }
 
             // Only interact with static entities.
-            if (manifold.body[0] == entity && !registry.has<edyn::static_tag>(manifold.body[1])) {
+            if (manifold.body[0] == entity && !registry.any_of<edyn::static_tag>(manifold.body[1])) {
                 return;
             }
 
-            if (manifold.body[1] == entity && !registry.has<edyn::static_tag>(manifold.body[0])) {
+            if (manifold.body[1] == entity && !registry.any_of<edyn::static_tag>(manifold.body[0])) {
                 return;
             }
 
@@ -43,14 +44,14 @@ void UpdateClimbers(entt::registry &registry) {
             auto pointEntity = entt::entity{entt::null};
 
             for (size_t i = 0; i < manifold.num_points(); ++i) {
-                auto &cp = pointView.get(manifold.point[i]);
+                auto [cp] = pointView.get(manifold.point[i]);
                 if (cp.distance < penetration) {
                     penetration = cp.distance;
                     pointEntity = manifold.point[i];
                 }
             }
 
-            auto &point = pointView.get(pointEntity);
+            auto [point] = pointView.get(pointEntity);
             // Calculate direction which goes up.
             edyn::vector3 pivot;
 
@@ -77,7 +78,7 @@ void UpdateClimbers(entt::registry &registry) {
             auto tangentialImpulse = edyn::scalar(1);
 
             if (impulseView.contains(pointEntity)) {
-                auto applied_impulse = impulseView.get(pointEntity);
+                auto [applied_impulse] = impulseView.get(pointEntity);
                 auto normalImpulse = applied_impulse.values[0];
                 auto maxTangentialImpulse = normalImpulse * point.friction;
                 tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);
@@ -120,7 +121,7 @@ public:
         auto num_vertices_x = 32;
         auto num_vertices_z = 32;
         std::vector<edyn::vector3> vertices;
-        std::vector<uint16_t> indices;
+        std::vector<uint32_t> indices;
         edyn::make_plane_mesh(extent_x, extent_z,
                               num_vertices_x, num_vertices_z,
                               vertices, indices);

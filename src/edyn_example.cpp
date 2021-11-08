@@ -163,7 +163,7 @@ bool EdynExample::update()
 
             uint32_t color = 0xffffffff;
 
-            if (m_registry->has<edyn::sleeping_tag>(ent)) {
+            if (m_registry->any_of<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
             } else {
                 auto *resident = m_registry->try_get<edyn::island_resident>(ent);
@@ -224,8 +224,8 @@ bool EdynExample::update()
     {
         auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation>();
         view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
-            if (!m_registry->has<edyn::static_tag>(ent) &&
-                !m_registry->has<edyn::kinematic_tag>(ent)) {
+            if (!m_registry->any_of<edyn::static_tag>(ent) &&
+                !m_registry->any_of<edyn::kinematic_tag>(ent)) {
                 return;
             }
 
@@ -439,7 +439,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
     auto tolerance_sqr = tolerance * tolerance;
     auto num_vertices = poly.mesh->vertex_count(face_idx);
 
-    for (auto i = 0; i < num_vertices; ++i) {
+    for (unsigned i = 0; i < num_vertices; ++i) {
         auto v_idx = poly.mesh->face_vertex_index(face_idx, i);
         auto v = poly.mesh->vertices[v_idx];
 
@@ -450,7 +450,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
         }
     }
 
-    for (auto i = 0; i < num_vertices; ++i) {
+    for (unsigned i = 0; i < num_vertices; ++i) {
         auto v0_idx = poly.mesh->face_vertex_index(face_idx, i);
         auto v1_idx = poly.mesh->face_vertex_index(face_idx, (i + 1) % num_vertices);
         auto v0 = poly.mesh->vertices[v0_idx];
@@ -621,7 +621,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             auto p1 = cam_pos + m_rayDir * m_rayLength;
             auto result = edyn::raycast(*m_registry, cam_pos, p1);
 
-            if (result.entity != entt::null && m_registry->has<edyn::dynamic_tag>(result.entity)) {
+            if (result.entity != entt::null && m_registry->any_of<edyn::dynamic_tag>(result.entity)) {
                 auto pick_pos = edyn::lerp(cam_pos, p1, result.fraction);
 
                 auto pos = edyn::get_rigidbody_origin(*m_registry, result.entity);
