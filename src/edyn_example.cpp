@@ -81,6 +81,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     inputAddBindings("base", m_bindings);
 
+    m_footer_text = m_default_footer_text;
+
     createScene();
 }
 
@@ -730,7 +732,7 @@ void EdynExample::showFooter() {
                                  ImGuiWindowFlags_NoScrollbar |
                                  ImGuiWindowFlags_NoMouseInputs);
 
-    ImGui::Text("Press 'P' to pause and 'L' to step simulation while paused.");
+    ImGui::Text("%s", m_footer_text.c_str());
 
     ImGui::End();
 }

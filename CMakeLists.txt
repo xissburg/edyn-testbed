@@ -21,6 +21,12 @@ else()
 endif()
 
 #
+# Options
+#
+
+option(EDYN_BUILD_NETWORKING_EXAMPLE "Build networking example" OFF)
+
+#
 # Dependencies
 #
 
@@ -82,6 +88,14 @@ set(EdynTestbed_SOURCES
     src/per_vertex_materials.cpp
 )
 
+if(EDYN_BUILD_NETWORKING_EXAMPLE)
+    find_library(ENet_LIBRARY enet)
+
+    set(EdynTestbed_SOURCES
+        ${EdynTestbed_SOURCES}
+        src/networking.cpp)
+endif()
+
 if (APPLE)
 	add_executable(EdynTestbed MACOSX_BUNDLE ${EdynTestbed_SOURCES})
 elseif (WIN32)
@@ -132,7 +146,13 @@ target_link_libraries(EdynTestbed
     debug ${Edyn_LIBRARY_DEBUG}
     #-fsanitize=address
     #-fsanitize=undefined
-)
+    )
+
+if(EDYN_BUILD_NETWORKING_EXAMPLE)
+    target_link_libraries(EdynTestbed
+        ${ENet_LIBRARY}
+    )
+endif()
 
 if (APPLE)
     set_target_properties(EdynTestbed PROPERTIES
@@ -151,3 +171,45 @@ endif ()
 if (WIN32)
     target_link_libraries(EdynTestbed winmm)
 endif ()
+
+# Server
+
+if(EDYN_BUILD_NETWORKING_EXAMPLE)
+    project(EdynTestbedServer VERSION 0.0.0 LANGUAGES CXX)
+
+    set(EdynTestbedServer_SOURCES
+        src/server/main.cpp)
+
+	add_executable(EdynTestbedServer ${EdynTestbedServer_SOURCES})
+
+    target_include_directories(EdynTestbedServer
+        PUBLIC ${CMAKE_SOURCE_DIR}/include
+    )
+
+    target_include_directories(EdynTestbedServer SYSTEM
+        PUBLIC ${Edyn_INCLUDE_DIR}
+        PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
+    )
+
+    target_compile_features(EdynTestbedServer PUBLIC cxx_std_17)
+
+    # Link libraries
+
+    target_link_libraries(EdynTestbedServer
+        EnTT::EnTT
+        optimized ${Edyn_LIBRARY}
+        debug ${Edyn_LIBRARY_DEBUG}
+        ${ENet_LIBRARY}
+    )
+
+    if (UNIX AND NOT APPLE)
+        target_link_libraries(EdynTestbedServer
+            dl
+            pthread
+        )
+    endif ()
+
+    if (WIN32)
+        target_link_libraries(EdynTestbedServer winmm)
+    endif ()
+endif()
