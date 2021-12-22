@@ -1,10 +1,14 @@
 #include "edyn_example.hpp"
+#include <edyn/comp/position.hpp>
+#include <edyn/comp/present_orientation.hpp>
+#include <edyn/comp/present_position.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/packet/entity_request.hpp>
 #include <edyn/networking/packet/edyn_packet.hpp>
 #include <edyn/networking/packet/transient_snapshot.hpp>
+#include <edyn/networking/packet/util/pool_snapshot.hpp>
 #include <edyn/networking/remote_client.hpp>
 #include <edyn/networking/server_side.hpp>
 #include <edyn/networking/client_side.hpp>
@@ -82,6 +86,13 @@ public:
         sendToServer(data.data(), data.size(), flags);
     }
 
+    void onConstructRigidBody(entt::registry &registry, entt::entity entity) {
+        if (!registry.any_of<edyn::present_position>(entity)) {
+            registry.emplace<edyn::present_position>(entity);
+            registry.emplace<edyn::present_orientation>(entity);
+        }
+    }
+
 	void createScene() override
     {
         if (!initEnet()) {
@@ -95,6 +106,8 @@ public:
         }
 
         m_footer_text = "Connecting to server...";
+
+        m_registry->on_construct<edyn::rigidbody_tag>().connect<&ExampleNetworking::onConstructRigidBody>(*this);
 	}
 
     void destroyScene() override
@@ -111,6 +124,8 @@ public:
         edyn::deinit_networking_client(*m_registry);
 
         m_footer_text = m_default_footer_text;
+
+        m_registry->on_construct<edyn::rigidbody_tag>().disconnect<&ExampleNetworking::onConstructRigidBody>(*this);
     }
 
     void updateNetworking()
@@ -165,7 +180,7 @@ public:
             }
 
             auto snapshot = edyn::packet::transient_snapshot{};
-            snapshot.positions.emplace_back(m_pick_entity, m_registry->get<edyn::position>(m_pick_entity));
+            edyn::insert_entity_component<edyn::position>(*m_registry, m_pick_entity, snapshot.pools);
             auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
             sendEdynPacketToServer(packet);
         }
