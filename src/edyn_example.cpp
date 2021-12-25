@@ -633,6 +633,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 auto pick_def = edyn::rigidbody_def{};
                 pick_def.position = pick_pos;
                 pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
+                pick_def.presentation = false;
                 m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
 
                 auto &mass = m_registry->get<edyn::mass>(result.entity);
@@ -645,7 +646,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 m_pick_constraint_entity = con_ent;
             }
         } else {
-            // Move kinematic on plane parallel to view axis.
+            // Move kinematic on plane orthogonal to view axis.
             const auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
             const auto plane_normal = edyn::normalize(cam_at - cam_pos);
             auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);

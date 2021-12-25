@@ -87,7 +87,7 @@ public:
     }
 
     void onConstructRigidBody(entt::registry &registry, entt::entity entity) {
-        if (!registry.any_of<edyn::present_position>(entity)) {
+        if (entity != m_pick_entity && !registry.any_of<edyn::present_position>(entity)) {
             registry.emplace<edyn::present_position>(entity);
             registry.emplace<edyn::present_orientation>(entity);
         }
@@ -179,7 +179,7 @@ public:
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
             }
 
-            auto snapshot = edyn::packet::transient_snapshot{};
+            auto snapshot = edyn::packet::general_snapshot{};
             edyn::insert_entity_component<edyn::position>(*m_registry, m_pick_entity, snapshot.pools);
             auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
             sendEdynPacketToServer(packet);
