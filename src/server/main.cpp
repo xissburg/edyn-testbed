@@ -1,9 +1,8 @@
-#include <edyn/networking/remote_client.hpp>
 #include <enet/enet.h>
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
-#include <edyn/networking/server_side.hpp>
+#include <edyn/networking/networking.hpp>
 #include <iostream>
 
 struct PeerID {
@@ -61,10 +60,11 @@ ENetHost * init_enet() {
 }
 
 template<typename ClientEntityMap>
-void update_enet(entt::registry &registry, ENetHost *host, ClientEntityMap &clientEntityMap) {
+void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
+    auto &host = registry.ctx<ENetHost>();
     ENetEvent event;
 
-    while (enet_host_service(host, &event, 0) > 0) {
+    while (enet_host_service(&host, &event, 0) > 0) {
         const auto peerID = event.peer->incomingPeerID;
 
         switch (event.type) {
@@ -133,9 +133,9 @@ void create_scene(entt::registry &registry) {
 
     std::vector<edyn::rigidbody_def> defs;
 
-    for (int i = 0; i < 1; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            for (int k = 0; k < 1; ++k) {
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            for (int k = 0; k < 5; ++k) {
                 def.position = {edyn::scalar(0.4 * j),
                                 edyn::scalar(0.4 * i + 0.6),
                                 edyn::scalar(0.4 * k)};
@@ -178,7 +178,7 @@ int main() {
     auto time = edyn::performance_time();
 
     while (true) {
-        update_enet(registry, host, clientEntityMap);
+        update_enet(registry, clientEntityMap);
         edyn::update_networking_server(registry);
         edyn::update(registry);
 

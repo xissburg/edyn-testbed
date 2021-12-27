@@ -3,15 +3,7 @@
 #include <edyn/comp/present_orientation.hpp>
 #include <edyn/comp/present_position.hpp>
 #include <edyn/edyn.hpp>
-#include <edyn/networking/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
-#include <edyn/networking/packet/entity_request.hpp>
-#include <edyn/networking/packet/edyn_packet.hpp>
-#include <edyn/networking/packet/transient_snapshot.hpp>
-#include <edyn/networking/packet/util/pool_snapshot.hpp>
-#include <edyn/networking/remote_client.hpp>
-#include <edyn/networking/server_side.hpp>
-#include <edyn/networking/client_side.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <unordered_set>
 #include <enet/enet.h>
