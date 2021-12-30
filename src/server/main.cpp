@@ -30,8 +30,8 @@ void send_edyn_packet_to_client(entt::registry &registry, entt::entity clientEnt
     archive(const_cast<edyn::packet::edyn_packet &>(packet));
 
     auto peerID = registry.get<PeerID>(clientEntity).value;
-    auto &host = registry.ctx<ENetHost>();
-    send_to_client(&host, data.data(), data.size(), peerID, flags);
+    auto *host = registry.ctx<ENetHost *>();
+    send_to_client(host, data.data(), data.size(), peerID, flags);
 }
 
 ENetHost * init_enet() {
@@ -61,10 +61,10 @@ ENetHost * init_enet() {
 
 template<typename ClientEntityMap>
 void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
-    auto &host = registry.ctx<ENetHost>();
+    auto *host = registry.ctx<ENetHost *>();
     ENetEvent event;
 
-    while (enet_host_service(&host, &event, 0) > 0) {
+    while (enet_host_service(host, &event, 0) > 0) {
         const auto peerID = event.peer->incomingPeerID;
 
         switch (event.type) {
@@ -75,6 +75,7 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
                 client.snapshot_rate = 8;
+                client.playout_delay = 0.2;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
                 std::cout << "Connected " << std::hex << entt::to_integral(clientEntity) << std::endl;
@@ -161,7 +162,7 @@ int main() {
         return -1;
     }
 
-    registry.set<ENetHost>(*host);
+    registry.set<ENetHost *>(host);
 
     edyn::init_networking_server(registry);
 

@@ -145,7 +145,7 @@ public:
                     edyn::packet::edyn_packet packet;
                     archive(packet);
 
-                    edyn::client_process_packet(*m_registry, packet);
+                    edyn::client_handle_packet(*m_registry, packet);
 
                     /* Clean up the packet now that we're done using it. */
                     enet_packet_destroy(event.packet);
