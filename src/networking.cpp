@@ -157,6 +157,11 @@ public:
                     break;
             }
         }
+
+        if (m_peer) {
+            auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
+            edynCtx.round_trip_time = 1e-3 * m_peer->roundTripTime;
+        }
     }
 
     void updatePhysics(float deltaTime) override

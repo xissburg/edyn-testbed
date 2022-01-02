@@ -1,3 +1,4 @@
+#include <edyn/networking/packet/set_playout_delay.hpp>
 #include <enet/enet.h>
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
@@ -77,6 +78,9 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
                 client.snapshot_rate = 8;
                 client.playout_delay = 0.2;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
+
+                auto delay = edyn::packet::set_playout_delay{client.playout_delay};
+                send_edyn_packet_to_client(registry, clientEntity, edyn::packet::edyn_packet{delay});
 
                 std::cout << "Connected " << std::hex << entt::to_integral(clientEntity) << std::endl;
                 break;
