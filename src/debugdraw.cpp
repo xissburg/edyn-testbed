@@ -241,8 +241,8 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
 
     auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
     auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
-    auto axisA = edyn::rotate(ornA, con.axis[0]);
-    auto axisB = edyn::rotate(ornB, con.axis[1]);
+    auto axisA = edyn::rotate(ornA, con.frame[0].column(0));
+    auto axisB = edyn::rotate(ornB, con.frame[1].column(0));
 
     auto pA1 = pA + axisA * 0.2;
     auto pB1 = pB + axisB * 0.2;

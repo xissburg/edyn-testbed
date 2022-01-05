@@ -21,7 +21,7 @@ public:
 
         // Add some boxes.
         auto def = edyn::rigidbody_def();
-        def.material->restitution = 0;
+        def.material->restitution = 0.2;
         def.material->friction = 0.8;
         def.mass = 100;
         def.shape = edyn::box_shape{0.2, 0.5, 0.05};
@@ -49,8 +49,11 @@ public:
             auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB);
             hinge.pivot[0] = {0, 0.45, -0.05f * z};
             hinge.pivot[1] = {0, -0.45, 0.05f * z};
-            hinge.axis[0] = {0, 0, 1};
-            hinge.axis[1] = {0, 0, 1};
+            hinge.set_axes({0, 0, 1}, {0, 0, 1});
+            hinge.angle_min = -edyn::half_pi * 1.5;
+            hinge.angle_max = -hinge.angle_min;
+            hinge.limit_restitution = 0.25;
+            hinge.friction_torque = 10;
         }
     }
 };
