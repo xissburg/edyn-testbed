@@ -1,0 +1,184 @@
+[1mdiff --git a/src/debugdraw.cpp b/src/debugdraw.cpp[m
+[1mindex 0acdaca..83203e1 100644[m
+[1m--- a/src/debugdraw.cpp[m
+[1m+++ b/src/debugdraw.cpp[m
+[36m@@ -114,17 +114,21 @@[m [mvoid draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr[m
+     auto posB = edyn::get_rigidbody_origin(reg, con.body[1]);[m
+     auto ornB = reg.get<edyn::orientation>(con.body[1]);[m
+ [m
+[31m-    auto &cp = reg.get<edyn::contact_point>(entity);[m
+[31m-    auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);[m
+[31m-    auto tip = pB + cp.normal * 0.1;[m
+[32m+[m[32m    auto &manifold = reg.get<edyn::contact_manifold>(entity);[m
+ [m
+[31m-    dde.push();[m
+[32m+[m[32m    for (unsigned i = 0; i < manifold.num_points; ++i) {[m
+[32m+[m[32m        auto &cp = manifold.point[manifold.ids[i]];[m
+[32m+[m[32m        auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);[m
+[32m+[m[32m        auto tip = pB + cp.normal * 0.1;[m
+ [m
+[31m-    dde.setColor(0xff3300fe);[m
+[31m-    dde.moveTo(pB.x, pB.y, pB.z);[m
+[31m-    dde.lineTo(tip.x, tip.y, tip.z);[m
+[32m+[m[32m        dde.push();[m
+ [m
+[31m-    dde.pop();[m
+[32m+[m[32m        dde.setColor(0xff3300fe);[m
+[32m+[m[32m        dde.moveTo(pB.x, pB.y, pB.z);[m
+[32m+[m[32m        dde.lineTo(tip.x, tip.y, tip.z);[m
+[32m+[m
+[32m+[m[32m        dde.pop();[m
+[32m+[m[32m    }[m
+ }[m
+ [m
+ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const entt::registry &reg) {[m
+[1mdiff --git a/src/edyn_example.cpp b/src/edyn_example.cpp[m
+[1mindex 6bd8668..1278e42 100644[m
+[1m--- a/src/edyn_example.cpp[m
+[1m+++ b/src/edyn_example.cpp[m
+[36m@@ -20,7 +20,7 @@[m [mvoid OnDestroyIsland(entt::registry &registry, entt::entity entity) {[m
+ [m
+ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)[m
+ {[m
+[31m-    //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);[m
+[32m+[m[32m    feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);[m
+ [m
+     Args args(_argc, _argv);[m
+ [m
+[1mdiff --git a/src/external_systems.cpp b/src/external_systems.cpp[m
+[1mindex 0f06997..f8a7df9 100644[m
+[1m--- a/src/external_systems.cpp[m
+[1m+++ b/src/external_systems.cpp[m
+[36m@@ -1,4 +1,5 @@[m
+ #include "edyn_example.hpp"[m
+[32m+[m[32m#include <edyn/collision/contact_manifold.hpp>[m
+ #include <edyn/comp/orientation.hpp>[m
+ #include <random>[m
+ [m
+[36m@@ -13,8 +14,6 @@[m [mstruct ClimbBehavior {[m
+ void UpdateClimbers(entt::registry &registry) {[m
+     auto &graph = registry.ctx<edyn::entity_graph>();[m
+     auto manifoldView = registry.view<edyn::contact_manifold>();[m
+[31m-    auto pointView = registry.view<edyn::contact_point>();[m
+[31m-    auto impulseView = registry.view<edyn::constraint_impulse>();[m
+     auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();[m
+ [m
+     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {[m
+[36m@@ -26,7 +25,7 @@[m [mvoid UpdateClimbers(entt::registry &registry) {[m
+ [m
+             auto [manifold] = manifoldView.get(manifoldEntity);[m
+ [m
+[31m-            if (manifold.num_points() == 0) {[m
+[32m+[m[32m            if (manifold.num_points == 0) {[m
+                 return;[m
+             }[m
+ [m
+[36m@@ -41,17 +40,17 @@[m [mvoid UpdateClimbers(entt::registry &registry) {[m
+ [m
+             // Find deepest point.[m
+             auto penetration = EDYN_SCALAR_MAX;[m
+[31m-            auto pointEntity = entt::entity{entt::null};[m
+[32m+[m[32m            auto pointIndex = edyn::contact_manifold::invalid_id;[m
+ [m
+[31m-            for (size_t i = 0; i < manifold.num_points(); ++i) {[m
+[31m-                auto [cp] = pointView.get(manifold.point[i]);[m
+[32m+[m[32m            for (size_t i = 0; i < manifold.num_points; ++i) {[m
+[32m+[m[32m                auto &cp = manifold.point[manifold.ids[i]];[m
+                 if (cp.distance < penetration) {[m
+                     penetration = cp.distance;[m
+[31m-                    pointEntity = manifold.point[i];[m
+[32m+[m[32m                    pointIndex = i;[m
+                 }[m
+             }[m
+ [m
+[31m-            auto [point] = pointView.get(pointEntity);[m
+[32m+[m[32m            auto &point = manifold.point[manifold.ids[pointIndex]];[m
+             // Calculate direction which goes up.[m
+             edyn::vector3 pivot;[m
+ [m
+[36m@@ -77,12 +76,8 @@[m [mvoid UpdateClimbers(entt::registry &registry) {[m
+             auto axis = edyn::normalize(edyn::cross(normal, climber.direction));[m
+             auto tangentialImpulse = edyn::scalar(1);[m
+ [m
+[31m-            if (impulseView.contains(pointEntity)) {[m
+[31m-                auto [applied_impulse] = impulseView.get(pointEntity);[m
+[31m-                auto normalImpulse = applied_impulse.values[0];[m
+[31m-                auto maxTangentialImpulse = normalImpulse * point.friction;[m
+[31m-                tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);[m
+[31m-            }[m
+[32m+[m[32m            auto maxTangentialImpulse = point.normal_impulse * point.friction;[m
+[32m+[m[32m            tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);[m
+ [m
+             auto distance = length(posClimber - pivot);[m
+             auto angularImpulse = axis * tangentialImpulse * distance;[m
+[1mdiff --git a/src/paged_triangle_mesh.cpp b/src/paged_triangle_mesh.cpp[m
+[1mindex ba36657..a8be2e2 100644[m
+[1m--- a/src/paged_triangle_mesh.cpp[m
+[1m+++ b/src/paged_triangle_mesh.cpp[m
+[36m@@ -1,7 +1,9 @@[m
+ #include "edyn_example.hpp"[m
+[32m+[m[32m#include <edyn/edyn.hpp>[m
+ [m
+ void ContactStarted(entt::registry &registry, entt::entity entity);[m
+ void ContactEnded(entt::registry &registry, entt::entity entity);[m
+[32m+[m[32mvoid ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index);[m
+ [m
+ class ExamplePagedTriangleMesh : public EdynExample[m
+ {[m
+[36m@@ -109,8 +111,9 @@[m [mpublic:[m
+         }[m
+ [m
+         // Collision events example.[m
+[31m-        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();[m
+[31m-        m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();[m
+[32m+[m[32m        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);[m
+[32m+[m[32m        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);[m
+[32m+[m[32m        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);[m
+     }[m
+ [m
+     void destroyScene() override {[m
+[1mdiff --git a/src/triangle_mesh.cpp b/src/triangle_mesh.cpp[m
+[1mindex 4e299a4..a2c55e9 100644[m
+[1m--- a/src/triangle_mesh.cpp[m
+[1m+++ b/src/triangle_mesh.cpp[m
+[36m@@ -1,16 +1,23 @@[m
+ #include "edyn_example.hpp"[m
+[32m+[m[32m#include <edyn/edyn.hpp>[m
+ #include <iostream>[m
+ [m
+ void ContactStarted(entt::registry &registry, entt::entity entity) {[m
+[31m-    auto &imp = registry.get<edyn::constraint_impulse>(entity);[m
+[31m-    auto normal_impulse = imp.values[0];[m
+[32m+[m[32m    auto &manifold = registry.get<edyn::contact_manifold>(entity);[m
+[32m+[m[32m    EDYN_ASSERT(manifold.num_points > 0);[m
+[32m+[m[32m    float normal_impulse = 0;[m
+[32m+[m
+[32m+[m[32m    for (unsigned i = 0; i < manifold.num_points; ++i) {[m
+[32m+[m[32m        normal_impulse += manifold.point[manifold.ids[i]].normal_impulse;[m
+[32m+[m[32m    }[m
+ [m
+     std::cout << "Started | impulse: " << normal_impulse << std::endl;[m
+ }[m
+ [m
+[31m-void ContactEnded(entt::registry &registry, entt::entity entity) {[m
+[31m-    auto &cp = registry.get<edyn::contact_point>(entity);[m
+[31m-    std::cout << "Ended | lifetime: " << cp.lifetime << std::endl;[m
+[32m+[m[32mvoid ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index) {[m
+[32m+[m[32m    auto &manifold = registry.get<edyn::contact_manifold>(entity);[m
+[32m+[m[32m    auto lifetime = manifold.point[index].lifetime;[m
+[32m+[m[32m    std::cout << "Ended | lifetime: " << lifetime << std::endl;[m
+ }[m
+ [m
+ class ExampleTriangleMesh : public EdynExample[m
+[36m@@ -95,8 +102,9 @@[m [mpublic:[m
+         }[m
+ [m
+         // Collision events example.[m
+[31m-        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();[m
+[31m-        m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();[m
+[32m+[m[32m        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);[m
+[32m+[m[32m        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);[m
+[32m+[m[32m        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);[m
+     }[m
+ };[m
+ [m

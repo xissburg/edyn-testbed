@@ -114,17 +114,21 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     auto posB = edyn::get_rigidbody_origin(reg, con.body[1]);
     auto ornB = reg.get<edyn::orientation>(con.body[1]);
 
-    auto &cp = reg.get<edyn::contact_point>(entity);
-    auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
-    auto tip = pB + cp.normal * 0.1;
+    auto &manifold = reg.get<edyn::contact_manifold>(entity);
 
-    dde.push();
+    for (unsigned i = 0; i < manifold.num_points; ++i) {
+        auto &cp = manifold.point[manifold.ids[i]];
+        auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
+        auto tip = pB + cp.normal * 0.1;
 
-    dde.setColor(0xff3300fe);
-    dde.moveTo(pB.x, pB.y, pB.z);
-    dde.lineTo(tip.x, tip.y, tip.z);
+        dde.push();
 
-    dde.pop();
+        dde.setColor(0xff3300fe);
+        dde.moveTo(pB.x, pB.y, pB.z);
+        dde.lineTo(tip.x, tip.y, tip.z);
+
+        dde.pop();
+    }
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const entt::registry &reg) {

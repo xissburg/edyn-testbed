@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/comp/orientation.hpp>
 #include <random>
 
 struct ClimbBehavior {
@@ -13,8 +12,6 @@ struct ClimbBehavior {
 void UpdateClimbers(entt::registry &registry) {
     auto &graph = registry.ctx<edyn::entity_graph>();
     auto manifoldView = registry.view<edyn::contact_manifold>();
-    auto pointView = registry.view<edyn::contact_point>();
-    auto impulseView = registry.view<edyn::constraint_impulse>();
     auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();
 
     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
@@ -26,7 +23,7 @@ void UpdateClimbers(entt::registry &registry) {
 
             auto [manifold] = manifoldView.get(manifoldEntity);
 
-            if (manifold.num_points() == 0) {
+            if (manifold.num_points == 0) {
                 return;
             }
 
@@ -41,17 +38,17 @@ void UpdateClimbers(entt::registry &registry) {
 
             // Find deepest point.
             auto penetration = EDYN_SCALAR_MAX;
-            auto pointEntity = entt::entity{entt::null};
+            auto pointIndex = edyn::contact_manifold::invalid_id;
 
-            for (size_t i = 0; i < manifold.num_points(); ++i) {
-                auto [cp] = pointView.get(manifold.point[i]);
+            for (size_t i = 0; i < manifold.num_points; ++i) {
+                auto &cp = manifold.point[manifold.ids[i]];
                 if (cp.distance < penetration) {
                     penetration = cp.distance;
-                    pointEntity = manifold.point[i];
+                    pointIndex = i;
                 }
             }
 
-            auto [point] = pointView.get(pointEntity);
+            auto &point = manifold.point[manifold.ids[pointIndex]];
             // Calculate direction which goes up.
             edyn::vector3 pivot;
 
@@ -77,12 +74,8 @@ void UpdateClimbers(entt::registry &registry) {
             auto axis = edyn::normalize(edyn::cross(normal, climber.direction));
             auto tangentialImpulse = edyn::scalar(1);
 
-            if (impulseView.contains(pointEntity)) {
-                auto [applied_impulse] = impulseView.get(pointEntity);
-                auto normalImpulse = applied_impulse.values[0];
-                auto maxTangentialImpulse = normalImpulse * point.friction;
-                tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);
-            }
+            auto maxTangentialImpulse = point.normal_impulse * point.friction;
+            tangentialImpulse = std::min(1 + (1 - normal.y) * 33, maxTangentialImpulse);
 
             auto distance = length(posClimber - pivot);
             auto angularImpulse = axis * tangentialImpulse * distance;

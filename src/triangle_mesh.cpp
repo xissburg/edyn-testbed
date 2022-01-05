@@ -1,16 +1,24 @@
 #include "edyn_example.hpp"
+#include <edyn/edyn.hpp>
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {
-    auto &imp = registry.get<edyn::constraint_impulse>(entity);
-    auto normal_impulse = imp.values[0];
+    auto &manifold = registry.get<edyn::contact_manifold>(entity);
+    EDYN_ASSERT(manifold.num_points > 0);
+    float normal_impulse = 0;
+
+    for (unsigned i = 0; i < manifold.num_points; ++i) {
+        auto &cp = manifold.point[manifold.ids[i]];
+        normal_impulse += cp.normal_impulse + cp.normal_restitution_impulse;
+    }
 
     std::cout << "Started | impulse: " << normal_impulse << std::endl;
 }
 
-void ContactEnded(entt::registry &registry, entt::entity entity) {
-    auto &cp = registry.get<edyn::contact_point>(entity);
-    std::cout << "Ended | lifetime: " << cp.lifetime << std::endl;
+void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index) {
+    auto &manifold = registry.get<edyn::contact_manifold>(entity);
+    auto lifetime = manifold.point[index].lifetime;
+    std::cout << "Ended | lifetime: " << lifetime << std::endl;
 }
 
 class ExampleTriangleMesh : public EdynExample
@@ -95,8 +103,9 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();
-        m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);
+        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);
+        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);
     }
 };
 
