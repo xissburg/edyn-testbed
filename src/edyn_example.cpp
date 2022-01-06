@@ -81,6 +81,10 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     inputAddBindings("base", m_bindings);
 
+#ifdef EDYN_SOUND_ENABLED
+    m_soloud.init();
+#endif
+
     createScene();
 }
 
@@ -103,6 +107,10 @@ int EdynExample::shutdown()
 
     edyn::detach(*m_registry);
     edyn::deinit();
+
+#ifdef EDYN_SOUND_ENABLED
+    m_soloud.deinit();
+#endif
 
     m_registry.reset();
 
@@ -137,6 +145,12 @@ bool EdynExample::update()
 
     bgfx::setViewTransform(0, viewMtx, proj);
     bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height) );
+
+#ifdef EDYN_SOUND_ENABLED
+    auto camPos = cameraGetPosition();
+    m_soloud.set3dListenerPosition(camPos.x, camPos.y, camPos.z);
+    m_soloud.update3dAudio();
+#endif
 
     updateGUI();
 

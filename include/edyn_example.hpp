@@ -14,6 +14,10 @@
 
 #include "debugdraw.hpp"
 
+#ifdef EDYN_SOUND_ENABLED
+#include <soloud.h>
+#endif
+
 struct NullCallback : public bgfx::CallbackI {
 	virtual ~NullCallback()	{}
 
@@ -94,6 +98,10 @@ public:
     edyn::vector3 m_rayDir;
     edyn::scalar m_rayLength {100.f};
     edyn::scalar m_rigid_body_axes_size {0.15f};
+
+#ifdef EDYN_SOUND_ENABLED
+	SoLoud::Soloud m_soloud;
+#endif
 };
 
 

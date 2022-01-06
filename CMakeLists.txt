@@ -21,6 +21,12 @@ else()
 endif()
 
 #
+# Options
+#
+
+option(EDYN_SOUND_ENABLED "Enable sounds with SoLoud" OFF)
+
+#
 # Dependencies
 #
 
@@ -53,6 +59,15 @@ find_library(Bimg_LIBRARY_RELEASE bimgRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bimg_LIBRARY_DEBUG bimgDebug PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_RELEASE bimg_decodeRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(BimgDecode_LIBRARY_DEBUG bimg_decodeDebug PATHS ${Bgfx_LIBRARY_DIR})
+
+if(EDYN_SOUND_ENABLED)
+    set(SoLoud_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../soloud/include CACHE PATH "SoLoud include directory.")
+    set(SoLoud_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../soloud/lib CACHE PATH "SoLoud library directory.")
+    find_library(SoLoud_LIBRARY_RELEASE soloud_static PATHS ${SoLoud_LIBRARY_DIR})
+    find_library(SoLoud_LIBRARY_DEBUG soloud_static_x64_d PATHS ${SoLoud_LIBRARY_DIR})
+
+    find_package(SDL2 REQUIRED)
+endif()
 
 #
 # Executable
@@ -98,11 +113,20 @@ target_include_directories(EdynTestbed
 target_include_directories(EdynTestbed SYSTEM
     PUBLIC ${Edyn_INCLUDE_DIR}
     PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
-    #PUBLIC ${CONAN_INCLUDE_DIRS_EDYN}
     PUBLIC ${Bx_INCLUDE_DIR}
     PUBLIC ${Bgfx_INCLUDE_DIR}
     PUBLIC ${Bimg_INCLUDE_DIR}
 )
+
+if(EDYN_SOUND_ENABLED)
+    target_include_directories(EdynTestbed SYSTEM
+        PUBLIC ${SoLoud_INCLUDE_DIR}
+        PUBLIC ${SDL2_INCLUDE_DIRS}
+    )
+    target_compile_definitions(EdynTestbed PRIVATE
+        EDYN_SOUND_ENABLED
+    )
+endif()
 
 target_compile_features(EdynTestbed PUBLIC cxx_std_17)
 
@@ -134,6 +158,14 @@ target_link_libraries(EdynTestbed
     #-fsanitize=undefined
 )
 
+if(EDYN_SOUND_ENABLED)
+    target_link_libraries(EdynTestbed
+        optimized ${SoLoud_LIBRARY_RELEASE}
+        debug ${SoLoud_LIBRARY_DEBUG}
+        ${SDL2_LIBRARIES}
+    )
+endif()
+
 if (APPLE)
     set_target_properties(EdynTestbed PROPERTIES
         LINK_FLAGS "-framework Cocoa -framework Metal -framework QuartzCore")
@@ -146,6 +178,12 @@ if (UNIX AND NOT APPLE)
         X11
         GL
     )
+
+    if(EDYN_SOUND_ENABLED)
+        target_link_libraries(EdynTestbed
+            asound
+        )
+    endif ()
 endif ()
 
 if (WIN32)
