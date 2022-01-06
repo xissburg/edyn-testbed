@@ -39,4 +39,5 @@ It uses these sounds from freesound:
 
 Press `P` to pause/unpause the simulation. Press `L` to step the simulation when paused.
 
-https://user-images.githubusercontent.com/762769/130337638-6b0aba70-6a05-4fb6-b9f7-c9b05946e66a.mp4
+https://user-images.githubusercontent.com/762769/148439511-9dad8f36-182c-43e7-af91-bdd43f430965.mp4
+
