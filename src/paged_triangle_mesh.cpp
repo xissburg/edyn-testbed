@@ -1,7 +1,9 @@
 #include "edyn_example.hpp"
+#include <edyn/edyn.hpp>
 
 void ContactStarted(entt::registry &registry, entt::entity entity);
 void ContactEnded(entt::registry &registry, entt::entity entity);
+void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index);
 
 class ExamplePagedTriangleMesh : public EdynExample
 {
@@ -109,8 +111,9 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::contact_constraint>().connect<&ContactStarted>();
-        m_registry->on_destroy<edyn::contact_point>().connect<&ContactEnded>();
+        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);
+        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);
+        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);
     }
 
     void destroyScene() override {

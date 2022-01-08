@@ -14,6 +14,10 @@
 
 #include "debugdraw.hpp"
 
+#ifdef EDYN_SOUND_ENABLED
+#include <soloud.h>
+#endif
+
 struct NullCallback : public bgfx::CallbackI {
 	virtual ~NullCallback()	{}
 
@@ -97,6 +101,10 @@ public:
 
 	std::string m_footer_text;
 	std::string m_default_footer_text {"Press 'P' to pause and 'L' to step simulation while paused."};
+
+#ifdef EDYN_SOUND_ENABLED
+	SoLoud::Soloud m_soloud;
+#endif
 };
 
 
