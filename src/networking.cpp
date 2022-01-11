@@ -3,6 +3,7 @@
 #include <edyn/comp/present_orientation.hpp>
 #include <edyn/comp/present_position.hpp>
 #include <edyn/edyn.hpp>
+#include <edyn/networking/comp/non_proc_comp_list.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <unordered_set>
@@ -174,6 +175,9 @@ public:
             if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
                 m_registry->emplace<edyn::networked_tag>(m_pick_entity);
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
+                auto &proc_list = m_registry->emplace<edyn::non_proc_comp_list>(m_pick_entity);
+                proc_list.insert(edyn::get_component_index<edyn::position>(*m_registry));
+                proc_list.insert(edyn::get_component_index<edyn::linvel>(*m_registry));
             }
 
             auto snapshot = edyn::packet::general_snapshot{};
