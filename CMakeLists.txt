@@ -95,6 +95,8 @@ set(EdynTestbed_SOURCES
     src/friction.cpp
     src/billiards.cpp
     src/per_vertex_materials.cpp
+    src/cvjoint.cpp
+    src/cone_constraint.cpp
 )
 
 if (APPLE)
