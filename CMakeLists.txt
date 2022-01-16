@@ -97,6 +97,7 @@ set(EdynTestbed_SOURCES
     src/per_vertex_materials.cpp
     src/cvjoint.cpp
     src/cone_constraint.cpp
+    src/ragdoll.cpp
 )
 
 if (APPLE)

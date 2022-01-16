@@ -236,7 +236,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
     auto radius1 = std::sin(std::atan(con.span[1]));
 
     auto num_points = 36;
-    auto scale = edyn::scalar(0.5);
+    auto scale = edyn::scalar(0.3);
 
     for (auto i = 0; i < num_points + 1; ++i) {
         auto angle = (float)i / (float)num_points * edyn::pi2;

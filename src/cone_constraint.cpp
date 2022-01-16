@@ -54,8 +54,8 @@ public:
         cone_con.pivot[1] = {0, 0.5, 0};
         cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
         cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-        cone_con.span[0] = std::tan(edyn::to_radians(15));
-        cone_con.span[1] = std::tan(edyn::to_radians(85));
+        cone_con.span[0] = std::tan(edyn::to_radians(30));
+        cone_con.span[1] = std::tan(edyn::to_radians(60));
 
         auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, entityA, entityB);
         cvjoint.pivot[0] = {0, 0.65, 0};
@@ -70,7 +70,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleConeConstraint
-	, "00-cone-constraint"
+	, "20-cone-constraint"
 	, "Cone constraint."
     , "https://github.com/xissburg/edyn"
 	);
