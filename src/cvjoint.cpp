@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/constraints/hinge_constraint.hpp>
+#include <edyn/edyn.hpp>
 #include <edyn/math/math.hpp>
 #include <edyn/math/matrix3x3.hpp>
 #include <edyn/math/quaternion.hpp>
@@ -29,7 +30,7 @@ public:
         auto def = edyn::rigidbody_def();
         def.material->restitution = 0;
         def.material->friction = 0.8;
-        def.mass = 100;
+        def.mass = 3000;
         def.shape = edyn::box_shape{0.5, 0.1, 0.1};
         def.update_inertia();
         def.continuous_contacts = true;
@@ -42,17 +43,30 @@ public:
         hinge.friction_torque = 1;
         hinge.damping = 3;
 
-        def.position = {1.3, 2, 0};
-        def.orientation = edyn::quaternion_axis_angle({1, 0, 0}, edyn::to_radians(45));
+        def.mass = 100;
+        def.update_inertia();
+        def.position = {0.65, 1.35, 0};
+        def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(-90));
         auto entityB = edyn::make_rigidbody(*m_registry, def);
+
+        edyn::exclude_collision(*m_registry, entityA, entityB);
 
         auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, entityA, entityB);
         cvjoint.pivot[0] = {0.65, 0, 0};
         cvjoint.pivot[1] = {-0.65, 0, 0};
-        cvjoint.frame[1] = cvjoint.frame[1] * edyn::to_matrix3x3(def.orientation);
-        cvjoint.angle_min = edyn::to_radians(-270);
-        cvjoint.angle_max = edyn::to_radians(270);
-        cvjoint.limit_restitution = 0.25;
+        cvjoint.twist_min = edyn::to_radians(-180);
+        cvjoint.twist_max = edyn::to_radians(180);
+        cvjoint.twist_restitution = 0.25;
+        cvjoint.twist_bump_stop_angle = edyn::to_radians(30);
+        cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(0.8);
+        cvjoint.twist_friction_torque = edyn::to_Nm_per_radian(0.001);
+        cvjoint.twist_damping = edyn::to_Nm_per_radian(0.02);
+        cvjoint.twist_rest_angle = edyn::to_radians(15);
+        cvjoint.twist_stiffness = edyn::to_Nm_per_radian(0.01);
+        cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.1);
+        cvjoint.bend_damping = edyn::to_Nm_per_radian(1);
+        cvjoint.bend_stiffness = edyn::to_Nm_per_radian(10);
+        cvjoint.rest_direction = edyn::normalize(edyn::vector3{1, -1, 0});
         cvjoint.reset_angle(
             m_registry->get<edyn::orientation>(entityA),
             m_registry->get<edyn::orientation>(entityB));

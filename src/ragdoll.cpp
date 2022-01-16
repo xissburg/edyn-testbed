@@ -166,8 +166,8 @@ public:
             cvjoint.pivot[1] = {0, 0.25, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-60);
-            cvjoint.angle_max = edyn::to_radians(30);
+            cvjoint.twist_min = edyn::to_radians(-60);
+            cvjoint.twist_max = edyn::to_radians(30);
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(hip),
                 m_registry->get<edyn::orientation>(leg));
@@ -205,8 +205,8 @@ public:
             cvjoint.pivot[1] = {0, -0.09, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-10);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-10);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(hip),
                 m_registry->get<edyn::orientation>(lower_back));
@@ -227,8 +227,8 @@ public:
             cvjoint.pivot[1] = {0, -0.085, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-12);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-12);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(lower_back),
                 m_registry->get<edyn::orientation>(mid_back));
@@ -249,8 +249,8 @@ public:
             cvjoint.pivot[1] = {0, -0.12, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-10);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-10);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(mid_back),
                 m_registry->get<edyn::orientation>(chest));
@@ -271,8 +271,8 @@ public:
             cvjoint.pivot[1] = {0, -0.05, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-23);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-23);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(chest),
                 m_registry->get<edyn::orientation>(neck));
@@ -293,8 +293,8 @@ public:
             cvjoint.pivot[1] = {0, -0.13, 0.05};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-23);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-23);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(neck),
                 m_registry->get<edyn::orientation>(head));
@@ -317,8 +317,8 @@ public:
             cvjoint.pivot[1] = {edyn::scalar(-0.08) * side, 0, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-5);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-5);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(chest),
                 m_registry->get<edyn::orientation>(shoulder));
@@ -341,8 +341,8 @@ public:
             cvjoint.pivot[1] = {edyn::scalar(-0.11) * side, 0, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cvjoint.angle_min = edyn::to_radians(-45);
-            cvjoint.angle_max = -cvjoint.angle_min;
+            cvjoint.twist_min = edyn::to_radians(-45);
+            cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(pair.first),
                 m_registry->get<edyn::orientation>(pair.second));
@@ -371,7 +371,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleRagDoll
-	, "00-ragdoll"
+	, "22-ragdoll"
 	, "Rag doll."
     , "https://github.com/xissburg/edyn"
 	);
