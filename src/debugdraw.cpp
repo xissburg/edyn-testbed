@@ -225,8 +225,11 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
 
     dde.pushTransform(mtx);
 
-    bx::mtxQuat(rot, to_bx(edyn::to_quaternion(con.frame)));
-    bx::mtxTranspose(rotT, rot);
+    float frame[16] = {con.frame.row[0].x, con.frame.row[0].y, con.frame.row[0].z, 0.f,
+                       con.frame.row[1].x, con.frame.row[1].y, con.frame.row[1].z, 0.f,
+                       con.frame.row[2].x, con.frame.row[2].y, con.frame.row[2].z, 0.f,
+                       0.f, 0.f, 0.f, 1.f};
+    bx::mtxTranspose(rotT, frame);
     bx::mtxTranslate(trans, con.pivot[0].x, con.pivot[0].y, con.pivot[0].z);
     bx::mtxMul(mtx, rotT, trans);
 
@@ -236,7 +239,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
     auto radius1 = std::sin(std::atan(con.span_tan[1]));
 
     auto num_points = 36;
-    auto scale = edyn::scalar(0.3);
+    auto scale = edyn::scalar(0.2);
 
     for (auto i = 0; i < num_points + 1; ++i) {
         auto angle = (float)i / (float)num_points * edyn::pi2;

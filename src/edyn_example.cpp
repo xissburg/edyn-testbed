@@ -291,7 +291,7 @@ bool EdynExample::update()
             bx::mtxMul(mtx, rotT, trans);
 
             dde.pushTransform(mtx);
-            dde.drawAxis(0, 0, 0);
+            dde.drawAxis(0, 0, 0, 0.1);
             dde.popTransform();
 
             dde.pop();
