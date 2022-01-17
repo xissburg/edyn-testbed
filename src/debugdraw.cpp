@@ -225,15 +225,15 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
 
     dde.pushTransform(mtx);
 
-    bx::mtxQuat(rot, to_bx(edyn::to_quaternion(con.frame[0])));
+    bx::mtxQuat(rot, to_bx(edyn::to_quaternion(con.frame)));
     bx::mtxTranspose(rotT, rot);
     bx::mtxTranslate(trans, con.pivot[0].x, con.pivot[0].y, con.pivot[0].z);
     bx::mtxMul(mtx, rotT, trans);
 
     dde.pushTransform(mtx);
 
-    auto radius0 = std::sin(std::atan(con.span[0]));
-    auto radius1 = std::sin(std::atan(con.span[1]));
+    auto radius0 = std::sin(std::atan(con.span_tan[0]));
+    auto radius1 = std::sin(std::atan(con.span_tan[1]));
 
     auto num_points = 36;
     auto scale = edyn::scalar(0.3);

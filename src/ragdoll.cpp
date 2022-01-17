@@ -24,6 +24,22 @@ public:
         floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
         edyn::make_rigidbody(*m_registry, floor_def);
 
+        auto dyn_def = edyn::rigidbody_def();
+        dyn_def.mass = 100;
+        dyn_def.material->restitution = 0;
+        dyn_def.material->friction = 0.7;
+        dyn_def.shape =
+            edyn::polyhedron_shape("../../../edyn-testbed/resources/rock.obj",
+                                   edyn::vector3_zero, // position offset
+                                   edyn::quaternion_identity, // orientation
+                                   {1.1, 0.9, 1.3}); // scaling
+        dyn_def.update_inertia();
+        dyn_def.position = {0.0, 0.2, 0.0};
+        dyn_def.orientation = edyn::quaternion_identity;
+        edyn::make_rigidbody(*m_registry, dyn_def);
+
+        auto rot_z_pi = edyn::quaternion_axis_angle({0, 0, 1}, edyn::pi);
+
         // Hip
         auto def = edyn::rigidbody_def();
         def.material->restitution = 0.2;
@@ -41,22 +57,22 @@ public:
         def.mass = 8;
         def.shape = edyn::box_shape{0.08, 0.25, 0.08};
         def.update_inertia();
-        def.position = {0.11, 1.55, 0};
+        def.position = {0.11, 1.75, 0};
         auto leg_ru = edyn::make_rigidbody(*m_registry, def);
 
         // Left upper leg
-        def.position = {-0.11, 1.55, 0};
+        def.position.x *= -1;
         auto leg_lu = edyn::make_rigidbody(*m_registry, def);
 
         // Right lower leg
         def.mass = 7;
         def.shape = edyn::box_shape{0.07, 0.22, 0.07};
         def.update_inertia();
-        def.position = {0.11, 1.08, 0};
+        def.position = {0.11, 1.28, 0};
         auto leg_rl = edyn::make_rigidbody(*m_registry, def);
 
         // Left lower leg
-        def.position = {-0.11, 1.08, 0};
+        def.position.x *= -1;
         auto leg_ll = edyn::make_rigidbody(*m_registry, def);
 
         // Lower back
@@ -96,35 +112,40 @@ public:
 
         // Right shoulder
         def.mass = 1;
-        def.shape = edyn::box_shape{0.08, 0.08, 0.08};
+        def.shape = edyn::box_shape{0.08, 0.08, 0.07};
         def.update_inertia();
         def.position = {0.14, 2.53, 0};
         auto shoulder_r = edyn::make_rigidbody(*m_registry, def);
 
         // Left shoulder
-        def.position = {-0.14, 2.53, 0};
+        def.position.x *= -1;
+        def.orientation = rot_z_pi;
         auto shoulder_l = edyn::make_rigidbody(*m_registry, def);
 
         // Right upper arm
         def.mass = 2.5;
-        def.shape = edyn::box_shape{0.11, 0.06, 0.06};
+        def.shape = edyn::box_shape{0.12, 0.06, 0.06};
         def.update_inertia();
         def.position = {0.33, 2.53, 0};
+        def.orientation = edyn::quaternion_identity;
         auto arm_ru = edyn::make_rigidbody(*m_registry, def);
 
         // Left upper arm
-        def.position = {-0.33, 2.53, 0};
+        def.position.x *= -1;
+        def.orientation = rot_z_pi;
         auto arm_lu = edyn::make_rigidbody(*m_registry, def);
 
         // Right lower arm
         def.mass = 2;
-        def.shape = edyn::box_shape{0.11, 0.05, 0.05};
+        def.shape = edyn::box_shape{0.12, 0.05, 0.05};
         def.update_inertia();
-        def.position = {0.55, 2.53, 0};
+        def.position = {0.57, 2.53, 0};
+        def.orientation = edyn::quaternion_identity;
         auto arm_rl = edyn::make_rigidbody(*m_registry, def);
 
         // Left lower arm
-        def.position = {-0.55, 2.53, 0};
+        def.position.x *= -1;
+        def.orientation = rot_z_pi;
         auto arm_ll = edyn::make_rigidbody(*m_registry, def);
 
         edyn::exclude_collision(*m_registry, hip, leg_ru);
@@ -136,6 +157,8 @@ public:
         edyn::exclude_collision(*m_registry, mid_back, chest);
         edyn::exclude_collision(*m_registry, neck, chest);
         edyn::exclude_collision(*m_registry, neck, head);
+        edyn::exclude_collision(*m_registry, neck, shoulder_l);
+        edyn::exclude_collision(*m_registry, neck, shoulder_r);
         edyn::exclude_collision(*m_registry, chest, shoulder_r);
         edyn::exclude_collision(*m_registry, mid_back, shoulder_r);
         edyn::exclude_collision(*m_registry, lower_back, shoulder_r);
@@ -152,14 +175,19 @@ public:
         // Hip - Right upper leg
         for (auto leg : std::array{leg_ru, leg_lu}) {
             edyn::scalar side = leg == leg_ru ? 1 : -1;
+            auto cone_rot = edyn::quaternion_axis_angle({1, 0, 0}, edyn::to_radians(50));
 
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, hip, leg);
             cone_con.pivot[0] = {side * edyn::scalar(0.11), 0, 0};
             cone_con.pivot[1] = {0, -0.25, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(-edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(-edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(30));
-            cone_con.span[1] = std::tan(edyn::to_radians(60));
+            cone_con.frame = edyn::matrix3x3_columns(
+                edyn::rotate(cone_rot, -edyn::vector3_y),
+                edyn::rotate(cone_rot, edyn::vector3_x),
+                edyn::rotate(cone_rot, -edyn::vector3_z));
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(30));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(70));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, hip, leg);
             cvjoint.pivot[0] = {side * edyn::scalar(0.11), 0, 0};
@@ -171,6 +199,10 @@ public:
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(hip),
                 m_registry->get<edyn::orientation>(leg));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Knees
@@ -195,21 +227,26 @@ public:
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, hip, lower_back);
             cone_con.pivot[0] = {0, 0.1, 0};
             cone_con.pivot[1] = {0, 0.09, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(10));
-            cone_con.span[1] = std::tan(edyn::to_radians(20));
+            cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(10));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(20));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, hip, lower_back);
             cvjoint.pivot[0] = {0, 0.1, 0};
             cvjoint.pivot[1] = {0, -0.09, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.twist_min = edyn::to_radians(-10);
+            cvjoint.twist_min = edyn::to_radians(-12);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(hip),
                 m_registry->get<edyn::orientation>(lower_back));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Mid back-lower back
@@ -217,21 +254,26 @@ public:
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, lower_back, mid_back);
             cone_con.pivot[0] = {0, 0.09, 0};
             cone_con.pivot[1] = {0, 0.085, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(12));
-            cone_con.span[1] = std::tan(edyn::to_radians(26));
+            cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(16));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(30));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, lower_back, mid_back);
             cvjoint.pivot[0] = {0, 0.09, 0};
             cvjoint.pivot[1] = {0, -0.085, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.twist_min = edyn::to_radians(-12);
+            cvjoint.twist_min = edyn::to_radians(-18);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(lower_back),
                 m_registry->get<edyn::orientation>(mid_back));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Mid back-chest
@@ -239,10 +281,11 @@ public:
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, mid_back, chest);
             cone_con.pivot[0] = {0, 0.085, 0};
             cone_con.pivot[1] = {0, 0.12, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(10));
-            cone_con.span[1] = std::tan(edyn::to_radians(20));
+            cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(18));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(32));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, mid_back, chest);
             cvjoint.pivot[0] = {0, 0.085, 0};
@@ -254,6 +297,10 @@ public:
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(mid_back),
                 m_registry->get<edyn::orientation>(chest));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Neck-chest
@@ -261,21 +308,26 @@ public:
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, chest, neck);
             cone_con.pivot[0] = {0, 0.12, 0};
             cone_con.pivot[1] = {0, 0.05, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(12));
-            cone_con.span[1] = std::tan(edyn::to_radians(30));
+            cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(16));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(32));
+            cone_con.bump_stop_stiffness = 3000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, chest, neck);
             cvjoint.pivot[0] = {0, 0.12, 0};
             cvjoint.pivot[1] = {0, -0.05, 0};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.twist_min = edyn::to_radians(-23);
+            cvjoint.twist_min = edyn::to_radians(-30);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(chest),
                 m_registry->get<edyn::orientation>(neck));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Neck-head
@@ -283,79 +335,100 @@ public:
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, neck, head);
             cone_con.pivot[0] = {0, 0.05, 0};
             cone_con.pivot[1] = {0, 0.13, 0.05};
-            cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(12));
-            cone_con.span[1] = std::tan(edyn::to_radians(30));
+            cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(16));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(32));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, neck, head);
             cvjoint.pivot[0] = {0, 0.05, 0};
             cvjoint.pivot[1] = {0, -0.13, 0.05};
             cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
             cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-            cvjoint.twist_min = edyn::to_radians(-23);
+            cvjoint.twist_min = edyn::to_radians(-30);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(neck),
                 m_registry->get<edyn::orientation>(head));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Chest-shoulder
         for (auto shoulder : std::array{shoulder_l, shoulder_r}) {
             edyn::scalar side = shoulder == shoulder_l ? -1 : 1;
+            auto cone_rot = edyn::quaternion_axis_angle({0, 1, 0}, edyn::to_radians(15 * side));
 
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, chest, shoulder);
             cone_con.pivot[0] = {edyn::scalar(0.06) * side, 0.08, 0};
-            cone_con.pivot[1] = {edyn::scalar(0.08) * side, 0, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(30));
-            cone_con.span[1] = std::tan(edyn::to_radians(30));
+            cone_con.pivot[1] = {0.08, 0, 0};
+            cone_con.frame = edyn::matrix3x3_columns(
+                edyn::rotate(cone_rot, side * edyn::vector3_x),
+                edyn::rotate(cone_rot, side * edyn::vector3_y),
+                edyn::rotate(cone_rot, edyn::vector3_z));
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(30));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(30));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, chest, shoulder);
             cvjoint.pivot[0] = {edyn::scalar(0.06) * side, 0.08, 0};
-            cvjoint.pivot[1] = {edyn::scalar(-0.08) * side, 0, 0};
-            cvjoint.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cvjoint.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
+            cvjoint.pivot[1] = {-0.08, 0, 0};
+            cvjoint.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, side * edyn::vector3_y, edyn::vector3_z);
+            cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_x, edyn::vector3_y, edyn::vector3_z);
             cvjoint.twist_min = edyn::to_radians(-5);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(chest),
                 m_registry->get<edyn::orientation>(shoulder));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(2);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Shoulder-arm
         for (auto pair : std::array{std::make_pair(shoulder_l, arm_lu), std::make_pair(shoulder_r, arm_ru)}) {
             edyn::scalar side = pair.first == shoulder_l ? -1 : 1;
+            auto cone_rot = edyn::quaternion_axis_angle(edyn::normalize(edyn::vector3{0, side * -1, 1}), edyn::to_radians(-45 * side));
 
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, pair.first, pair.second);
-            cone_con.pivot[0] = {edyn::scalar(0.08) * side, 0, 0};
-            cone_con.pivot[1] = {edyn::scalar(0.11) * side, 0, 0};
-            cone_con.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cone_con.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cone_con.span[0] = std::tan(edyn::to_radians(30));
-            cone_con.span[1] = std::tan(edyn::to_radians(30));
+            cone_con.pivot[0] = {0.08, 0, 0};
+            cone_con.pivot[1] = {0.12, 0, 0};
+            cone_con.frame = edyn::matrix3x3_columns(
+                edyn::rotate(cone_rot, edyn::vector3_x),
+                edyn::rotate(cone_rot, edyn::vector3_y),
+                edyn::rotate(cone_rot, edyn::vector3_z));
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(45));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(45));
+            cone_con.bump_stop_stiffness = 5000;
+            cone_con.bump_stop_length = 0.05;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, pair.first, pair.second);
-            cvjoint.pivot[0] = {edyn::scalar(0.08) * side, 0, 0};
-            cvjoint.pivot[1] = {edyn::scalar(-0.11) * side, 0, 0};
-            cvjoint.frame[0] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
-            cvjoint.frame[1] = edyn::matrix3x3_columns(side * edyn::vector3_x, edyn::vector3_y, side * edyn::vector3_z);
+            cvjoint.pivot[0] = {0.08, 0, 0};
+            cvjoint.pivot[1] = {-0.12, 0, 0};
+            cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_x, edyn::vector3_y, edyn::vector3_z);
+            cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_x, edyn::vector3_y, edyn::vector3_z);
             cvjoint.twist_min = edyn::to_radians(-45);
             cvjoint.twist_max = -cvjoint.twist_min;
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(pair.first),
                 m_registry->get<edyn::orientation>(pair.second));
+            cvjoint.twist_friction_torque = cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.02);
+            cvjoint.twist_damping = cvjoint.bend_damping = edyn::to_Nm_per_radian(0.2);
+            cvjoint.twist_bump_stop_angle = edyn::to_radians(4);
+            cvjoint.twist_bump_stop_stiffness = edyn::to_Nm_per_radian(5);
         }
 
         // Elbows
         for (auto arms : std::array{std::make_pair(arm_ru, arm_rl), std::make_pair(arm_lu, arm_ll)}) {
-            edyn::scalar side = arms.first == arm_ru ? 1 : -1;
-
             auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, arms.first, arms.second);
-            hinge.pivot[0] = {edyn::scalar(0.11) * side, 0, 0};
-            hinge.pivot[1] = {edyn::scalar(-0.11) * side, 0, 0};
-            hinge.set_axes({0, side * 1, 0}, {0, side * 1, 0});
+            hinge.pivot[0] = {0.12, 0, 0};
+            hinge.pivot[1] = {-0.12, 0, 0};
+            hinge.set_axes({0, 1, 0}, {0, 1, 0});
             hinge.angle_min = 0;
             hinge.angle_max = edyn::to_radians(140);
             hinge.damping = 0.2;
@@ -366,12 +439,14 @@ public:
                 m_registry->get<edyn::orientation>(arms.first),
                 m_registry->get<edyn::orientation>(arms.second));
         }
+
+        setPaused(true);
     }
 };
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleRagDoll
-	, "22-ragdoll"
+	, "00-ragdoll"
 	, "Rag doll."
     , "https://github.com/xissburg/edyn"
 	);

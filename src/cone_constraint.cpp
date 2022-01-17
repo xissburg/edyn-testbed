@@ -52,16 +52,19 @@ public:
         auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, entityA, entityB);
         cone_con.pivot[0] = {0, 0.65, 0};
         cone_con.pivot[1] = {0, 0.5, 0};
-        cone_con.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-        cone_con.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
-        cone_con.span[0] = std::tan(edyn::to_radians(30));
-        cone_con.span[1] = std::tan(edyn::to_radians(60));
+        cone_con.frame = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+        cone_con.span_tan[0] = std::tan(edyn::to_radians(30));
+        cone_con.span_tan[1] = std::tan(edyn::to_radians(60));
+        cone_con.bump_stop_length = 0.3;
+        cone_con.bump_stop_stiffness = 5000;
 
         auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, entityA, entityB);
         cvjoint.pivot[0] = {0, 0.65, 0};
         cvjoint.pivot[1] = {0, -0.65, 0};
         cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
         cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, -edyn::vector3_x, edyn::vector3_z);
+        cvjoint.bend_damping = edyn::to_Nm_per_radian(20);
+        cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(3);
         cvjoint.reset_angle(
             m_registry->get<edyn::orientation>(entityA),
             m_registry->get<edyn::orientation>(entityB));
