@@ -1,10 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/math/constants.hpp>
-#include <edyn/math/math.hpp>
-#include <edyn/math/matrix3x3.hpp>
-#include <edyn/shapes/box_shape.hpp>
-#include <edyn/util/moment_of_inertia.hpp>
-#include <edyn/util/rigidbody.hpp>
 
 class ExampleRagDoll : public EdynExample
 {
@@ -259,30 +253,30 @@ public:
 
         // Ankles
         for (auto ankle : std::array{std::make_pair(leg_ll, foot_l), std::make_pair(leg_rl, foot_r)}) {
-            auto cone_rot = edyn::quaternion_axis_angle({1, 0, 0}, edyn::to_radians(-20));
+            auto cone_rot = edyn::quaternion_axis_angle({1, 0, 0}, edyn::to_radians(60));
 
             auto [cone_ent, cone_con] = edyn::make_constraint<edyn::cone_constraint>(*m_registry, ankle.first, ankle.second);
             cone_con.pivot[0] = {0, -0.205, 0};
-            cone_con.pivot[1] = {0, 0, 0.13};
+            cone_con.pivot[1] = {0, 0, -0.13};
             cone_con.frame = edyn::matrix3x3_columns(
                 edyn::rotate(cone_rot, -edyn::vector3_y),
                 edyn::rotate(cone_rot, -edyn::vector3_x),
-                edyn::rotate(cone_rot, -edyn::vector3_z));
-            cone_con.span_tan[0] = std::tan(edyn::to_radians(40));
-            cone_con.span_tan[1] = std::tan(edyn::to_radians(70));
-            cone_con.bump_stop_stiffness = 5000;
-            cone_con.bump_stop_length = 0.05;
+                edyn::rotate(cone_rot, edyn::vector3_z));
+            cone_con.span_tan[0] = std::tan(edyn::to_radians(16));
+            cone_con.span_tan[1] = std::tan(edyn::to_radians(50));
+            cone_con.bump_stop_stiffness = 3000;
+            cone_con.bump_stop_length = 0.09;
 
             auto [cvjoint_ent, cvjoint] = edyn::make_constraint<edyn::cvjoint_constraint>(*m_registry, ankle.first, ankle.second);
             cvjoint.pivot[0] = {0, -0.205, 0};
-            cvjoint.pivot[1] = {0, 0, 0.06};
-            cvjoint.frame[0] = edyn::matrix3x3_columns(-edyn::vector3_y, -edyn::vector3_x, -edyn::vector3_z);
-            cvjoint.frame[1] = edyn::matrix3x3_columns(-edyn::vector3_y, -edyn::vector3_x, -edyn::vector3_z);
+            cvjoint.pivot[1] = {0, 0.04, 0.06};
+            cvjoint.frame[0] = edyn::matrix3x3_columns(edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
+            cvjoint.frame[1] = edyn::matrix3x3_columns(edyn::vector3_y, edyn::vector3_x, -edyn::vector3_z);
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(ankle.first),
                 m_registry->get<edyn::orientation>(ankle.second));
-            cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.002);
-            cvjoint.bend_damping = edyn::to_Nm_per_radian(0.03);
+            cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.005);
+            cvjoint.bend_damping = edyn::to_Nm_per_radian(0.05);
         }
 
         // Hip-lower back
@@ -540,8 +534,8 @@ public:
             cvjoint.reset_angle(
                 m_registry->get<edyn::orientation>(pair.first),
                 m_registry->get<edyn::orientation>(pair.second));
-            cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.008);
-            cvjoint.bend_damping = edyn::to_Nm_per_radian(0.1);
+            cvjoint.bend_friction_torque = edyn::to_Nm_per_radian(0.004);
+            cvjoint.bend_damping = edyn::to_Nm_per_radian(0.02);
         }
 
         setPaused(true);
@@ -550,7 +544,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleRagDoll
-	, "00-ragdoll"
+	, "22-ragdoll"
 	, "Rag doll."
     , "https://github.com/xissburg/edyn"
 	);
