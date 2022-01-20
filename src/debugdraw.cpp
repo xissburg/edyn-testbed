@@ -1,6 +1,7 @@
 #include "debugdraw.hpp"
+#include "bx_util.hpp"
+#include <bx/math.h>
 #include <common/debugdraw/debugdraw.h>
-#include <edyn/shapes/triangle_mesh.hpp>
 
 void assignVertexFrictionColor(DebugDrawEncoder &dde, edyn::triangle_mesh &trimesh, size_t edge_idx, size_t v_idx) {
     auto friction = trimesh.get_vertex_friction(trimesh.get_edge_vertex_indices(edge_idx)[v_idx]);
@@ -87,7 +88,7 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
         auto pos = node.position;
         auto orn = node.orientation;
 
-        auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+        auto bxquat = to_bx(orn);
         float rot[16];
         bx::mtxQuat(rot, bxquat);
         float rotT[16];
@@ -131,33 +132,28 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     }
 }
 
+auto get_transforms(const entt::registry &reg, const edyn::constraint_base &con) {
+    auto posA = reg.any_of<edyn::present_position>(con.body[0]) ?
+        edyn::get_rigidbody_present_origin(reg, con.body[0]) :
+        edyn::get_rigidbody_origin(reg, con.body[0]);
+
+    auto ornA = reg.any_of<edyn::present_orientation>(con.body[0]) ?
+        static_cast<edyn::quaternion>(reg.get<edyn::present_orientation>(con.body[0])) :
+        static_cast<edyn::quaternion>(reg.get<edyn::orientation>(con.body[0]));
+
+    auto posB = reg.any_of<edyn::present_position>(con.body[1]) ?
+        edyn::get_rigidbody_present_origin(reg, con.body[1]) :
+        edyn::get_rigidbody_origin(reg, con.body[1]);
+
+    auto ornB = reg.any_of<edyn::present_orientation>(con.body[1]) ?
+        static_cast<edyn::quaternion>(reg.get<edyn::present_orientation>(con.body[1])) :
+        static_cast<edyn::quaternion>(reg.get<edyn::orientation>(con.body[1]));
+
+    return std::make_tuple(posA, ornA, posB, ornB);
+}
+
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_constraint &con, const entt::registry &reg) {
-    edyn::vector3 posA, posB;
-    edyn::quaternion ornA, ornB;
-
-    if (reg.any_of<edyn::present_position>(con.body[0])) {
-        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
-    } else {
-        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(con.body[0]);
-    } else {
-        ornA = reg.get<edyn::orientation>(con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_position>(con.body[1])) {
-        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
-    } else {
-        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(con.body[1]);
-    } else {
-        ornB = reg.get<edyn::orientation>(con.body[1]);
-    }
+    auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
 
     auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
     auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
@@ -172,32 +168,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::distance_const
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_constraint &con, const entt::registry &reg) {
-    edyn::vector3 posA, posB;
-    edyn::quaternion ornA, ornB;
-
-    if (reg.any_of<edyn::present_position>(con.body[0])) {
-        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
-    } else {
-        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(con.body[0]);
-    } else {
-        ornA = reg.get<edyn::orientation>(con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_position>(con.body[1])) {
-        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
-    } else {
-        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(con.body[1]);
-    } else {
-        ornB = reg.get<edyn::orientation>(con.body[1]);
-    }
+    auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
 
     auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
     auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
@@ -212,32 +183,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::soft_distance_
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constraint &con, const entt::registry &reg) {
-    edyn::vector3 posA, posB;
-    edyn::quaternion ornA, ornB;
-
-    if (reg.any_of<edyn::present_position>(con.body[0])) {
-        posA = edyn::get_rigidbody_present_origin(reg, con.body[0]);
-    } else {
-        posA = edyn::get_rigidbody_origin(reg, con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[0])) {
-        ornA = reg.get<edyn::present_orientation>(con.body[0]);
-    } else {
-        ornA = reg.get<edyn::orientation>(con.body[0]);
-    }
-
-    if (reg.any_of<edyn::present_position>(con.body[1])) {
-        posB = edyn::get_rigidbody_present_origin(reg, con.body[1]);
-    } else {
-        posB = edyn::get_rigidbody_origin(reg, con.body[1]);
-    }
-
-    if (reg.any_of<edyn::present_orientation>(con.body[1])) {
-        ornB = reg.get<edyn::present_orientation>(con.body[1]);
-    } else {
-        ornB = reg.get<edyn::orientation>(con.body[1]);
-    }
+    auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
 
     auto pA = edyn::to_world_space(con.pivot[0], posA, ornA);
     auto pB = edyn::to_world_space(con.pivot[1], posB, ornB);
@@ -258,4 +204,65 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
     dde.lineTo(pB1.x, pB1.y, pB1.z);
 
     dde.pop();
+}
+
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constraint &con, const entt::registry &reg) {
+#define EDYN_DRAW_CONE_CONSTRAINT 0
+
+#if EDYN_DRAW_CONE_CONSTRAINT
+    auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
+
+    float rot[16];
+    float rotT[16];
+    float trans[16];
+    float mtx[16];
+
+    bx::mtxQuat(rot, to_bx(ornA));
+    bx::mtxTranspose(rotT, rot);
+    bx::mtxTranslate(trans, posA.x, posA.y, posA.z);
+    bx::mtxMul(mtx, rotT, trans);
+
+    dde.pushTransform(mtx);
+
+    float frame[16] = {con.frame.row[0].x, con.frame.row[0].y, con.frame.row[0].z, 0.f,
+                       con.frame.row[1].x, con.frame.row[1].y, con.frame.row[1].z, 0.f,
+                       con.frame.row[2].x, con.frame.row[2].y, con.frame.row[2].z, 0.f,
+                       0.f, 0.f, 0.f, 1.f};
+    bx::mtxTranspose(rotT, frame);
+    bx::mtxTranslate(trans, con.pivot[0].x, con.pivot[0].y, con.pivot[0].z);
+    bx::mtxMul(mtx, rotT, trans);
+
+    dde.pushTransform(mtx);
+
+    auto radius0 = std::sin(std::atan(con.span_tan[0]));
+    auto radius1 = std::sin(std::atan(con.span_tan[1]));
+
+    auto num_points = 36;
+    auto scale = edyn::scalar(0.2);
+
+    for (auto i = 0; i < num_points + 1; ++i) {
+        auto angle = (float)i / (float)num_points * edyn::pi2;
+        auto cos = std::cos(angle);
+        auto sin = std::sin(angle);
+        auto p = edyn::vector3{};
+        p.y = cos * radius0;
+        p.z = sin * radius1;
+        p.x = std::sqrt(1 - (p.y * p.y + p.z * p.z));
+        p *= scale;
+
+        if (i == 0) {
+            dde.moveTo(to_bx(p));
+        } else {
+            dde.lineTo(to_bx(p));
+        }
+
+        if (i % (num_points / 8) == 0) {
+            dde.moveTo(0,0,0);
+            dde.lineTo(to_bx(p));
+        }
+    }
+
+    dde.popTransform();
+    dde.popTransform();
+#endif
 }

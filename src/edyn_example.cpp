@@ -1,6 +1,7 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
 #include <fenv.h>
+#include "bx_util.hpp"
 
 void cmdTogglePause(const void* _userData) {
     ((EdynExample *)_userData)->togglePausePhysics();
@@ -188,7 +189,7 @@ bool EdynExample::update()
             dde.setColor(color);
             //dde.setWireframe(true);
 
-            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            auto bxquat = to_bx(orn);
             float rot[16];
             bx::mtxQuat(rot, bxquat);
 
@@ -249,7 +250,7 @@ bool EdynExample::update()
             dde.setColor(color);
             //dde.setWireframe(true);
 
-            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            auto bxquat = to_bx(orn);
             float rot[16];
             bx::mtxQuat(rot, bxquat);
             float rotT[16];
@@ -277,7 +278,7 @@ bool EdynExample::update()
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 
-            auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+            auto bxquat = to_bx(orn);
 
             float rot[16];
             bx::mtxQuat(rot, bxquat);
@@ -290,7 +291,7 @@ bool EdynExample::update()
             bx::mtxMul(mtx, rotT, trans);
 
             dde.pushTransform(mtx);
-            dde.drawAxis(0, 0, 0);
+            dde.drawAxis(0, 0, 0, 0.1);
             dde.popTransform();
 
             dde.pop();
@@ -498,10 +499,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::compound_shape &compound,
     auto info = std::get<edyn::compound_raycast_info>(result.info_var);
     auto &node = compound.nodes[info.child_index];
 
-    auto bxquat = bx::Quaternion{float(node.orientation.x),
-                                 float(node.orientation.y),
-                                 float(node.orientation.z),
-                                 float(node.orientation.w)};
+    auto bxquat = to_bx(node.orientation);
 
     float rot[16];
     bx::mtxQuat(rot, bxquat);
@@ -576,7 +574,7 @@ void EdynExample::drawRaycast(DebugDrawEncoder &dde) {
     auto view = m_registry->view<edyn::shape_raycast_result, edyn::shape_index, edyn::position, edyn::orientation>();
     view.each([&] (entt::entity entity, edyn::shape_raycast_result &result, edyn::shape_index &shapeIndex,
                     edyn::position &pos, edyn::orientation &orn) {
-        auto bxquat = bx::Quaternion{float(orn.x), float(orn.y), float(orn.z), float(orn.w)};
+        auto bxquat = to_bx(orn);
 
         float rot[16];
         bx::mtxQuat(rot, bxquat);
