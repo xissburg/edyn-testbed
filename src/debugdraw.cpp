@@ -211,6 +211,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constraint &con, const entt::registry &reg) {
+#define EDYN_DRAW_CONE_CONSTRAINT 0
+
+#if EDYN_DRAW_CONE_CONSTRAINT
     auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
 
     float rot[16];
@@ -265,4 +268,5 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
 
     dde.popTransform();
     dde.popTransform();
+#endif
 }
