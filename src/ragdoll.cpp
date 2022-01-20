@@ -38,7 +38,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleRagDoll
-	, "00-ragdoll"
+	, "22-ragdoll"
 	, "Rag doll."
     , "https://github.com/xissburg/edyn"
 	);

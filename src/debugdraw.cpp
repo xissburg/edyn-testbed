@@ -2,10 +2,6 @@
 #include "bx_util.hpp"
 #include <bx/math.h>
 #include <common/debugdraw/debugdraw.h>
-#include <edyn/math/matrix3x3.hpp>
-#include <edyn/math/transform.hpp>
-#include <edyn/math/vector3.hpp>
-#include <edyn/shapes/triangle_mesh.hpp>
 
 void assignVertexFrictionColor(DebugDrawEncoder &dde, edyn::triangle_mesh &trimesh, size_t edge_idx, size_t v_idx) {
     auto friction = trimesh.get_vertex_friction(trimesh.get_edge_vertex_indices(edge_idx)[v_idx]);
