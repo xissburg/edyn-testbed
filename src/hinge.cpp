@@ -53,7 +53,15 @@ public:
             hinge.angle_min = -edyn::half_pi * 1.5;
             hinge.angle_max = -hinge.angle_min;
             hinge.limit_restitution = 0.25;
+            hinge.damping = 20;
             hinge.friction_torque = 10;
+            hinge.bump_stop_angle = edyn::pi * 0.25;
+            hinge.bump_stop_stiffness = 3000;
+            hinge.stiffness = 20;
+            hinge.rest_angle = 0;
+            hinge.reset_angle(
+                m_registry->get<edyn::orientation>(entityA),
+                m_registry->get<edyn::orientation>(entityB));
         }
     }
 };

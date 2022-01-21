@@ -42,6 +42,12 @@ inline void draw(DebugDrawEncoder &dde, entt::entity, const edyn::point_constrai
 
 }
 
+inline void draw(DebugDrawEncoder &dde, entt::entity, const edyn::cvjoint_constraint &, const entt::registry &) {
+
+}
+
+void draw(DebugDrawEncoder &dde, entt::entity, const edyn::cone_constraint &, const entt::registry &);
+
 void draw(DebugDrawEncoder &dde, entt::entity, const edyn::distance_constraint &, const entt::registry &);
 void draw(DebugDrawEncoder &dde, entt::entity, const edyn::soft_distance_constraint &, const entt::registry &);
 
