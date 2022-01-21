@@ -2,6 +2,7 @@
 #include <edyn/comp/position.hpp>
 #include <edyn/comp/present_orientation.hpp>
 #include <edyn/comp/present_position.hpp>
+#include <edyn/comp/tag.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/comp/non_proc_comp_list.hpp>
 #include <edyn/networking/networking.hpp>
@@ -131,6 +132,16 @@ public:
                     auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
                     edynCtx.packet_sink().connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Connected to server.";
+
+                    // Make pick entity networked.
+                    m_registry->emplace<edyn::networked_tag>(m_pick_entity);
+                    // Mark position and linvel as non-procedural so the server will
+                    // always apply the state that is sent regardless of ownership status.
+                    // I.e. this is user input.
+                    auto &proc_list = m_registry->emplace<edyn::non_proc_comp_list>(m_pick_entity);
+                    proc_list.insert(edyn::get_component_index<edyn::position>(*m_registry));
+                    proc_list.insert(edyn::get_component_index<edyn::linvel>(*m_registry));
+
                     break;
                 }
 
@@ -138,6 +149,10 @@ public:
                     auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
                     edynCtx.packet_sink().disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Disconnected.";
+
+                    // Remove components that were added on connection.
+                    m_registry->remove<edyn::networked_tag, edyn::non_proc_comp_list>(m_pick_entity);
+
                     break;
                 }
 
@@ -171,13 +186,9 @@ public:
         EdynExample::updatePhysics(deltaTime);
         edyn::update_networking_client(*m_registry);
 
-        if (m_pick_entity != entt::null) {
-            if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
-                m_registry->emplace<edyn::networked_tag>(m_pick_entity);
+        if (m_pick_constraint_entity != entt::null) {
+            if (!m_registry->any_of<edyn::networked_tag>(m_pick_constraint_entity)) {
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
-                auto &proc_list = m_registry->emplace<edyn::non_proc_comp_list>(m_pick_entity);
-                proc_list.insert(edyn::get_component_index<edyn::position>(*m_registry));
-                proc_list.insert(edyn::get_component_index<edyn::linvel>(*m_registry));
             }
 
             auto snapshot = edyn::packet::general_snapshot{};

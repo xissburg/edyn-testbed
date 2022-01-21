@@ -75,7 +75,7 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
                 clientEntityMap[peerID] = clientEntity;
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
-                client.snapshot_rate = 1;
+                client.snapshot_rate = 10;
                 client.playout_delay = 0.3;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
