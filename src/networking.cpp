@@ -1,15 +1,18 @@
 #include "edyn_example.hpp"
+#include "input_comp_sys.hpp"
 #include <edyn/comp/position.hpp>
-#include <edyn/comp/present_orientation.hpp>
-#include <edyn/comp/present_position.hpp>
-#include <edyn/comp/tag.hpp>
-#include <edyn/edyn.hpp>
+#include <edyn/constraints/soft_distance_constraint.hpp>
 #include <edyn/networking/comp/non_proc_comp_list.hpp>
 #include <edyn/networking/networking.hpp>
+#include <edyn/networking/networking_external.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <unordered_set>
 #include <enet/enet.h>
 #include <iostream>
+
+struct DestructionTime {
+    double value;
+};
 
 class ExampleNetworking : public EdynExample
 {
@@ -102,6 +105,10 @@ public:
         m_footer_text = "Connecting to server...";
 
         m_registry->on_construct<edyn::rigidbody_tag>().connect<&ExampleNetworking::onConstructRigidBody>(*this);
+
+        edyn::register_external_components<InputComponent>(*m_registry);
+        edyn::register_networked_components<InputComponent>(*m_registry, {});
+        edyn::set_external_system_pre_step(*m_registry, &UpdateInput);
 	}
 
     void destroyScene() override
@@ -187,12 +194,32 @@ public:
         edyn::update_networking_client(*m_registry);
 
         if (m_pick_constraint_entity != entt::null) {
+            auto snapshot = edyn::packet::general_snapshot{};
+            auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
+            auto posIndex = edynCtx.index_source->index_of<edyn::position>();
+
             if (!m_registry->any_of<edyn::networked_tag>(m_pick_constraint_entity)) {
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
+
+                auto &con = m_registry->get<edyn::soft_distance_constraint>(m_pick_constraint_entity);
+                m_registry->emplace<InputComponent>(m_pick_constraint_entity, false, con.stiffness, con.damping);
+
+                auto &proc_list = m_registry->emplace<edyn::non_proc_comp_list>(m_pick_constraint_entity);
+                proc_list.insert(posIndex);
+
+                m_registry->get_or_emplace<edyn::dirty>(m_pick_constraint_entity).created<InputComponent>();
+            } else {
+                auto &input = m_registry->get<InputComponent>(m_pick_constraint_entity);
+                if (!input.enabled) {
+                    input.enabled = true;
+                    m_registry->get_or_emplace<edyn::dirty>(m_pick_constraint_entity).updated<InputComponent>();
+
+                    auto index = edynCtx.index_source->index_of<InputComponent>();
+                    edyn::insert_entity_component<InputComponent>(*m_registry, m_pick_entity, snapshot.pools, index);
+                }
             }
 
-            auto snapshot = edyn::packet::general_snapshot{};
-            edyn::insert_entity_component<edyn::position>(*m_registry, m_pick_entity, snapshot.pools);
+            edyn::insert_entity_component<edyn::position>(*m_registry, m_pick_entity, snapshot.pools, posIndex);
             auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
             sendEdynPacketToServer(packet);
         }

@@ -1,6 +1,6 @@
+#include "input_comp_sys.hpp"
 #include <edyn/networking/packet/set_playout_delay.hpp>
 #include <enet/enet.h>
-#include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
@@ -169,6 +169,10 @@ int main() {
     registry.set<ENetHost *>(host);
 
     edyn::init_networking_server(registry);
+
+    edyn::register_external_components<InputComponent>(registry);
+    edyn::register_networked_components<InputComponent>(registry, {});
+    edyn::set_external_system_pre_step(registry, &UpdateInput);
 
     std::unordered_map<unsigned short, entt::entity> clientEntityMap;
 
