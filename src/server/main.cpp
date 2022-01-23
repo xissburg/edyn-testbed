@@ -1,4 +1,3 @@
-#include "input_comp_sys.hpp"
 #include <edyn/networking/packet/set_playout_delay.hpp>
 #include <enet/enet.h>
 #include <entt/entity/registry.hpp>
@@ -75,7 +74,7 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
                 clientEntityMap[peerID] = clientEntity;
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
-                client.snapshot_rate = 10;
+                client.snapshot_rate = 1;
                 client.playout_delay = 0.3;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
@@ -138,9 +137,9 @@ void create_scene(entt::registry &registry) {
 
     std::vector<edyn::rigidbody_def> defs;
 
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            for (int k = 0; k < 2; ++k) {
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 1; ++j) {
+            for (int k = 0; k < 1; ++k) {
                 def.position = {edyn::scalar(0.4 * j),
                                 edyn::scalar(0.4 * i + 0.6),
                                 edyn::scalar(0.4 * k)};
@@ -169,10 +168,6 @@ int main() {
     registry.set<ENetHost *>(host);
 
     edyn::init_networking_server(registry);
-
-    edyn::register_external_components<InputComponent>(registry);
-    edyn::register_networked_components<InputComponent>(registry, {});
-    edyn::set_external_system_pre_step(registry, &UpdateInput);
 
     std::unordered_map<unsigned short, entt::entity> clientEntityMap;
 

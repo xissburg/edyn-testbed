@@ -74,12 +74,6 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_num_position_iterations = edyn::get_solver_position_iterations(*m_registry);
     m_gui_gravity = m_gravity = -edyn::get_gravity(*m_registry).y;
 
-    // Create picking entity
-    auto pick_def = edyn::rigidbody_def{};
-    pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
-    pick_def.presentation = false;
-    m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
-
     // Input bindings
     m_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*3);
     m_bindings[0].set(entry::Key::KeyP, entry::Modifier::None, 1, cmdTogglePause,  this);
@@ -637,7 +631,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
         const edyn::vector3 cam_pos = {cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
         const edyn::vector3 cam_at = {cameraGetAt().x, cameraGetAt().y, cameraGetAt().z};
 
-        if (m_pick_constraint_entity == entt::null) {
+        if (m_pick_entity == entt::null) {
             auto p1 = cam_pos + m_rayDir * m_rayLength;
             auto result = edyn::raycast(*m_registry, cam_pos, p1);
 
@@ -648,9 +642,11 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 auto orn = m_registry->get<edyn::orientation>(result.entity);
                 auto pivot = edyn::to_object_space(pick_pos, pos, orn);
 
-                m_registry->get<edyn::position>(m_pick_entity) = pick_pos;
-                m_registry->get_or_emplace<edyn::dirty>(m_pick_entity)
-                    .updated<edyn::position>();
+                auto pick_def = edyn::rigidbody_def{};
+                pick_def.position = pick_pos;
+                pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
+                pick_def.presentation = false;
+                m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
 
                 auto &mass = m_registry->get<edyn::mass>(result.entity);
                 auto [con_ent, constraint] = edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, result.entity, m_pick_entity);
@@ -676,9 +672,11 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                     .updated<edyn::position>();
             }
         }
-    } else if (m_pick_constraint_entity != entt::null) {
+    } else if (m_pick_entity != entt::null) {
         m_registry->destroy(m_pick_constraint_entity);
+        m_registry->destroy(m_pick_entity);
         m_pick_constraint_entity = entt::null;
+        m_pick_entity = entt::null;
     }
 }
 
