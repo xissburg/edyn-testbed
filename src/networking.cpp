@@ -130,7 +130,6 @@ public:
                     auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
                     edynCtx.packet_sink().connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Connected to server.";
-
                     break;
                 }
 
@@ -138,10 +137,6 @@ public:
                     auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
                     edynCtx.packet_sink().disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Disconnected.";
-
-                    // Remove components that were added on connection.
-                    m_registry->remove<edyn::networked_tag, edyn::non_proc_comp_list>(m_pick_entity);
-
                     break;
                 }
 

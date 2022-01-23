@@ -74,7 +74,7 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
                 clientEntityMap[peerID] = clientEntity;
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
-                client.snapshot_rate = 1;
+                client.snapshot_rate = 12;
                 client.playout_delay = 0.3;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
@@ -137,8 +137,8 @@ void create_scene(entt::registry &registry) {
 
     std::vector<edyn::rigidbody_def> defs;
 
-    for (int i = 0; i < 10; ++i) {
-        for (int j = 0; j < 1; ++j) {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 2; ++j) {
             for (int k = 0; k < 1; ++k) {
                 def.position = {edyn::scalar(0.4 * j),
                                 edyn::scalar(0.4 * i + 0.6),
