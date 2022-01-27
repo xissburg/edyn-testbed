@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include "drawing_properties.hpp"
 #include <edyn/constraints/cone_constraint.hpp>
 #include <edyn/constraints/hinge_constraint.hpp>
 #include <edyn/math/math.hpp>
@@ -68,6 +69,8 @@ public:
         cvjoint.reset_angle(
             m_registry->get<edyn::orientation>(entityA),
             m_registry->get<edyn::orientation>(entityB));
+
+        m_registry->emplace<DrawingProperties>(cone_ent);
     }
 };
 
