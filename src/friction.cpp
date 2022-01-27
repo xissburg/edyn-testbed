@@ -4,16 +4,16 @@
 class ExampleFriction : public EdynExample
 {
 public:
-	ExampleFriction(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleFriction(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleFriction() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
@@ -47,12 +47,12 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleFriction
-	,"16-friction"
-	, "Friction."
+    ExampleFriction
+    ,"16-friction"
+    , "Friction."
     , "https://github.com/xissburg/edyn-testbed"
     );

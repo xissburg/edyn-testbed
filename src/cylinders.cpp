@@ -3,16 +3,16 @@
 class ExampleCylinders : public EdynExample
 {
 public:
-	ExampleCylinders(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleCylinders(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleCylinders() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto extent_x = 25;
         auto extent_z = 25;
@@ -70,12 +70,12 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleCylinders
-	, "03-cylinders"
-	, "Cylinders."
+    ExampleCylinders
+    , "03-cylinders"
+    , "Cylinders."
     , "https://github.com/xissburg/edyn-testbed"
-	);
+    );

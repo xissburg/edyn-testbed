@@ -10,11 +10,11 @@
 class ExampleCvjoint : public EdynExample
 {
 public:
-	ExampleCvjoint(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleCvjoint(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     void createScene() override
     {
@@ -74,8 +74,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleCvjoint
-	, "19-cvjoint"
-	, "CV joint constraint."
+    ExampleCvjoint
+    , "19-cvjoint"
+    , "CV joint constraint."
     , "https://github.com/xissburg/edyn"
-	);
+    );

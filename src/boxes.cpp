@@ -4,16 +4,16 @@
 class ExampleBoxes : public EdynExample
 {
 public:
-	ExampleBoxes(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleBoxes(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleBoxes() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
@@ -45,12 +45,12 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleBoxes
-	, "01-boxes"
-	, "Box stacking."
+    ExampleBoxes
+    , "01-boxes"
+    , "Box stacking."
     , "https://github.com/xissburg/edyn-testbed"
     );

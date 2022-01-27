@@ -3,16 +3,16 @@
 class ExamplePerVertexMaterials : public EdynExample
 {
 public:
-	ExamplePerVertexMaterials(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExamplePerVertexMaterials(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExamplePerVertexMaterials() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto vertices = std::vector<edyn::vector3>{};
         auto colors = std::vector<edyn::vector3>{};
@@ -73,12 +73,12 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExamplePerVertexMaterials
-	, "18-per-vertex-materials"
-	, "Per-vertex materials."
+    ExamplePerVertexMaterials
+    , "18-per-vertex-materials"
+    , "Per-vertex materials."
     , "https://github.com/xissburg/edyn-testbed"
     );

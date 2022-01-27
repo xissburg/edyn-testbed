@@ -7,16 +7,16 @@
 class ExampleBilliards : public EdynExample
 {
 public:
-	ExampleBilliards(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleBilliards(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleBilliards() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Material properties obtained from
         // https://billiards.colostate.edu/faq/physics/physical-properties/
         auto ball_diameter = edyn::scalar(0.05715);
@@ -137,7 +137,7 @@ public:
         // Register contact event handlers.
         edyn::on_contact_started(*m_registry).connect<&ExampleBilliards::onContactStarted>(*this);
 #endif
-	}
+    }
 
 #ifdef EDYN_SOUND_ENABLED
     void onContactStarted(entt::entity manifold_entity) {
@@ -182,8 +182,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleBilliards
-	, "17-billiards"
-	, "Billiards with sound effects."
+    ExampleBilliards
+    , "17-billiards"
+    , "Billiards with sound effects."
     , "https://github.com/xissburg/edyn-testbed"
     );

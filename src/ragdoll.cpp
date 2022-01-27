@@ -4,11 +4,11 @@
 class ExampleRagDoll : public EdynExample
 {
 public:
-	ExampleRagDoll(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleRagDoll(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     void createScene() override
     {
@@ -37,8 +37,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleRagDoll
-	, "22-ragdoll"
-	, "Rag doll."
+    ExampleRagDoll
+    , "22-ragdoll"
+    , "Rag doll."
     , "https://github.com/xissburg/edyn"
-	);
+    );

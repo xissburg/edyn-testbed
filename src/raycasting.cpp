@@ -4,16 +4,16 @@
 class ExampleRaycasting : public EdynExample
 {
 public:
-	ExampleRaycasting(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleRaycasting(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleRaycasting() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto extent_x = 12;
         auto extent_z = 12;
@@ -93,7 +93,7 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 
     void updatePhysics(float deltaTime) override {
         EdynExample::updatePhysics(deltaTime);
@@ -112,8 +112,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleRaycasting
-	,"15-raycasting"
-	, "Ray-casting."
+    ExampleRaycasting
+    ,"15-raycasting"
+    , "Ray-casting."
     , "https://github.com/xissburg/edyn-testbed"
     );

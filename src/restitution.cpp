@@ -3,16 +3,16 @@
 class ExampleRestitution : public EdynExample
 {
 public:
-	ExampleRestitution(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleRestitution(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleRestitution() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create entities.
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -49,12 +49,12 @@ public:
         }
 
         edyn::batch_rigidbodies(*m_registry, defs);
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleRestitution
-	, "08-restitution"
-	, "Restitution."
+    ExampleRestitution
+    , "08-restitution"
+    , "Restitution."
     , "https://github.com/xissburg/edyn-testbed"
-	);
+    );
