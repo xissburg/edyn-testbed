@@ -25,11 +25,11 @@ void ContactPointDestroyed(entt::registry &registry, entt::entity entity,
 class ExampleTriangleMesh : public EdynExample
 {
 public:
-	ExampleTriangleMesh(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleTriangleMesh(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleTriangleMesh() {}
 
@@ -111,8 +111,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleTriangleMesh
-	, "10-triangle-mesh"
-	, "Triangle Mesh."
+    ExampleTriangleMesh
+    , "10-triangle-mesh"
+    , "Triangle Mesh."
     , "https://github.com/xissburg/edyn-testbed"
-	);
+    );

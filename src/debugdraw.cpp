@@ -1,4 +1,5 @@
 #include "debugdraw.hpp"
+#include "drawing_properties.hpp"
 #include "bx_util.hpp"
 #include <bx/math.h>
 #include <common/debugdraw/debugdraw.h>
@@ -205,9 +206,12 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::hinge_constrai
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constraint &con, const entt::registry &reg) {
-#define EDYN_DRAW_CONE_CONSTRAINT 0
+    auto *properties = reg.try_get<DrawingProperties>(entity);
 
-#if EDYN_DRAW_CONE_CONSTRAINT
+    if (!properties) {
+        return;
+    }
+
     auto [posA, ornA, posB, ornB] = get_transforms(reg, con);
 
     float rot[16];
@@ -236,7 +240,6 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
     auto radius1 = std::sin(std::atan(con.span_tan[1]));
 
     auto num_points = 36;
-    auto scale = edyn::scalar(0.2);
 
     for (auto i = 0; i < num_points + 1; ++i) {
         auto angle = (float)i / (float)num_points * edyn::pi2;
@@ -246,7 +249,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
         p.y = cos * radius0;
         p.z = sin * radius1;
         p.x = std::sqrt(1 - (p.y * p.y + p.z * p.z));
-        p *= scale;
+        p *= properties->scale;
 
         if (i == 0) {
             dde.moveTo(to_bx(p));
@@ -262,5 +265,4 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
 
     dde.popTransform();
     dde.popTransform();
-#endif
 }

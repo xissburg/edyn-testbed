@@ -103,7 +103,7 @@ int EdynExample::shutdown()
     cameraDestroy();
 
     inputRemoveBindings("base");
-	BX_FREE(entry::getAllocator(), m_bindings);
+    BX_FREE(entry::getAllocator(), m_bindings);
 
     // Shutdown bgfx.
     bgfx::shutdown();

@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include "drawing_properties.hpp"
 #include <edyn/constraints/cone_constraint.hpp>
 #include <edyn/constraints/hinge_constraint.hpp>
 #include <edyn/math/math.hpp>
@@ -12,11 +13,11 @@
 class ExampleConeConstraint : public EdynExample
 {
 public:
-	ExampleConeConstraint(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleConeConstraint(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     void createScene() override
     {
@@ -68,12 +69,14 @@ public:
         cvjoint.reset_angle(
             m_registry->get<edyn::orientation>(entityA),
             m_registry->get<edyn::orientation>(entityB));
+
+        m_registry->emplace<DrawingProperties>(cone_ent);
     }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleConeConstraint
-	, "20-cone-constraint"
-	, "Cone constraint."
+    ExampleConeConstraint
+    , "20-cone-constraint"
+    , "Cone constraint."
     , "https://github.com/xissburg/edyn"
-	);
+    );

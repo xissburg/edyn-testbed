@@ -8,11 +8,11 @@ void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsign
 class ExamplePagedTriangleMesh : public EdynExample
 {
 public:
-	ExamplePagedTriangleMesh(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExamplePagedTriangleMesh(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExamplePagedTriangleMesh() {}
 
@@ -126,8 +126,8 @@ private:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExamplePagedTriangleMesh
-	, "11-paged-triangle-mesh"
-	, "Paged Triangle Mesh."
+    ExamplePagedTriangleMesh
+    , "11-paged-triangle-mesh"
+    , "Paged Triangle Mesh."
     , "https://github.com/xissburg/edyn-testbed"
-	);
+    );

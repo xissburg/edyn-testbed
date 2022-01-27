@@ -1,0 +1,8 @@
+#ifndef EDYN_TESTBED_DRAWING_PROPERTIES_HPP
+#define EDYN_TESTBED_DRAWING_PROPERTIES_HPP
+
+struct DrawingProperties {
+    float scale {1};
+};
+
+#endif // EDYN_TESTBED_DRAWING_PROPERTIES_HPP

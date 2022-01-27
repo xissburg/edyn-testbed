@@ -3,11 +3,11 @@
 class ExampleHinge : public EdynExample
 {
 public:
-	ExampleHinge(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleHinge(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     void createScene() override
     {
@@ -67,8 +67,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleHinge
-	, "05-hinge"
-	, "Hinge constraint."
+    ExampleHinge
+    , "05-hinge"
+    , "Hinge constraint."
     , "https://github.com/xissburg/edyn"
-	);
+    );

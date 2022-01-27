@@ -90,16 +90,16 @@ void UpdateClimbers(entt::registry &registry) {
 class ExampleExternalSystems : public EdynExample
 {
 public:
-	ExampleExternalSystems(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleExternalSystems(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleExternalSystems() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         edyn::register_external_components<ClimbBehavior>(*m_registry);
         edyn::set_external_system_pre_step(*m_registry, &UpdateClimbers);
 
@@ -156,12 +156,12 @@ public:
             m_registry->emplace<ClimbBehavior>(climber_entity, dir);
             m_registry->get_or_emplace<edyn::dirty>(climber_entity).created<ClimbBehavior>();
         }
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleExternalSystems
-	, "13-external-systems"
-	, "External Systems."
+    ExampleExternalSystems
+    , "13-external-systems"
+    , "External Systems."
     , "https://github.com/xissburg/edyn-testbed"
     );

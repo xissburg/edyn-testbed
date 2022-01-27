@@ -7,16 +7,16 @@
 class ExamplePlatforms : public EdynExample
 {
 public:
-	ExamplePlatforms(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExamplePlatforms(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExamplePlatforms() {}
 
-	void createScene() override
-	{
+    void createScene() override
+    {
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
@@ -62,7 +62,7 @@ public:
         plat_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(89.1));
         plat_def.material->friction = 0.5;
         m_disc_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
-	}
+    }
 
     void updatePhysics(float deltaTime) override {
         if (!m_pause) {
@@ -93,8 +93,8 @@ public:
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExamplePlatforms
-	,"12-platforms"
-	, "Kinematic Platforms."
+    ExamplePlatforms
+    ,"12-platforms"
+    , "Kinematic Platforms."
     , "https://github.com/xissburg/edyn-testbed"
     );

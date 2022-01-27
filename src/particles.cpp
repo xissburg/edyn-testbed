@@ -3,13 +3,13 @@
 class ExampleParticles : public EdynExample
 {
 public:
-	ExampleParticles(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleParticles(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
-	void createScene() override
+    void createScene() override
     {
         // Create a few particle entities.
         std::vector<entt::entity> entities;
@@ -43,12 +43,12 @@ public:
                 edyn::make_constraint<edyn::gravity_constraint>(*m_registry, entities[i], entities[j]);
             }
         }
-	}
+    }
 };
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleParticles
-	, "06-particles"
-	, "Particles orbiting one another with gravity."
+    ExampleParticles
+    , "06-particles"
+    , "Particles orbiting one another with gravity."
     , "https://github.com/xissburg/edyn-testbed"
-	);
+    );
