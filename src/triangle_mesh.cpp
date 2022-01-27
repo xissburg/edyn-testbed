@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/collision/contact_manifold.hpp>
 #include <edyn/edyn.hpp>
 #include <iostream>
 
@@ -7,17 +8,17 @@ void ContactStarted(entt::registry &registry, entt::entity entity) {
     EDYN_ASSERT(manifold.num_points > 0);
     float normal_impulse = 0;
 
-    for (unsigned i = 0; i < manifold.num_points; ++i) {
-        auto &cp = manifold.point[manifold.ids[i]];
+    manifold.each_point([&] (edyn::contact_point &cp) {
         normal_impulse += cp.normal_impulse + cp.normal_restitution_impulse;
-    }
+    });
 
     std::cout << "Started | impulse: " << normal_impulse << std::endl;
 }
 
-void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index) {
+void ContactPointDestroyed(entt::registry &registry, entt::entity entity,
+                           edyn::contact_manifold::contact_id_type cp_id) {
     auto &manifold = registry.get<edyn::contact_manifold>(entity);
-    auto lifetime = manifold.point[index].lifetime;
+    auto lifetime = manifold.point[cp_id].lifetime;
     std::cout << "Ended | lifetime: " << lifetime << std::endl;
 }
 

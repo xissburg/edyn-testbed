@@ -1,3 +1,5 @@
+#include <edyn/comp/tag.hpp>
+#include <edyn/networking/comp/remote_client.hpp>
 #include <edyn/networking/packet/set_playout_delay.hpp>
 #include <enet/enet.h>
 #include <entt/entity/registry.hpp>
@@ -87,6 +89,14 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
 
             case ENET_EVENT_TYPE_DISCONNECT: {
                 auto clientEntity = clientEntityMap.at(peerID);
+                auto &remoteClient = registry.get<edyn::remote_client>(clientEntity);
+
+                for (auto entity : remoteClient.owned_entities) {
+                    if (registry.valid(entity)) {
+                        registry.destroy(entity);
+                    }
+                }
+
                 registry.destroy(clientEntity);
                 clientEntityMap.erase(peerID);
                 std::cout << "Disconnected " << std::hex << entt::to_integral(clientEntity) << std::endl;
@@ -122,6 +132,7 @@ void create_scene(entt::registry &registry) {
     floor_def.material->restitution = 0;
     floor_def.material->friction = 0.5;
     floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
+    floor_def.networked = true;
     edyn::make_rigidbody(registry, floor_def);
 
     // Create boxes.
@@ -132,7 +143,6 @@ void create_scene(entt::registry &registry) {
     def.shape = edyn::box_shape{0.2, 0.2, 0.2};
     def.update_inertia();
     def.continuous_contacts = true;
-    def.sleeping_disabled = true;
     def.networked = true;
 
     std::vector<edyn::rigidbody_def> defs;

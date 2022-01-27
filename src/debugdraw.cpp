@@ -116,9 +116,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
     auto ornB = reg.get<edyn::orientation>(con.body[1]);
 
     auto &manifold = reg.get<edyn::contact_manifold>(entity);
-
-    for (unsigned i = 0; i < manifold.num_points; ++i) {
-        auto &cp = manifold.point[manifold.ids[i]];
+    manifold.each_point([&] (auto &cp) {
         auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
         auto tip = pB + cp.normal * 0.1;
 
@@ -129,7 +127,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constr
         dde.lineTo(tip.x, tip.y, tip.z);
 
         dde.pop();
-    }
+    });
 }
 
 auto get_transforms(const entt::registry &reg, const edyn::constraint_base &con) {

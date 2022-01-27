@@ -2,12 +2,15 @@
 #include <edyn/comp/position.hpp>
 #include <edyn/constraints/soft_distance_constraint.hpp>
 #include <edyn/networking/comp/non_proc_comp_list.hpp>
+#include <edyn/networking/context/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <unordered_set>
 #include <enet/enet.h>
 #include <iostream>
+
+void cmdToggleExtrapolation(const void* _userData);
 
 class ExampleNetworking : public EdynExample
 {
@@ -85,6 +88,11 @@ public:
         }
     }
 
+    void toggleExtrapolation() {
+        auto &ctx = m_registry->ctx<edyn::client_networking_context>();
+        ctx.extrapolation_enabled = !ctx.extrapolation_enabled;
+    }
+
 	void createScene() override
     {
         if (!initEnet()) {
@@ -100,6 +108,13 @@ public:
         m_footer_text = "Connecting to server...";
 
         m_registry->on_construct<edyn::rigidbody_tag>().connect<&ExampleNetworking::onConstructRigidBody>(*this);
+
+        // Input bindings
+        m_network_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*2);
+        m_network_bindings[0].set(entry::Key::KeyM, entry::Modifier::None, 1, cmdToggleExtrapolation,  this);
+        m_network_bindings[1].end();
+
+        inputAddBindings("networking", m_network_bindings);
 	}
 
     void destroyScene() override
@@ -118,6 +133,9 @@ public:
         m_footer_text = m_default_footer_text;
 
         m_registry->on_construct<edyn::rigidbody_tag>().disconnect<&ExampleNetworking::onConstructRigidBody>(*this);
+
+        inputRemoveBindings("networking");
+        BX_FREE(entry::getAllocator(), m_network_bindings);
     }
 
     void updateNetworking()
@@ -197,7 +215,12 @@ public:
 private:
     ENetHost *m_host {nullptr};
     ENetPeer *m_peer {nullptr};
+    InputBinding* m_network_bindings;
 };
+
+void cmdToggleExtrapolation(const void* _userData) {
+    ((ExampleNetworking *)_userData)->toggleExtrapolation();
+}
 
 ENTRY_IMPLEMENT_MAIN(
 	ExampleNetworking
