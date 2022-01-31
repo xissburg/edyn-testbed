@@ -1,7 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/position.hpp>
 #include <edyn/constraints/soft_distance_constraint.hpp>
-#include <edyn/networking/comp/non_proc_comp_list.hpp>
 #include <edyn/networking/context/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
@@ -15,11 +14,11 @@ void cmdToggleExtrapolation(const void* _userData);
 class ExampleNetworking : public EdynExample
 {
 public:
-	ExampleNetworking(const char* _name, const char* _description, const char* _url)
-		: EdynExample(_name, _description, _url)
-	{
+    ExampleNetworking(const char* _name, const char* _description, const char* _url)
+        : EdynExample(_name, _description, _url)
+    {
 
-	}
+    }
 
     virtual ~ExampleNetworking() {}
 
@@ -93,7 +92,7 @@ public:
         ctx.extrapolation_enabled = !ctx.extrapolation_enabled;
     }
 
-	void createScene() override
+    void createScene() override
     {
         if (!initEnet()) {
             return;
@@ -115,7 +114,7 @@ public:
         m_network_bindings[1].end();
 
         inputAddBindings("networking", m_network_bindings);
-	}
+    }
 
     void destroyScene() override
     {
@@ -188,25 +187,11 @@ public:
         EdynExample::updatePhysics(deltaTime);
 
         if (m_pick_entity != entt::null) {
-            auto snapshot = edyn::packet::general_snapshot{};
-            auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
-            auto posIndex = edynCtx.index_source->index_of<edyn::position>();
-
             if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
                 // Make pick entity networked.
                 m_registry->emplace<edyn::networked_tag>(m_pick_entity);
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
-                // Mark position and linvel as non-procedural so the server will
-                // always apply the state that is sent regardless of ownership status.
-                // I.e. this is user input.
-                auto &proc_list = m_registry->emplace<edyn::non_proc_comp_list>(m_pick_entity);
-                proc_list.insert(edynCtx.index_source->index_of<edyn::position>());
-                proc_list.insert(edynCtx.index_source->index_of<edyn::linvel>());
             }
-
-            edyn::insert_entity_component<edyn::position>(*m_registry, m_pick_entity, snapshot.pools, posIndex);
-            auto packet = edyn::packet::edyn_packet{std::move(snapshot)};
-            sendEdynPacketToServer(packet);
         }
 
         edyn::update_networking_client(*m_registry);
@@ -223,8 +208,8 @@ void cmdToggleExtrapolation(const void* _userData) {
 }
 
 ENTRY_IMPLEMENT_MAIN(
-	ExampleNetworking
-	, "00-networking"
-	, "Networking."
+    ExampleNetworking
+    , "00-networking"
+    , "Networking."
     , "https://github.com/xissburg/edyn-testbed"
     );
