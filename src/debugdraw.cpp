@@ -113,10 +113,10 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const entt::registry &reg) {
     //auto &posA = reg.get<edyn::position>(con.body[0]);
     //auto &ornA = reg.get<edyn::orientation>(con.body[0]);
-    auto posB = edyn::get_rigidbody_origin(reg, con.body[1]);
-    auto ornB = reg.get<edyn::orientation>(con.body[1]);
-
     auto &manifold = reg.get<edyn::contact_manifold>(entity);
+    auto posB = edyn::get_rigidbody_origin(reg, manifold.body[1]);
+    auto ornB = reg.get<edyn::orientation>(manifold.body[1]);
+
     manifold.each_point([&] (auto &cp) {
         auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
         auto tip = pB + cp.normal * 0.1;

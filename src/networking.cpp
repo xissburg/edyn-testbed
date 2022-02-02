@@ -1,6 +1,7 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/position.hpp>
 #include <edyn/constraints/soft_distance_constraint.hpp>
+#include <edyn/edyn.hpp>
 #include <edyn/networking/context/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
@@ -8,6 +9,7 @@
 #include <unordered_set>
 #include <enet/enet.h>
 #include <iostream>
+#include "pick_input.hpp"
 
 void cmdToggleExtrapolation(const void* _userData);
 
@@ -100,6 +102,10 @@ public:
 
         edyn::init_networking_client(*m_registry);
 
+        edyn::register_external_components<PickInput>(*m_registry);
+        edyn::register_networked_components<PickInput>(*m_registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
+        edyn::set_external_system_pre_step(*m_registry, &UpdatePickInput);
+
         if (!connectToServer("localhost", 1337)) {
             return;
         }
@@ -128,6 +134,10 @@ public:
         enet_deinitialize();
 
         edyn::deinit_networking_client(*m_registry);
+
+        edyn::set_external_system_pre_step(*m_registry, nullptr);
+        edyn::remove_external_components(*m_registry);
+        edyn::unregister_networked_components(*m_registry);
 
         m_footer_text = m_default_footer_text;
 
@@ -191,7 +201,12 @@ public:
                 // Make pick entity networked.
                 m_registry->emplace<edyn::networked_tag>(m_pick_entity);
                 m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
+                m_registry->emplace<PickInput>(m_pick_entity);
+                m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).created<PickInput>();
             }
+
+            m_registry->get<PickInput>(m_pick_entity).position = m_registry->get<edyn::position>(m_pick_entity);
+            m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
         }
 
         edyn::update_networking_client(*m_registry);

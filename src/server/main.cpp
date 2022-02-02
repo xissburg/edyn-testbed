@@ -1,11 +1,13 @@
 #include <edyn/comp/tag.hpp>
 #include <edyn/networking/comp/remote_client.hpp>
+#include <edyn/networking/networking_external.hpp>
 #include <edyn/networking/packet/set_playout_delay.hpp>
 #include <enet/enet.h>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
 #include <iostream>
+#include "pick_input.hpp"
 
 struct PeerID {
     unsigned short value;
@@ -71,12 +73,14 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
 
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
+                enet_peer_timeout(event.peer, 0, 10000, 30000);
+
                 auto clientEntity = edyn::server_make_client(registry);
                 registry.emplace<PeerID>(clientEntity, peerID);
                 clientEntityMap[peerID] = clientEntity;
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
-                client.snapshot_rate = 12;
+                client.snapshot_rate = 10;
                 client.playout_delay = 0.3;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
@@ -178,6 +182,10 @@ int main() {
     registry.set<ENetHost *>(host);
 
     edyn::init_networking_server(registry);
+
+    edyn::register_external_components<PickInput>(registry);
+    edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
+    edyn::set_external_system_pre_step(registry, &UpdatePickInput);
 
     std::unordered_map<unsigned short, entt::entity> clientEntityMap;
 
