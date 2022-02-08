@@ -11,6 +11,8 @@
 #include <iostream>
 #include "pick_input.hpp"
 
+void RegisterNetworkedComponents(entt::registry &);
+void UnregisterNetworkedComponents(entt::registry &);
 void cmdToggleExtrapolation(const void* _userData);
 
 class ExampleNetworking : public EdynExample
@@ -102,8 +104,7 @@ public:
 
         edyn::init_networking_client(*m_registry);
 
-        edyn::register_external_components<PickInput>(*m_registry);
-        edyn::register_networked_components<PickInput>(*m_registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
+        RegisterNetworkedComponents(*m_registry);
         edyn::set_external_system_pre_step(*m_registry, &UpdatePickInput);
 
         if (!connectToServer("localhost", 1337)) {
@@ -136,8 +137,7 @@ public:
         edyn::deinit_networking_client(*m_registry);
 
         edyn::set_external_system_pre_step(*m_registry, nullptr);
-        edyn::remove_external_components(*m_registry);
-        edyn::unregister_networked_components(*m_registry);
+        UnregisterNetworkedComponents(*m_registry);
 
         m_footer_text = m_default_footer_text;
 
@@ -155,6 +155,7 @@ public:
             switch (event.type) {
                 case ENET_EVENT_TYPE_CONNECT: {
                     auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
+                    edynCtx.max_concurrent_extrapolations = 1;
                     edynCtx.packet_sink().connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Connected to server.";
                     break;
@@ -197,6 +198,7 @@ public:
         EdynExample::updatePhysics(deltaTime);
 
         if (m_pick_entity != entt::null) {
+            m_registry->remove<edyn::dirty>(m_pick_entity);
             if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
                 // Make pick entity networked.
                 m_registry->emplace<edyn::networked_tag>(m_pick_entity);

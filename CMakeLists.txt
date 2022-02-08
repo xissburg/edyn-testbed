@@ -106,7 +106,8 @@ if(EDYN_BUILD_NETWORKING_EXAMPLE)
 
     set(EdynTestbed_SOURCES
         ${EdynTestbed_SOURCES}
-        src/networking.cpp)
+        src/networking.cpp
+        src/register_networked_components.cpp)
 endif()
 
 if (APPLE)

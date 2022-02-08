@@ -1,5 +1,8 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/math/quaternion.hpp>
+#include <edyn/math/vector3.hpp>
+#include <edyn/networking/comp/discontinuity.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
@@ -174,8 +177,9 @@ bool EdynExample::update()
 
     // Draw dynamic entities.
     {
-        auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
-        view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
+        auto disc_view = m_registry->view<edyn::discontinuity>();
+        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation>();
+        view.each([&] (auto ent, auto &sh_idx, edyn::position &pos, edyn::orientation &orn) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -191,15 +195,28 @@ bool EdynExample::update()
             dde.setColor(color);
             //dde.setWireframe(true);
 
-            auto bxquat = to_bx(orn);
+            float trans[16];
+            edyn::vector3 origin;
+            auto discontinuity = edyn::discontinuity{};
+
+            if (disc_view.contains(ent)) {
+                discontinuity = disc_view.get<edyn::discontinuity>(ent);
+            }
+
+            if (auto *com = m_registry->try_get<edyn::center_of_mass>(ent)) {
+                origin = to_world_space(-*com,
+                                        pos + discontinuity.position_offset,
+                                        discontinuity.orientation_offset * orn);
+            } else {
+                origin = pos + discontinuity.position_offset;
+            }
+
+            auto bxquat = to_bx(discontinuity.orientation_offset * orn);
             float rot[16];
             bx::mtxQuat(rot, bxquat);
 
             float rotT[16];
             bx::mtxTranspose(rotT, rot);
-
-            float trans[16];
-            auto origin = edyn::get_rigidbody_origin(*m_registry, ent);
             bx::mtxTranslate(trans, origin.x, origin.y, origin.z);
 
             float mtx[16];
@@ -276,7 +293,7 @@ bool EdynExample::update()
 
     // Draw amorphous entities.
     {
-        auto view = m_registry->view<edyn::present_position, edyn::present_orientation>(entt::exclude_t<edyn::shape_index>{});
+        auto view = m_registry->view<edyn::position, edyn::orientation>(entt::exclude_t<edyn::shape_index>{});
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 
@@ -673,10 +690,10 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             }
         }
     } else if (m_pick_entity != entt::null) {
-        m_registry->destroy(m_pick_constraint_entity);
+        /* m_registry->destroy(m_pick_constraint_entity);
         m_registry->destroy(m_pick_entity);
         m_pick_constraint_entity = entt::null;
-        m_pick_entity = entt::null;
+        m_pick_entity = entt::null; */
     }
 }
 
