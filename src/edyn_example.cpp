@@ -2,7 +2,6 @@
 #include <dear-imgui/imgui.h>
 #include <edyn/math/quaternion.hpp>
 #include <edyn/math/vector3.hpp>
-#include <edyn/networking/comp/discontinuity.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
@@ -177,9 +176,9 @@ bool EdynExample::update()
 
     // Draw dynamic entities.
     {
-        auto disc_view = m_registry->view<edyn::discontinuity>();
-        auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation>();
-        view.each([&] (auto ent, auto &sh_idx, edyn::position &pos, edyn::orientation &orn) {
+        auto com_view = m_registry->view<edyn::center_of_mass>();
+        auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
+        view.each([&] (auto ent, auto &sh_idx, edyn::present_position &pos, edyn::present_orientation &orn) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -197,21 +196,15 @@ bool EdynExample::update()
 
             float trans[16];
             edyn::vector3 origin;
-            auto discontinuity = edyn::discontinuity{};
 
-            if (disc_view.contains(ent)) {
-                discontinuity = disc_view.get<edyn::discontinuity>(ent);
-            }
-
-            if (auto *com = m_registry->try_get<edyn::center_of_mass>(ent)) {
-                origin = to_world_space(-*com,
-                                        pos + discontinuity.position_offset,
-                                        discontinuity.orientation_offset * orn);
+            if (com_view.contains(ent)) {
+                auto [com] = com_view.get(ent);
+                origin = edyn::to_world_space(-com, pos, orn);
             } else {
-                origin = pos + discontinuity.position_offset;
+                origin = pos;
             }
 
-            auto bxquat = to_bx(discontinuity.orientation_offset * orn);
+            auto bxquat = to_bx(orn);
             float rot[16];
             bx::mtxQuat(rot, bxquat);
 
@@ -690,10 +683,10 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             }
         }
     } else if (m_pick_entity != entt::null) {
-        /* m_registry->destroy(m_pick_constraint_entity);
+        m_registry->destroy(m_pick_constraint_entity);
         m_registry->destroy(m_pick_entity);
         m_pick_constraint_entity = entt::null;
-        m_pick_entity = entt::null; */
+        m_pick_entity = entt::null;
     }
 }
 
