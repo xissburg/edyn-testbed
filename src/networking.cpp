@@ -1,8 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/comp/position.hpp>
-#include <edyn/constraints/soft_distance_constraint.hpp>
 #include <edyn/edyn.hpp>
-#include <edyn/networking/context/client_networking_context.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/util/rigidbody.hpp>
@@ -14,6 +12,10 @@
 void RegisterNetworkedComponents(entt::registry &);
 void UnregisterNetworkedComponents(entt::registry &);
 void cmdToggleExtrapolation(const void* _userData);
+
+void PrintExtrapolationTimeoutWarning() {
+    std::cout << "WARNING: Extrapolation timed out." << std::endl;
+}
 
 class ExampleNetworking : public EdynExample
 {
@@ -84,16 +86,17 @@ public:
         sendToServer(data.data(), data.size(), flags);
     }
 
-    void onConstructRigidBody(entt::registry &registry, entt::entity entity) {
+    void onConstructRigidBody(entt::registry &registry, entt::entity entity)
+    {
         if (entity != m_pick_entity && !registry.any_of<edyn::present_position>(entity)) {
             registry.emplace<edyn::present_position>(entity);
             registry.emplace<edyn::present_orientation>(entity);
         }
     }
 
-    void toggleExtrapolation() {
-        auto &ctx = m_registry->ctx<edyn::client_networking_context>();
-        ctx.extrapolation_enabled = !ctx.extrapolation_enabled;
+    void toggleExtrapolation()
+    {
+        edyn::toggle_network_client_extrapolation_enabled(*m_registry);
     }
 
     void createScene() override
@@ -102,10 +105,12 @@ public:
             return;
         }
 
-        edyn::init_networking_client(*m_registry);
+        edyn::init_network_client(*m_registry);
 
         RegisterNetworkedComponents(*m_registry);
         edyn::set_external_system_pre_step(*m_registry, &UpdatePickInput);
+
+        edyn::network_client_extrapolation_timeout_sink(*m_registry).connect<&PrintExtrapolationTimeoutWarning>();
 
         if (!connectToServer("localhost", 1337)) {
             return;
@@ -134,7 +139,7 @@ public:
         enet_host_destroy(m_host);
         enet_deinitialize();
 
-        edyn::deinit_networking_client(*m_registry);
+        edyn::deinit_network_client(*m_registry);
 
         edyn::set_external_system_pre_step(*m_registry, nullptr);
         UnregisterNetworkedComponents(*m_registry);
@@ -154,16 +159,16 @@ public:
         while (enet_host_service(m_host, &event, 0) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_CONNECT: {
-                    auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
-                    edynCtx.max_concurrent_extrapolations = 1;
-                    edynCtx.packet_sink().connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+                    edyn::set_network_client_max_concurrent_extrapolations(*m_registry, 1);
+                    edyn::network_client_packet_sink(*m_registry)
+                        .connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Connected to server.";
                     break;
                 }
 
                 case ENET_EVENT_TYPE_DISCONNECT: {
-                    auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
-                    edynCtx.packet_sink().disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+                    edyn::network_client_packet_sink(*m_registry)
+                        .disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                     m_footer_text = "Disconnected.";
                     break;
                 }
@@ -187,16 +192,12 @@ public:
         }
 
         if (m_peer) {
-            auto &edynCtx = m_registry->ctx<edyn::client_networking_context>();
-            edynCtx.round_trip_time = 1e-3 * m_peer->roundTripTime;
+            edyn::set_network_client_round_trip_time(*m_registry, 1e-3 * m_peer->roundTripTime);
         }
     }
 
     void updatePhysics(float deltaTime) override
     {
-        updateNetworking();
-        EdynExample::updatePhysics(deltaTime);
-
         if (m_pick_entity != entt::null) {
             m_registry->remove<edyn::dirty>(m_pick_entity);
             if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
@@ -211,7 +212,10 @@ public:
             m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
         }
 
-        edyn::update_networking_client(*m_registry);
+        updateNetworking();
+        EdynExample::updatePhysics(deltaTime);
+
+        edyn::update_network_client(*m_registry);
     }
 
 private:

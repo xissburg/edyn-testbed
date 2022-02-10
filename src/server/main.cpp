@@ -151,9 +151,9 @@ void create_scene(entt::registry &registry) {
 
     std::vector<edyn::rigidbody_def> defs;
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 2; ++j) {
-            for (int k = 0; k < 1; ++k) {
+            for (int k = 0; k < 2; ++k) {
                 def.position = {edyn::scalar(0.4 * j),
                                 edyn::scalar(0.4 * i + 0.6),
                                 edyn::scalar(0.4 * k)};
@@ -181,7 +181,7 @@ int main() {
 
     registry.set<ENetHost *>(host);
 
-    edyn::init_networking_server(registry);
+    edyn::init_network_server(registry);
 
     edyn::register_external_components<PickInput>(registry);
     edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
@@ -201,7 +201,7 @@ int main() {
 
     while (true) {
         update_enet(registry, clientEntityMap);
-        edyn::update_networking_server(registry);
+        edyn::update_network_server(registry);
         edyn::update(registry);
 
         // Apply delay to maintain a fixed update rate.
@@ -216,7 +216,7 @@ int main() {
     }
 
     edyn::detach(registry);
-    edyn::deinit_networking_server(registry);
+    edyn::deinit_network_server(registry);
     edyn::deinit();
 
     enet_host_destroy(host);
