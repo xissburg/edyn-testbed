@@ -99,6 +99,8 @@ set(EdynTestbed_SOURCES
     src/cvjoint.cpp
     src/cone_constraint.cpp
     src/ragdoll.cpp
+    src/generic_constraint.cpp
+    src/vehicle.cpp
 )
 
 if(EDYN_BUILD_NETWORKING_EXAMPLE)
