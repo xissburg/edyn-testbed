@@ -37,15 +37,15 @@ struct VehicleSettings {
 
 namespace edyn {
     template<> inline
-    void merge(const Vehicle *old_comp, Vehicle &new_comp, merge_context &ctx) {
-        new_comp.chassis_entity = ctx.map->remloc(new_comp.chassis_entity);
+    void merge(Vehicle &new_comp, const entity_map &emap) {
+        new_comp.chassis_entity = emap.remloc(new_comp.chassis_entity);
 
         for (auto &entity : new_comp.wheel_entity) {
-            entity = ctx.map->remloc(entity);
+            entity = emap.remloc(entity);
         }
 
         for (auto &entity : new_comp.suspension_entity) {
-            entity = ctx.map->remloc(entity);
+            entity = emap.remloc(entity);
         }
     }
 }
