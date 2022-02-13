@@ -29,7 +29,7 @@ struct VehicleState {
 
 struct VehicleSettings {
     edyn::scalar max_steering_angle {edyn::to_radians(45)};
-    edyn::scalar max_steering_rate {edyn::to_radians(140)};
+    edyn::scalar max_steering_rate {edyn::to_radians(180)};
     edyn::scalar brake_torque {edyn::scalar(800)};
     edyn::scalar bearing_torque {edyn::scalar(6)};
     edyn::scalar driving_torque {edyn::scalar(300)};
