@@ -1,16 +1,15 @@
-#include <edyn/comp/tag.hpp>
-#include <edyn/networking/comp/remote_client.hpp>
-#include <edyn/networking/networking_external.hpp>
-#include <edyn/networking/packet/set_playout_delay.hpp>
-#include <enet/enet.h>
+#include "edyn_server.hpp"
+#include <edyn/networking/networking.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
-#include <edyn/networking/networking.hpp>
 #include <iostream>
-#include "pick_input.hpp"
 
 struct PeerID {
     unsigned short value;
+};
+
+struct ClientEntityMap {
+    std::unordered_map<unsigned short, entt::entity> map;
 };
 
 void send_to_client(ENetHost *host, const uint8_t *data, size_t dataLength, unsigned short peerID, uint32_t flags)
@@ -63,9 +62,42 @@ ENetHost * init_enet() {
     return host;
 }
 
-template<typename ClientEntityMap>
-void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
+bool edyn_server_init(entt::registry &registry) {
+    // Init Edyn.
+    edyn::init();
+    edyn::attach(registry);
+
+    // Init networking.
+    auto *host = init_enet();
+
+    if (host == nullptr) {
+        return false;
+    }
+
+    registry.set<ENetHost *>(host);
+    registry.set<ClientEntityMap>();
+
+    edyn::init_network_server(registry);
+
+    return true;
+}
+
+void edyn_server_deinit(entt::registry &registry) {
+    edyn::detach(registry);
+    edyn::deinit_network_server(registry);
+    edyn::deinit();
+
     auto *host = registry.ctx<ENetHost *>();
+    enet_host_destroy(host);
+    enet_deinitialize();
+
+    registry.unset<ENetHost *>();
+    registry.unset<ClientEntityMap>();
+}
+
+void edyn_server_update(entt::registry &registry) {
+    auto *host = registry.ctx<ENetHost *>();
+    auto &clientEntityMap = registry.ctx<ClientEntityMap>().map;
     ENetEvent event;
 
     while (enet_host_service(host, &event, 0) > 0) {
@@ -129,68 +161,7 @@ void update_enet(entt::registry &registry, ClientEntityMap &clientEntityMap) {
     }
 }
 
-void create_scene(entt::registry &registry) {
-    // Create floor.
-    auto floor_def = edyn::rigidbody_def();
-    floor_def.kind = edyn::rigidbody_kind::rb_static;
-    floor_def.material->restitution = 0;
-    floor_def.material->friction = 0.5;
-    floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
-    floor_def.networked = true;
-    edyn::make_rigidbody(registry, floor_def);
-
-    // Create boxes.
-    auto def = edyn::rigidbody_def();
-    def.mass = 10;
-    def.material->friction = 0.8;
-    def.material->restitution = 0;
-    def.shape = edyn::box_shape{0.2, 0.2, 0.2};
-    def.update_inertia();
-    def.continuous_contacts = true;
-    def.networked = true;
-
-    std::vector<edyn::rigidbody_def> defs;
-
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            for (int k = 0; k < 2; ++k) {
-                def.position = {edyn::scalar(0.4 * j),
-                                edyn::scalar(0.4 * i + 0.6),
-                                edyn::scalar(0.4 * k)};
-                defs.push_back(def);
-            }
-        }
-    }
-
-    edyn::batch_rigidbodies(registry, defs);
-}
-
-int main() {
-    entt::registry registry;
-
-    // Init Edyn.
-    edyn::init();
-    edyn::attach(registry);
-
-    // Init networking.
-    auto *host = init_enet();
-
-    if (host == nullptr) {
-        return -1;
-    }
-
-    registry.set<ENetHost *>(host);
-
-    edyn::init_network_server(registry);
-
-    edyn::register_external_components<PickInput>(registry);
-    edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
-    edyn::set_external_system_pre_step(registry, &UpdatePickInput);
-
-    std::unordered_map<unsigned short, entt::entity> clientEntityMap;
-
-    create_scene(registry);
-
+void edyn_server_run(entt::registry &registry) {
     // Use a PID to keep updates at a fixed and controlled rate.
     auto updateRate = 120;
     auto desiredDt = 1.0 / updateRate;
@@ -200,7 +171,7 @@ int main() {
     auto time = edyn::performance_time();
 
     while (true) {
-        update_enet(registry, clientEntityMap);
+        edyn_server_update(registry);
         edyn::update_network_server(registry);
         edyn::update(registry);
 
@@ -214,13 +185,4 @@ int main() {
         auto delay = std::max(0.0, proportionalTerm * error + iTerm);
         edyn::delay(delay * 1000);
     }
-
-    edyn::detach(registry);
-    edyn::deinit_network_server(registry);
-    edyn::deinit();
-
-    enet_host_destroy(host);
-    enet_deinitialize();
-
-    return 0;
 }

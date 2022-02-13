@@ -213,28 +213,27 @@ endif ()
 
 # Server
 
-if(EDYN_BUILD_NETWORKING_EXAMPLE)
-    project(EdynTestbedServer VERSION 0.0.0 LANGUAGES CXX)
+function(make_server ProjectName SourceMain)
+    project(${ProjectName} VERSION 0.0.0 LANGUAGES CXX)
 
-    set(EdynTestbedServer_SOURCES
-        src/server/main.cpp)
+    add_executable(${ProjectName}
+        src/server/${SourceMain}
+        src/server/edyn_server.cpp)
 
-	add_executable(EdynTestbedServer ${EdynTestbedServer_SOURCES})
-
-    target_include_directories(EdynTestbedServer
+    target_include_directories(${ProjectName}
         PUBLIC ${CMAKE_SOURCE_DIR}/include
     )
 
-    target_include_directories(EdynTestbedServer SYSTEM
+    target_include_directories(${ProjectName} SYSTEM
         PUBLIC ${Edyn_INCLUDE_DIR}
         PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
     )
 
-    target_compile_features(EdynTestbedServer PUBLIC cxx_std_17)
+    target_compile_features(${ProjectName} PUBLIC cxx_std_17)
 
     # Link libraries
 
-    target_link_libraries(EdynTestbedServer
+    target_link_libraries(${ProjectName}
         EnTT::EnTT
         optimized ${Edyn_LIBRARY}
         debug ${Edyn_LIBRARY_DEBUG}
@@ -242,13 +241,18 @@ if(EDYN_BUILD_NETWORKING_EXAMPLE)
     )
 
     if (UNIX AND NOT APPLE)
-        target_link_libraries(EdynTestbedServer
+        target_link_libraries(${ProjectName}
             dl
             pthread
         )
     endif ()
 
     if (WIN32)
-        target_link_libraries(EdynTestbedServer winmm)
+        target_link_libraries(${ProjectName} winmm)
     endif ()
+endfunction()
+
+if(EDYN_BUILD_NETWORKING_EXAMPLE)
+    make_server(EdynTestbedNetworkingServer networking_server.cpp)
+    make_server(EdynTestbedVehicleServer vehicle_server.cpp)
 endif()
