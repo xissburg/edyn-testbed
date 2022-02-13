@@ -21,7 +21,7 @@ void OnDestroyIsland(entt::registry &registry, entt::entity entity) {
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
 {
-    //feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
+    feenableexcept(FE_INVALID | FE_OVERFLOW | FE_DIVBYZERO);
 
     Args args(_argc, _argv);
 
