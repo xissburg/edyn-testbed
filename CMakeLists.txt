@@ -101,6 +101,8 @@ set(EdynTestbed_SOURCES
     src/ragdoll.cpp
     src/generic_constraint.cpp
     src/vehicle.cpp
+    src/vehicle_networking.cpp
+    src/vehicle_system.cpp
 )
 
 if(EDYN_BUILD_NETWORKING_EXAMPLE)
@@ -213,12 +215,10 @@ endif ()
 
 # Server
 
-function(make_server ProjectName SourceMain)
+function(make_server ProjectName)
     project(${ProjectName} VERSION 0.0.0 LANGUAGES CXX)
 
-    add_executable(${ProjectName}
-        src/server/${SourceMain}
-        src/server/edyn_server.cpp)
+    add_executable(${ProjectName} ${ARGN})
 
     target_include_directories(${ProjectName}
         PUBLIC ${CMAKE_SOURCE_DIR}/include
@@ -253,6 +253,8 @@ function(make_server ProjectName SourceMain)
 endfunction()
 
 if(EDYN_BUILD_NETWORKING_EXAMPLE)
-    make_server(EdynTestbedNetworkingServer networking_server.cpp)
-    make_server(EdynTestbedVehicleServer vehicle_server.cpp)
+    make_server(EdynTestbedNetworkingServer
+        src/server/networking_server.cpp;src/server/edyn_server.cpp)
+    make_server(EdynTestbedVehicleServer
+        src/server/edyn_server.cpp;src/server/vehicle_server.cpp;src/vehicle_system.cpp)
 endif()

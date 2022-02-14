@@ -1,5 +1,5 @@
-#ifndef EDYN_TESTBED_VEHICLE_HPP
-#define EDYN_TESTBED_VEHICLE_HPP
+#ifndef EDYN_TESTBED_VEHICLE_SYSTEM_HPP
+#define EDYN_TESTBED_VEHICLE_SYSTEM_HPP
 
 #include <array>
 #include <edyn/math/math.hpp>
@@ -12,6 +12,7 @@ struct Vehicle {
     entt::entity chassis_entity;
     std::array<entt::entity, 4> wheel_entity;
     std::array<entt::entity, 4> suspension_entity;
+    entt::entity null_con_entity;
 };
 
 struct VehicleInput {
@@ -35,6 +36,38 @@ struct VehicleSettings {
     edyn::scalar driving_torque {edyn::scalar(300)};
 };
 
+template<typename Archive>
+void serialize(Archive &archive, Vehicle &vehicle) {
+    archive(vehicle.chassis_entity);
+    archive(vehicle.wheel_entity);
+    archive(vehicle.suspension_entity);
+    archive(vehicle.null_con_entity);
+}
+
+template<typename Archive>
+void serialize(Archive &archive, VehicleInput &input) {
+    archive(input.steering);
+    archive(input.throttle);
+    archive(input.brakes);
+}
+
+template<typename Archive>
+void serialize(Archive &archive, VehicleState &state) {
+    archive(state.target_steering);
+    archive(state.steering);
+    archive(state.throttle);
+    archive(state.brakes);
+}
+
+template<typename Archive>
+void serialize(Archive &archive, VehicleSettings &settings) {
+    archive(settings.max_steering_angle);
+    archive(settings.max_steering_rate);
+    archive(settings.brake_torque);
+    archive(settings.bearing_torque);
+    archive(settings.driving_torque);
+}
+
 namespace edyn {
     template<> inline
     void merge(Vehicle &new_comp, const entity_map &emap) {
@@ -50,6 +83,7 @@ namespace edyn {
     }
 }
 
+entt::entity CreateVehicle(entt::registry &);
 void UpdateVehicles(entt::registry &);
 
-#endif // EDYN_TESTBED_VEHICLE_HPP
+#endif // EDYN_TESTBED_VEHICLE_SYSTEM_HPP
