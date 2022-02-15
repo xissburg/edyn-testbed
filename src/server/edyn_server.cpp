@@ -95,7 +95,7 @@ void edyn_server_deinit(entt::registry &registry) {
     registry.unset<ClientEntityMap>();
 }
 
-void edyn_server_update(entt::registry &registry) {
+void edyn_server_process_packets(entt::registry &registry) {
     auto *host = registry.ctx<ENetHost *>();
     auto &clientEntityMap = registry.ctx<ClientEntityMap>().map;
     ENetEvent event;
@@ -171,9 +171,10 @@ void edyn_server_run(entt::registry &registry) {
     auto time = edyn::performance_time();
 
     while (true) {
-        edyn_server_update(registry);
+        edyn_server_process_packets(registry);
         edyn::update_network_server(registry);
         edyn::update(registry);
+        edyn_server_update(registry);
 
         // Apply delay to maintain a fixed update rate.
         auto t1 = edyn::performance_time();

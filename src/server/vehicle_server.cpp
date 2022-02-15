@@ -8,6 +8,8 @@
 #include "edyn_server.hpp"
 #include "pick_input.hpp"
 
+std::vector<entt::entity> g_pending_new_clients;
+
 void create_scene(entt::registry &registry) {
     // Create floor.
     auto floor_def = edyn::rigidbody_def();
@@ -20,23 +22,35 @@ void create_scene(entt::registry &registry) {
 }
 
 void on_construct_remote_client(entt::registry &registry, entt::entity client_entity) {
-    auto vehicle_entity = CreateVehicle(registry);
-    std::vector<entt::entity> entities;
-    entities.push_back(vehicle_entity);
+    g_pending_new_clients.push_back(client_entity);
+}
 
-    auto &vehicle = registry.get<Vehicle>(vehicle_entity);
-    entities.push_back(vehicle.chassis_entity);
-    entities.insert(entities.end(), vehicle.wheel_entity.begin(), vehicle.wheel_entity.end());
-    entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
-    entities.push_back(vehicle.null_con_entity);
+void edyn_server_update(entt::registry &registry) {
+    for (auto client_entity : g_pending_new_clients) {
+        auto vehicle_entity = CreateVehicle(registry);
+        std::vector<entt::entity> entities;
+        entities.push_back(vehicle_entity);
 
-    auto &client = registry.get<edyn::remote_client>(client_entity);
-    client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
+        auto &vehicle = registry.get<Vehicle>(vehicle_entity);
+        entities.push_back(vehicle.chassis_entity);
+        entities.insert(entities.end(), vehicle.wheel_entity.begin(), vehicle.wheel_entity.end());
+        entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
+        entities.push_back(vehicle.null_con_entity);
 
-    for (auto entity : entities) {
-        registry.emplace<edyn::entity_owner>(entity, client_entity);
-        registry.emplace<edyn::networked_tag>(entity);
+        auto null_con_ent = registry.create();
+        edyn::make_constraint<edyn::null_constraint>(registry, client_entity, vehicle_entity);
+        entities.push_back(null_con_ent);
+
+        auto &client = registry.get<edyn::remote_client>(client_entity);
+        client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
+
+        for (auto entity : entities) {
+            registry.emplace<edyn::entity_owner>(entity, client_entity);
+            registry.emplace<edyn::networked_tag>(entity);
+        }
     }
+
+    g_pending_new_clients.clear();
 }
 
 void ExternalSystemUpdate(entt::registry &registry) {

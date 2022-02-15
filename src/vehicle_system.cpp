@@ -60,6 +60,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
     registry.emplace<VehicleSettings>(vehicle_entity);
     registry.emplace<VehicleInput>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
+    registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     return vehicle_entity;
 }

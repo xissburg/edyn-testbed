@@ -40,6 +40,8 @@ void create_scene(entt::registry &registry) {
     edyn::batch_rigidbodies(registry, defs);
 }
 
+void edyn_server_update(entt::registry &registry) {}
+
 int main() {
     entt::registry registry;
 

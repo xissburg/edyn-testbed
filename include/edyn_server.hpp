@@ -9,5 +9,6 @@
 bool edyn_server_init(entt::registry &registry);
 void edyn_server_deinit(entt::registry &registry);
 void edyn_server_run(entt::registry &registry);
+void edyn_server_update(entt::registry &registry);
 
 #endif // EDYNTESTBED_EDYN_SERVER_HPP
