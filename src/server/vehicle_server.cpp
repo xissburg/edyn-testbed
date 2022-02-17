@@ -37,17 +37,7 @@ void edyn_server_update(entt::registry &registry) {
         entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
         entities.push_back(vehicle.null_con_entity);
 
-        auto null_con_ent = registry.create();
-        edyn::make_constraint<edyn::null_constraint>(registry, client_entity, vehicle_entity);
-        entities.push_back(null_con_ent);
-
-        auto &client = registry.get<edyn::remote_client>(client_entity);
-        client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
-
-        for (auto entity : entities) {
-            registry.emplace<edyn::entity_owner>(entity, client_entity);
-            registry.emplace<edyn::networked_tag>(entity);
-        }
+        edyn::server_assign_ownership_to_client(registry, client_entity, entities);
     }
 
     g_pending_new_clients.clear();

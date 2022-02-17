@@ -195,6 +195,7 @@ void ExampleNetworking::updatePhysics(float deltaTime)
 {
     if (m_pick_entity != entt::null) {
         m_registry->remove<edyn::dirty>(m_pick_entity);
+
         if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
             // Make pick entity networked.
             m_registry->emplace<edyn::networked_tag>(m_pick_entity);
