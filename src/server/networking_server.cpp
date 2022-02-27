@@ -45,7 +45,7 @@ void edyn_server_update(entt::registry &registry) {}
 int main() {
     entt::registry registry;
 
-    edyn_server_init(registry);
+    edyn_server_init(registry, NetworkingServerPort);
 
     edyn::register_external_components<PickInput>(registry);
     edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});

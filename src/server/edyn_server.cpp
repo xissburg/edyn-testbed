@@ -1,5 +1,6 @@
 #include "edyn_server.hpp"
 #include <edyn/networking/networking.hpp>
+#include <edyn/networking/sys/server_side.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
 #include <iostream>
@@ -37,7 +38,7 @@ void send_edyn_packet_to_client(entt::registry &registry, entt::entity clientEnt
     send_to_client(host, data.data(), data.size(), peerID, flags);
 }
 
-ENetHost * init_enet() {
+ENetHost * init_enet(uint16_t port) {
     // Init ENet.
     if (enet_initialize () != 0) {
         std::cout << "An error occurred while initializing ENet." << std::endl;
@@ -47,7 +48,7 @@ ENetHost * init_enet() {
     ENetAddress address;
     address.host = ENET_HOST_ANY;
     enet_address_set_host(&address, "0.0.0.0");
-    address.port = 1337;
+    address.port = port;
 
     auto *host = enet_host_create(&address /* the address to bind the server host to */,
                                    32      /* allow up to 32 clients and/or outgoing connections */,
@@ -62,13 +63,13 @@ ENetHost * init_enet() {
     return host;
 }
 
-bool edyn_server_init(entt::registry &registry) {
+bool edyn_server_init(entt::registry &registry, uint16_t port) {
     // Init Edyn.
     edyn::init();
     edyn::attach(registry);
 
     // Init networking.
-    auto *host = init_enet();
+    auto *host = init_enet(port);
 
     if (host == nullptr) {
         return false;
@@ -113,7 +114,6 @@ void edyn_server_process_packets(entt::registry &registry) {
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
                 client.snapshot_rate = 10;
-                client.playout_delay = 0.3;
                 client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
                 auto delay = edyn::packet::set_playout_delay{client.playout_delay};
@@ -146,7 +146,7 @@ void edyn_server_process_packets(entt::registry &registry) {
 
                 if (clientEntityMap.count(peerID)) {
                     auto clientEntity = clientEntityMap.at(peerID);
-                    edyn::server_handle_packet(registry, clientEntity, packet);
+                    edyn::server_receive_packet(registry, clientEntity, packet);
                 }
 
                 /* Clean up the packet now that we're done using it. */
@@ -161,6 +161,16 @@ void edyn_server_process_packets(entt::registry &registry) {
     }
 }
 
+void edyn_server_update_latencies(entt::registry &registry) {
+    auto &clientEntityMap = registry.ctx<ClientEntityMap>().map;
+    auto *host = registry.ctx<ENetHost *>();
+
+    for (auto [peerID, clientEntity] : clientEntityMap) {
+        auto *peer = &host->peers[peerID];
+        edyn::server_set_client_round_trip_time(registry, clientEntity, peer->roundTripTime * 0.001);
+    }
+}
+
 void edyn_server_run(entt::registry &registry) {
     // Use a PID to keep updates at a fixed and controlled rate.
     auto updateRate = 120;
@@ -172,6 +182,7 @@ void edyn_server_run(entt::registry &registry) {
 
     while (true) {
         edyn_server_process_packets(registry);
+        edyn_server_update_latencies(registry);
         edyn::update_network_server(registry);
         edyn::update(registry);
         edyn_server_update(registry);

@@ -242,7 +242,6 @@ function(make_server ProjectName)
 
     if (UNIX AND NOT APPLE)
         target_link_libraries(${ProjectName}
-            dl
             pthread
         )
     endif ()

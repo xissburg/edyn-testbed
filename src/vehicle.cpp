@@ -88,7 +88,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleVehicle
-    , "25-vehicle"
+    , "23-vehicle"
     , "Basic multi-body vehicle."
     , "https://github.com/xissburg/edyn"
     );

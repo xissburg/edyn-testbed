@@ -6,7 +6,10 @@
 #include <enet/enet.h>
 #include <edyn/networking/networking.hpp>
 
-bool edyn_server_init(entt::registry &registry);
+static constexpr uint16_t NetworkingServerPort = 1337;
+static constexpr uint16_t VehicleServerPort = 1338;
+
+bool edyn_server_init(entt::registry &registry, uint16_t port);
 void edyn_server_deinit(entt::registry &registry);
 void edyn_server_run(entt::registry &registry);
 void edyn_server_update(entt::registry &registry);

@@ -20,6 +20,8 @@ entt::entity CreateVehicle(entt::registry &registry) {
     auto chassis_entity = edyn::make_rigidbody(registry, chassis_def);
     vehicle.chassis_entity = chassis_entity;
 
+    // Create a connection between vehicle entity and chassis entity to ensure
+    // the vehicle entity will be present wherever the chassis goes.
     vehicle.null_con_entity = registry.create();
     edyn::make_constraint<edyn::null_constraint>(vehicle.null_con_entity, registry, vehicle_entity, chassis_entity);
 
@@ -128,4 +130,18 @@ void UpdateVehicles(entt::registry &registry) {
             edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
         }
     }
+}
+
+std::vector<entt::entity> GetVehicleEntities(entt::registry &registry,
+                                             entt::entity vehicle_entity) {
+    std::vector<entt::entity> entities;
+    entities.push_back(vehicle_entity);
+
+    auto &vehicle = registry.get<Vehicle>(vehicle_entity);
+    entities.push_back(vehicle.chassis_entity);
+    entities.insert(entities.end(), vehicle.wheel_entity.begin(), vehicle.wheel_entity.end());
+    entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
+    entities.push_back(vehicle.null_con_entity);
+
+    return entities;
 }

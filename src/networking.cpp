@@ -1,4 +1,6 @@
 #include "networking.hpp"
+#include "edyn_server.hpp"
+#include <edyn/comp/continuous.hpp>
 #include <edyn/comp/position.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
@@ -19,6 +21,7 @@ void PrintExtrapolationTimeoutWarning() {
 
 ExampleNetworking::ExampleNetworking(const char* _name, const char* _description, const char* _url)
     : EdynExample(_name, _description, _url)
+    , m_server_port(NetworkingServerPort)
 {
 
 }
@@ -83,7 +86,7 @@ void ExampleNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &
 
 void ExampleNetworking::onConstructRigidBody(entt::registry &registry, entt::entity entity)
 {
-    if (entity != m_pick_entity && !registry.any_of<edyn::present_position>(entity)) {
+    if (registry.all_of<edyn::dynamic_tag>(entity) && !registry.any_of<edyn::present_position>(entity)) {
         registry.emplace<edyn::present_position>(entity);
         registry.emplace<edyn::present_orientation>(entity);
     }
@@ -107,7 +110,7 @@ void ExampleNetworking::createScene()
 
     edyn::network_client_extrapolation_timeout_sink(*m_registry).connect<&PrintExtrapolationTimeoutWarning>();
 
-    if (!connectToServer("localhost", 1337)) {
+    if (!connectToServer("localhost", m_server_port)) {
         return;
     }
 
@@ -194,6 +197,8 @@ void ExampleNetworking::updateNetworking()
 void ExampleNetworking::updatePhysics(float deltaTime)
 {
     if (m_pick_entity != entt::null) {
+        // Position was marked as dirty earlier, which would cause a general
+        // snapshot to be sent with the new position, which is undesirable.
         m_registry->remove<edyn::dirty>(m_pick_entity);
 
         if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
@@ -201,11 +206,12 @@ void ExampleNetworking::updatePhysics(float deltaTime)
             m_registry->emplace<edyn::networked_tag>(m_pick_entity);
             m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
             m_registry->emplace<PickInput>(m_pick_entity);
+            m_registry->emplace<edyn::continuous>(m_pick_entity).insert(edyn::get_component_index<edyn::position>(*m_registry));
             m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).created<PickInput>();
         }
 
         m_registry->get<PickInput>(m_pick_entity).position = m_registry->get<edyn::position>(m_pick_entity);
-        m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
+        edyn::refresh<PickInput>(*m_registry, m_pick_entity);
     }
 
     updateNetworking();
@@ -220,7 +226,7 @@ void cmdToggleExtrapolation(const void* _userData) {
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleNetworking
-    , "21-networking"
+    , "24-networking"
     , "Networking."
     , "https://github.com/xissburg/edyn-testbed"
     );

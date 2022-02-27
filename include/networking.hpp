@@ -2,6 +2,7 @@
 #define EDYN_TESTBED_NETWORKING_EXAMPLE_HPP
 
 #include "edyn_example.hpp"
+#include <cstdint>
 #include <edyn/networking/networking.hpp>
 #include <enet/enet.h>
 
@@ -36,6 +37,9 @@ private:
     ENetHost *m_host {nullptr};
     ENetPeer *m_peer {nullptr};
     InputBinding* m_network_bindings;
+
+protected:
+    uint16_t m_server_port;
 };
 
 #endif // EDYN_TESTBED_NETWORKING_EXAMPLE_HPP

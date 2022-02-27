@@ -1,5 +1,7 @@
 #include "networking.hpp"
+#include "edyn_server.hpp"
 #include "vehicle_system.hpp"
+#include "edyn_server.hpp"
 #include <edyn/comp/dirty.hpp>
 #include <edyn/comp/orientation.hpp>
 #include <edyn/constraints/generic_constraint.hpp>
@@ -24,7 +26,7 @@ public:
     ExampleVehicleNetworking(const char* _name, const char* _description, const char* _url)
         : ExampleNetworking(_name, _description, _url)
     {
-
+        m_server_port = VehicleServerPort;
     }
 
     void onConstructVehicle(entt::registry &registry, entt::entity entity) {
@@ -116,7 +118,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleVehicleNetworking
-    , "00-vehicle-networking"
+    , "25-vehicle-networking"
     , "Networked vehicle."
     , "https://github.com/xissburg/edyn"
     );

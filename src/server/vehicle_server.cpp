@@ -25,19 +25,31 @@ void on_construct_remote_client(entt::registry &registry, entt::entity client_en
     g_pending_new_clients.push_back(client_entity);
 }
 
+void assign_vehicle_ownership_to_client(entt::registry &registry,
+                                        entt::entity vehicle_entity,
+                                        entt::entity client_entity) {
+    auto entities = GetVehicleEntities(registry, vehicle_entity);
+    auto &client = registry.get<edyn::remote_client>(client_entity);
+    client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
+
+    for (auto entity : entities) {
+        registry.emplace<edyn::entity_owner>(entity, client_entity);
+        registry.emplace<edyn::networked_tag>(entity);
+    }
+}
+
+void notify_vehicle_entity_created(entt::registry &registry,
+                                   entt::entity vehicle_entity,
+                                   entt::entity client_entity) {
+    auto entities = GetVehicleEntities(registry, vehicle_entity);
+    edyn::server_notify_created_entities(registry, client_entity, entities);
+}
+
 void edyn_server_update(entt::registry &registry) {
     for (auto client_entity : g_pending_new_clients) {
         auto vehicle_entity = CreateVehicle(registry);
-        std::vector<entt::entity> entities;
-        entities.push_back(vehicle_entity);
-
-        auto &vehicle = registry.get<Vehicle>(vehicle_entity);
-        entities.push_back(vehicle.chassis_entity);
-        entities.insert(entities.end(), vehicle.wheel_entity.begin(), vehicle.wheel_entity.end());
-        entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
-        entities.push_back(vehicle.null_con_entity);
-
-        edyn::server_assign_ownership_to_client(registry, client_entity, entities);
+        assign_vehicle_ownership_to_client(registry, vehicle_entity, client_entity);
+        notify_vehicle_entity_created(registry, vehicle_entity, client_entity);
     }
 
     g_pending_new_clients.clear();
@@ -51,7 +63,7 @@ void ExternalSystemUpdate(entt::registry &registry) {
 int main() {
     entt::registry registry;
 
-    edyn_server_init(registry);
+    edyn_server_init(registry, VehicleServerPort);
 
     edyn::register_external_components<
         PickInput,

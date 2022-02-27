@@ -7,6 +7,7 @@
 #include <entt/entity/fwd.hpp>
 #include <edyn/parallel/merge/merge_component.hpp>
 #include <edyn/util/entity_map.hpp>
+#include <vector>
 
 struct Vehicle {
     entt::entity chassis_entity;
@@ -85,5 +86,6 @@ namespace edyn {
 
 entt::entity CreateVehicle(entt::registry &);
 void UpdateVehicles(entt::registry &);
+std::vector<entt::entity> GetVehicleEntities(entt::registry &, entt::entity);
 
 #endif // EDYN_TESTBED_VEHICLE_SYSTEM_HPP
