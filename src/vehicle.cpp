@@ -1,8 +1,6 @@
 #include "edyn_example.hpp"
 #include "vehicle_system.hpp"
 #include <edyn/comp/orientation.hpp>
-#include <edyn/constraints/generic_constraint.hpp>
-#include <edyn/constraints/null_constraint.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/math/math.hpp>
 #include <edyn/math/quaternion.hpp>

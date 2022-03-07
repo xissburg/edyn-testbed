@@ -4,8 +4,6 @@
 #include "edyn_server.hpp"
 #include <edyn/comp/dirty.hpp>
 #include <edyn/comp/orientation.hpp>
-#include <edyn/constraints/generic_constraint.hpp>
-#include <edyn/constraints/null_constraint.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/math/math.hpp>
 #include <edyn/math/quaternion.hpp>

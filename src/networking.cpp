@@ -5,6 +5,7 @@
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
+#include <edyn/networking/packet/edyn_packet.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <unordered_set>
 #include <enet/enet.h>
@@ -73,7 +74,7 @@ void ExampleNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &
 {
     uint32_t flags = 0;
 
-    if (!std::holds_alternative<edyn::packet::transient_snapshot>(packet.var)) {
+    if (edyn::should_send_reliably(packet)) {
         flags |= ENET_PACKET_FLAG_RELIABLE;
     }
 
@@ -176,7 +177,7 @@ void ExampleNetworking::updateNetworking()
                 edyn::packet::edyn_packet packet;
                 archive(packet);
 
-                edyn::client_handle_packet(*m_registry, packet);
+                edyn::client_receive_packet(*m_registry, packet);
 
                 /* Clean up the packet now that we're done using it. */
                 enet_packet_destroy(event.packet);
@@ -217,7 +218,7 @@ void ExampleNetworking::updatePhysics(float deltaTime)
     updateNetworking();
     edyn::update_network_client(*m_registry);
     EdynExample::updatePhysics(deltaTime);
-
+    enet_host_flush(m_host);
 }
 
 void cmdToggleExtrapolation(const void* _userData) {

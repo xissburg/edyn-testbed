@@ -25,7 +25,7 @@ void send_edyn_packet_to_client(entt::registry &registry, entt::entity clientEnt
 {
     uint32_t flags = 0;
 
-    if (!std::holds_alternative<edyn::packet::transient_snapshot>(packet.var)) {
+    if (edyn::should_send_reliably(packet)) {
         flags |= ENET_PACKET_FLAG_RELIABLE;
     }
 
@@ -173,12 +173,13 @@ void edyn_server_update_latencies(entt::registry &registry) {
 
 void edyn_server_run(entt::registry &registry) {
     // Use a PID to keep updates at a fixed and controlled rate.
-    auto updateRate = 120;
+    auto updateRate = 240;
     auto desiredDt = 1.0 / updateRate;
     auto proportionalTerm = 0.18;
     auto integralTerm = 0.06;
     auto iTerm = 0.0;
     auto time = edyn::performance_time();
+    auto *host = registry.ctx<ENetHost *>();
 
     while (true) {
         edyn_server_process_packets(registry);
@@ -186,6 +187,7 @@ void edyn_server_run(entt::registry &registry) {
         edyn::update_network_server(registry);
         edyn::update(registry);
         edyn_server_update(registry);
+        enet_host_flush(host);
 
         // Apply delay to maintain a fixed update rate.
         auto t1 = edyn::performance_time();
