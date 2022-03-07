@@ -176,6 +176,9 @@ target_link_libraries(EdynTestbed
     )
 
 if(EDYN_BUILD_NETWORKING_EXAMPLE)
+    target_include_directories(EdynTestbed SYSTEM
+        PUBLIC ${ENet_INCLUDE_DIR}
+    )
     target_link_libraries(EdynTestbed
         ${ENet_LIBRARY}
     )
@@ -227,6 +230,7 @@ function(make_server ProjectName)
     target_include_directories(${ProjectName} SYSTEM
         PUBLIC ${Edyn_INCLUDE_DIR}
         PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
+        PUBLIC ${ENet_INCLUDE_DIR}
     )
 
     target_compile_features(${ProjectName} PUBLIC cxx_std_17)
