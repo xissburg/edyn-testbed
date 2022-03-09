@@ -79,6 +79,7 @@ bool edyn_server_init(entt::registry &registry, uint16_t port) {
     registry.set<ClientEntityMap>();
 
     edyn::init_network_server(registry);
+    edyn::network_server_packet_sink(registry).connect<&send_edyn_packet_to_client>(registry);
 
     return true;
 }
@@ -114,7 +115,6 @@ void edyn_server_process_packets(entt::registry &registry) {
 
                 auto &client = registry.get<edyn::remote_client>(clientEntity);
                 client.snapshot_rate = 10;
-                client.packet_sink().connect<&send_edyn_packet_to_client>(registry);
 
                 auto delay = edyn::packet::set_playout_delay{client.playout_delay};
                 send_edyn_packet_to_client(registry, clientEntity, edyn::packet::edyn_packet{delay});
