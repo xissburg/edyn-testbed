@@ -39,14 +39,6 @@ public:
     {
         ExampleNetworking::createScene();
 
-        edyn::register_external_components<
-            PickInput,
-            Vehicle,
-            VehicleSettings,
-            VehicleState,
-            VehicleInput
-        >(*m_registry);
-
         edyn::register_networked_components<
             PickInput,
             Vehicle,
@@ -54,12 +46,11 @@ public:
             VehicleState,
             VehicleInput
         >(*m_registry, std::tuple<VehicleState, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
+        RegisterVehicleComponents(*m_registry);
 
         edyn::set_external_system_pre_step(*m_registry, &ExternalSystemUpdate);
 
         m_registry->on_construct<Vehicle>().connect<&ExampleVehicleNetworking::onConstructVehicle>(*this);
-
-        RegisterVehicleComponents(*m_registry);
     }
 
     void setSteering(float steering) {
