@@ -5,7 +5,6 @@
 #include <edyn/math/math.hpp>
 #include <edyn/math/scalar.hpp>
 #include <entt/entity/fwd.hpp>
-#include <edyn/parallel/merge/merge_component.hpp>
 #include <edyn/util/entity_map.hpp>
 #include <vector>
 
@@ -69,21 +68,7 @@ void serialize(Archive &archive, VehicleSettings &settings) {
     archive(settings.driving_torque);
 }
 
-namespace edyn {
-    template<> inline
-    void merge(Vehicle &new_comp, const entity_map &emap) {
-        new_comp.chassis_entity = emap.remloc(new_comp.chassis_entity);
-
-        for (auto &entity : new_comp.wheel_entity) {
-            entity = emap.remloc(entity);
-        }
-
-        for (auto &entity : new_comp.suspension_entity) {
-            entity = emap.remloc(entity);
-        }
-    }
-}
-
+void RegisterVehicleComponents(entt::registry &);
 entt::entity CreateVehicle(entt::registry &);
 void UpdateVehicles(entt::registry &);
 std::vector<entt::entity> GetVehicleEntities(entt::registry &, entt::entity);

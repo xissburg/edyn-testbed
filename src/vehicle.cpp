@@ -19,7 +19,7 @@ public:
 
     void createScene() override
     {
-        edyn::register_external_components<Vehicle, VehicleSettings, VehicleState, VehicleInput>(*m_registry);
+        RegisterVehicleComponents(*m_registry);
         edyn::set_external_system_pre_step(*m_registry, &UpdateVehicles);
 
         // Create floor

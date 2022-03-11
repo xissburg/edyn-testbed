@@ -17,7 +17,6 @@ void ExternalSystemUpdate(entt::registry &registry) {
     UpdateVehicles(registry);
 }
 
-
 class ExampleVehicleNetworking : public ExampleNetworking
 {
 public:
@@ -59,6 +58,8 @@ public:
         edyn::set_external_system_pre_step(*m_registry, &ExternalSystemUpdate);
 
         m_registry->on_construct<Vehicle>().connect<&ExampleVehicleNetworking::onConstructVehicle>(*this);
+
+        RegisterVehicleComponents(*m_registry);
     }
 
     void setSteering(float steering) {

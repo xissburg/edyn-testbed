@@ -1,6 +1,18 @@
 #include "vehicle_system.hpp"
+#include "pick_input.hpp"
 #include <entt/entity/registry.hpp>
+#include <entt/meta/factory.hpp>
+#include <entt/core/hashed_string.hpp>
 #include <edyn/edyn.hpp>
+
+void RegisterVehicleComponents(entt::registry &registry) {
+    using namespace entt::literals;
+    entt::meta<Vehicle>().type()
+        .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
+        .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
+        .data<&Vehicle::wheel_entity, entt::as_ref_t>("wheel_entity"_hs);
+    edyn::register_external_components<PickInput, Vehicle, VehicleSettings, VehicleState, VehicleInput>(registry);
+}
 
 entt::entity CreateVehicle(entt::registry &registry) {
     auto vehicle_entity = registry.create();

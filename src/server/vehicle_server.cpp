@@ -65,14 +65,6 @@ int main() {
 
     edyn_server_init(registry, VehicleServerPort);
 
-    edyn::register_external_components<
-        PickInput,
-        Vehicle,
-        VehicleSettings,
-        VehicleState,
-        VehicleInput
-    >(registry);
-
     edyn::register_networked_components<
         PickInput,
         Vehicle,
@@ -81,6 +73,7 @@ int main() {
         VehicleInput
     >(registry, std::tuple<VehicleState, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
 
+    RegisterVehicleComponents(registry);
     edyn::set_external_system_pre_step(registry, &ExternalSystemUpdate);
 
     registry.on_construct<edyn::remote_client>().connect<&on_construct_remote_client>();
