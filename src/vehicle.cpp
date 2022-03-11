@@ -21,7 +21,7 @@ public:
 
     void createScene() override
     {
-        edyn::register_external_components<Vehicle, VehicleSettings, VehicleState, VehicleInput>(*m_registry);
+        RegisterVehicleComponents(*m_registry);
         edyn::set_external_system_pre_step(*m_registry, &UpdateVehicles);
 
         // Create floor
@@ -192,6 +192,15 @@ ENTRY_IMPLEMENT_MAIN(
     , "Basic multi-body vehicle."
     , "https://github.com/xissburg/edyn"
     );
+
+void RegisterVehicleComponents(entt::registry &registry) {
+    using namespace entt::literals;
+    entt::meta<Vehicle>().type()
+        .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
+        .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
+        .data<&Vehicle::wheel_entity, entt::as_ref_t>("wheel_entity"_hs);
+    edyn::register_external_components<Vehicle, VehicleSettings, VehicleState, VehicleInput>(registry);
+}
 
 void UpdateVehicles(entt::registry &registry) {
     auto vehicle_view = registry.view<const Vehicle, const VehicleInput, const VehicleSettings, VehicleState>().each();

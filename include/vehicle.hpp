@@ -5,7 +5,6 @@
 #include <edyn/math/math.hpp>
 #include <edyn/math/scalar.hpp>
 #include <entt/entity/fwd.hpp>
-#include <edyn/parallel/merge/merge_component.hpp>
 #include <edyn/util/entity_map.hpp>
 
 struct Vehicle {
@@ -35,21 +34,7 @@ struct VehicleSettings {
     edyn::scalar driving_torque {edyn::scalar(300)};
 };
 
-namespace edyn {
-    template<> inline
-    void merge(const Vehicle *old_comp, Vehicle &new_comp, merge_context &ctx) {
-        new_comp.chassis_entity = ctx.map->remloc(new_comp.chassis_entity);
-
-        for (auto &entity : new_comp.wheel_entity) {
-            entity = ctx.map->remloc(entity);
-        }
-
-        for (auto &entity : new_comp.suspension_entity) {
-            entity = ctx.map->remloc(entity);
-        }
-    }
-}
-
+void RegisterVehicleComponents(entt::registry &);
 void UpdateVehicles(entt::registry &);
 
 #endif // EDYN_TESTBED_VEHICLE_HPP

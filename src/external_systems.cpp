@@ -16,7 +16,9 @@ void UpdateClimbers(entt::registry &registry) {
 
     climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
         // Find contact manifolds for this entity.
-        graph.visit_edges(node.node_index, [&] (auto manifoldEntity) {
+        graph.visit_edges(node.node_index, [&] (auto edgeIndex) {
+            auto manifoldEntity = graph.edge_entity(edgeIndex);
+
             if (!manifoldView.contains(manifoldEntity)) {
                 return;
             }
