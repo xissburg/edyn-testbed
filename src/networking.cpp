@@ -177,7 +177,17 @@ void ExampleNetworking::updateNetworking()
                 edyn::packet::edyn_packet packet;
                 archive(packet);
 
-                edyn::client_receive_packet(*m_registry, packet);
+                if (!archive.failed()) {
+                    edyn::client_receive_packet(*m_registry, packet);
+
+                    // Assign server settings to UI.
+                    if (std::holds_alternative<edyn::packet::server_settings>(packet.var)) {
+                        auto &settings = std::get<edyn::packet::server_settings>(packet.var);
+                        m_fixed_dt_ms = settings.fixed_dt * 1000;
+                        m_num_velocity_iterations = settings.num_solver_velocity_iterations;
+                        m_num_position_iterations = settings.num_solver_position_iterations;
+                    }
+                }
 
                 /* Clean up the packet now that we're done using it. */
                 enet_packet_destroy(event.packet);
