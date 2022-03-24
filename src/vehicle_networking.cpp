@@ -27,10 +27,7 @@ public:
     }
 
     void onConstructVehicle(entt::registry &registry, entt::entity entity) {
-        auto client_entity = registry.ctx<edyn::client_network_context>().client_entity;
-        auto &owner = registry.get<edyn::entity_owner>(entity);
-
-        if (owner.client_entity == client_entity) {
+        if (edyn::client_owns_entity(registry, entity)) {
             m_vehicle_entity = entity;
         }
     }
