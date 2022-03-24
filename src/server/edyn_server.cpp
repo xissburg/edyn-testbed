@@ -109,7 +109,8 @@ void edyn_server_process_packets(entt::registry &registry) {
             case ENET_EVENT_TYPE_CONNECT: {
                 enet_peer_timeout(event.peer, 0, 10000, 30000);
 
-                auto clientEntity = edyn::server_make_client(registry);
+                bool allow_full_ownership = true;
+                auto clientEntity = edyn::server_make_client(registry, allow_full_ownership);
                 registry.emplace<PeerID>(clientEntity, peerID);
                 clientEntityMap[peerID] = clientEntity;
 
@@ -144,7 +145,7 @@ void edyn_server_process_packets(entt::registry &registry) {
                 edyn::packet::edyn_packet packet;
                 archive(packet);
 
-                if (clientEntityMap.count(peerID)) {
+                if (!archive.failed() && clientEntityMap.count(peerID)) {
                     auto clientEntity = clientEntityMap.at(peerID);
                     edyn::server_receive_packet(registry, clientEntity, packet);
                 }
