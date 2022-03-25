@@ -74,7 +74,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleGenericConstraint
-    , "23-generic"
+    , "22-generic"
     , "Generic constraint."
     , "https://github.com/xissburg/edyn"
     );

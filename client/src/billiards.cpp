@@ -150,7 +150,7 @@ public:
             (materialA.id == m_ball_mat_id && (materialB.id == m_table_mat_id || materialB.id == m_rail_mat_id)) ||
             (materialB.id == m_ball_mat_id && (materialA.id == m_table_mat_id || materialA.id == m_rail_mat_id));
 
-        auto &cp = manifold.point[manifold.ids[0]];
+        auto &cp = manifold.get_point(0);
         auto &posA = m_registry->get<edyn::position>(manifold.body[0]);
         auto &ornA = m_registry->get<edyn::orientation>(manifold.body[0]);
         auto pos_cp = edyn::to_world_space(cp.pivotA, posA, ornA);

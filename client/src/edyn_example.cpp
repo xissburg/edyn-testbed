@@ -1,5 +1,7 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/math/quaternion.hpp>
+#include <edyn/math/vector3.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
@@ -81,6 +83,8 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_bindings[2].end();
 
     inputAddBindings("base", m_bindings);
+
+    m_footer_text = m_default_footer_text;
 
 #ifdef EDYN_SOUND_ENABLED
     m_soloud.init();
@@ -172,8 +176,9 @@ bool EdynExample::update()
 
     // Draw dynamic entities.
     {
+        auto com_view = m_registry->view<edyn::center_of_mass>();
         auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
-        view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
+        view.each([&] (auto ent, auto &sh_idx, edyn::present_position &pos, edyn::present_orientation &orn) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -189,15 +194,22 @@ bool EdynExample::update()
             dde.setColor(color);
             //dde.setWireframe(true);
 
+            float trans[16];
+            edyn::vector3 origin;
+
+            if (com_view.contains(ent)) {
+                auto [com] = com_view.get(ent);
+                origin = edyn::to_world_space(-com, pos, orn);
+            } else {
+                origin = pos;
+            }
+
             auto bxquat = to_bx(orn);
             float rot[16];
             bx::mtxQuat(rot, bxquat);
 
             float rotT[16];
             bx::mtxTranspose(rotT, rot);
-
-            float trans[16];
-            auto origin = edyn::get_rigidbody_origin(*m_registry, ent);
             bx::mtxTranslate(trans, origin.x, origin.y, origin.z);
 
             float mtx[16];
@@ -274,7 +286,7 @@ bool EdynExample::update()
 
     // Draw amorphous entities.
     {
-        auto view = m_registry->view<edyn::present_position, edyn::present_orientation>(entt::exclude_t<edyn::shape_index>{});
+        auto view = m_registry->view<edyn::position, edyn::orientation>(entt::exclude_t<edyn::shape_index>{});
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 
@@ -643,6 +655,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 auto pick_def = edyn::rigidbody_def{};
                 pick_def.position = pick_pos;
                 pick_def.kind = edyn::rigidbody_kind::rb_kinematic;
+                pick_def.presentation = false;
                 m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
 
                 auto &mass = m_registry->get<edyn::mass>(result.entity);
@@ -655,7 +668,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 m_pick_constraint_entity = con_ent;
             }
         } else {
-            // Move kinematic on plane parallel to view axis.
+            // Move kinematic on plane orthogonal to view axis.
             const auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
             const auto plane_normal = edyn::normalize(cam_at - cam_pos);
             auto dist = edyn::dot(pick_pos - cam_pos, plane_normal);
@@ -742,7 +755,7 @@ void EdynExample::showFooter() {
                                  ImGuiWindowFlags_NoScrollbar |
                                  ImGuiWindowFlags_NoMouseInputs);
 
-    ImGui::Text("Press 'P' to pause and 'L' to step simulation while paused.");
+    ImGui::Text("%s", m_footer_text.c_str());
 
     ImGui::End();
 }

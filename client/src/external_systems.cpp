@@ -43,14 +43,14 @@ void UpdateClimbers(entt::registry &registry) {
             auto pointIndex = edyn::contact_manifold::invalid_id;
 
             for (size_t i = 0; i < manifold.num_points; ++i) {
-                auto &cp = manifold.point[manifold.ids[i]];
+                auto &cp = manifold.get_point(i);
                 if (cp.distance < penetration) {
                     penetration = cp.distance;
                     pointIndex = i;
                 }
             }
 
-            auto &point = manifold.point[manifold.ids[pointIndex]];
+            auto &point = manifold.get_point(pointIndex);
             // Calculate direction which goes up.
             edyn::vector3 pivot;
 
