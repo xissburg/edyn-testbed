@@ -3,6 +3,7 @@
 #include <edyn/networking/networking.hpp>
 #include "pick_input.hpp"
 #include "edyn_server.hpp"
+#include "server_ports.hpp"
 
 void create_scene(entt::registry &registry) {
     // Create floor.

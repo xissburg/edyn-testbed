@@ -1,5 +1,5 @@
 #include "networking.hpp"
-#include "edyn_server.hpp"
+#include "server_ports.hpp"
 #include <edyn/comp/continuous.hpp>
 #include <edyn/comp/position.hpp>
 #include <edyn/edyn.hpp>

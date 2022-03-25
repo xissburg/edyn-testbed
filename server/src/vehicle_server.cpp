@@ -9,6 +9,7 @@
 #include "vehicle_system.hpp"
 #include "edyn_server.hpp"
 #include "pick_input.hpp"
+#include "server_ports.hpp"
 
 std::vector<entt::entity> g_pending_new_clients;
 
