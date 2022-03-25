@@ -1,4 +1,4 @@
-#include "networking.hpp"
+#include "basic_networking.hpp"
 #include "server_ports.hpp"
 #include "vehicle_system.hpp"
 #include <edyn/comp/dirty.hpp>
@@ -16,11 +16,11 @@ void ExternalSystemUpdate(entt::registry &registry) {
     UpdateVehicles(registry);
 }
 
-class ExampleVehicleNetworking : public ExampleNetworking
+class ExampleVehicleNetworking : public ExampleBasicNetworking
 {
 public:
     ExampleVehicleNetworking(const char* _name, const char* _description, const char* _url)
-        : ExampleNetworking(_name, _description, _url)
+        : ExampleBasicNetworking(_name, _description, _url)
     {
         m_server_port = VehicleServerPort;
     }
@@ -33,7 +33,7 @@ public:
 
     void createScene() override
     {
-        ExampleNetworking::createScene();
+        ExampleBasicNetworking::createScene();
 
         edyn::register_networked_components<
             PickInput,
@@ -74,7 +74,7 @@ public:
     }
 
     void updatePhysics(float deltaTime) override {
-        ExampleNetworking::updatePhysics(deltaTime);
+        ExampleBasicNetworking::updatePhysics(deltaTime);
 
         if (m_vehicle_entity != entt::null) {
             if (inputGetKeyState(entry::Key::Left)) {

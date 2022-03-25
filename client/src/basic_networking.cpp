@@ -1,4 +1,4 @@
-#include "networking.hpp"
+#include "basic_networking.hpp"
 #include "server_ports.hpp"
 #include <edyn/comp/continuous.hpp>
 #include <edyn/comp/position.hpp>
@@ -20,14 +20,14 @@ void PrintExtrapolationTimeoutWarning() {
     std::cout << "WARNING: Extrapolation timed out." << std::endl;
 }
 
-ExampleNetworking::ExampleNetworking(const char* _name, const char* _description, const char* _url)
+ExampleBasicNetworking::ExampleBasicNetworking(const char* _name, const char* _description, const char* _url)
     : EdynExample(_name, _description, _url)
     , m_server_port(NetworkingServerPort)
 {
 
 }
 
-bool ExampleNetworking::initEnet()
+bool ExampleBasicNetworking::initEnet()
 {
     if (enet_initialize () != 0) {
         std::cout << "An error occurred while initializing ENet." << std::endl;
@@ -47,7 +47,7 @@ bool ExampleNetworking::initEnet()
     return true;
 }
 
-bool ExampleNetworking::connectToServer(const std::string &hostName, unsigned short port)
+bool ExampleBasicNetworking::connectToServer(const std::string &hostName, unsigned short port)
 {
     ENetAddress address;
     enet_address_set_host(&address, hostName.c_str());
@@ -64,13 +64,13 @@ bool ExampleNetworking::connectToServer(const std::string &hostName, unsigned sh
     return true;
 }
 
-void ExampleNetworking::sendToServer(const uint8_t *data, size_t dataLength, uint32_t flags)
+void ExampleBasicNetworking::sendToServer(const uint8_t *data, size_t dataLength, uint32_t flags)
 {
     ENetPacket *packet = enet_packet_create(data, dataLength, flags);
     enet_peer_send(m_peer, (flags & ENET_PACKET_FLAG_RELIABLE) ? 0 : 1, packet);
 }
 
-void ExampleNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &packet)
+void ExampleBasicNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &packet)
 {
     uint32_t flags = 0;
 
@@ -85,7 +85,7 @@ void ExampleNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &
     sendToServer(data.data(), data.size(), flags);
 }
 
-void ExampleNetworking::onConstructRigidBody(entt::registry &registry, entt::entity entity)
+void ExampleBasicNetworking::onConstructRigidBody(entt::registry &registry, entt::entity entity)
 {
     if (registry.all_of<edyn::dynamic_tag>(entity) && !registry.any_of<edyn::present_position>(entity)) {
         registry.emplace<edyn::present_position>(entity);
@@ -93,12 +93,12 @@ void ExampleNetworking::onConstructRigidBody(entt::registry &registry, entt::ent
     }
 }
 
-void ExampleNetworking::toggleExtrapolation()
+void ExampleBasicNetworking::toggleExtrapolation()
 {
     edyn::toggle_network_client_extrapolation_enabled(*m_registry);
 }
 
-void ExampleNetworking::createScene()
+void ExampleBasicNetworking::createScene()
 {
     if (!initEnet()) {
         return;
@@ -117,7 +117,7 @@ void ExampleNetworking::createScene()
 
     m_footer_text = "Connecting to server...";
 
-    m_registry->on_construct<edyn::rigidbody_tag>().connect<&ExampleNetworking::onConstructRigidBody>(*this);
+    m_registry->on_construct<edyn::rigidbody_tag>().connect<&ExampleBasicNetworking::onConstructRigidBody>(*this);
 
     // Input bindings
     m_network_bindings = (InputBinding*)BX_ALLOC(entry::getAllocator(), sizeof(InputBinding)*2);
@@ -127,7 +127,7 @@ void ExampleNetworking::createScene()
     inputAddBindings("networking", m_network_bindings);
 }
 
-void ExampleNetworking::destroyScene()
+void ExampleBasicNetworking::destroyScene()
 {
     EdynExample::destroyScene();
 
@@ -145,13 +145,13 @@ void ExampleNetworking::destroyScene()
 
     m_footer_text = m_default_footer_text;
 
-    m_registry->on_construct<edyn::rigidbody_tag>().disconnect<&ExampleNetworking::onConstructRigidBody>(*this);
+    m_registry->on_construct<edyn::rigidbody_tag>().disconnect<&ExampleBasicNetworking::onConstructRigidBody>(*this);
 
     inputRemoveBindings("networking");
     BX_FREE(entry::getAllocator(), m_network_bindings);
 }
 
-void ExampleNetworking::updateNetworking()
+void ExampleBasicNetworking::updateNetworking()
 {
     ENetEvent event;
 
@@ -160,14 +160,14 @@ void ExampleNetworking::updateNetworking()
             case ENET_EVENT_TYPE_CONNECT: {
                 edyn::set_network_client_max_concurrent_extrapolations(*m_registry, 1);
                 edyn::network_client_packet_sink(*m_registry)
-                    .connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+                    .connect<&ExampleBasicNetworking::sendEdynPacketToServer>(*this);
                 m_footer_text = "Connected to server.";
                 break;
             }
 
             case ENET_EVENT_TYPE_DISCONNECT: {
                 edyn::network_client_packet_sink(*m_registry)
-                    .disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+                    .disconnect<&ExampleBasicNetworking::sendEdynPacketToServer>(*this);
                 m_footer_text = "Disconnected.";
                 break;
             }
@@ -205,7 +205,7 @@ void ExampleNetworking::updateNetworking()
     }
 }
 
-void ExampleNetworking::updatePhysics(float deltaTime)
+void ExampleBasicNetworking::updatePhysics(float deltaTime)
 {
     if (m_pick_entity != entt::null) {
         // Position was marked as dirty earlier, which would cause a general
@@ -232,12 +232,12 @@ void ExampleNetworking::updatePhysics(float deltaTime)
 }
 
 void cmdToggleExtrapolation(const void* _userData) {
-    ((ExampleNetworking *)_userData)->toggleExtrapolation();
+    ((ExampleBasicNetworking *)_userData)->toggleExtrapolation();
 }
 
 ENTRY_IMPLEMENT_MAIN(
-    ExampleNetworking
+    ExampleBasicNetworking
     , "24-networking"
-    , "Networking."
+    , "Basic networking."
     , "https://github.com/xissburg/edyn-testbed"
     );

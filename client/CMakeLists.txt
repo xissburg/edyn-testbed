@@ -59,7 +59,6 @@ set(EdynTestbed_SOURCES
     src/ragdoll.cpp
     src/generic_constraint.cpp
     src/vehicle.cpp
-    src/vehicle_networking.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 
@@ -68,7 +67,8 @@ if (EDYN_BUILD_NETWORKING_EXAMPLE)
 
     set(EdynTestbed_SOURCES
         ${EdynTestbed_SOURCES}
-        src/networking.cpp
+        src/vehicle_networking.cpp
+        src/basic_networking.cpp
         src/register_networked_components.cpp)
 endif ()
 

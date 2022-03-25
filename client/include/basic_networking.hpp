@@ -1,17 +1,17 @@
-#ifndef EDYN_TESTBED_NETWORKING_EXAMPLE_HPP
-#define EDYN_TESTBED_NETWORKING_EXAMPLE_HPP
+#ifndef EDYN_TESTBED_BASIC_NETWORKING_EXAMPLE_HPP
+#define EDYN_TESTBED_BASIC_NETWORKING_EXAMPLE_HPP
 
 #include "edyn_example.hpp"
 #include <cstdint>
 #include <edyn/networking/networking.hpp>
 #include <enet/enet.h>
 
-class ExampleNetworking : public EdynExample
+class ExampleBasicNetworking : public EdynExample
 {
 public:
-    ExampleNetworking(const char* _name, const char* _description, const char* _url);
+    ExampleBasicNetworking(const char* _name, const char* _description, const char* _url);
 
-    virtual ~ExampleNetworking() {}
+    virtual ~ExampleBasicNetworking() {}
 
     bool initEnet();
 
@@ -42,4 +42,4 @@ protected:
     uint16_t m_server_port;
 };
 
-#endif // EDYN_TESTBED_NETWORKING_EXAMPLE_HPP
+#endif // EDYN_TESTBED_BASIC_NETWORKING_EXAMPLE_HPP
