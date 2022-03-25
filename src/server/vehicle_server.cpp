@@ -1,6 +1,8 @@
 #include <edyn/comp/tag.hpp>
 #include <edyn/networking/comp/entity_owner.hpp>
 #include <edyn/networking/comp/remote_client.hpp>
+#include <edyn/networking/comp/aabb_of_interest.hpp>
+#include <edyn/networking/comp/aabb_oi_follow.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
@@ -50,6 +52,12 @@ void edyn_server_update(entt::registry &registry) {
         auto vehicle_entity = CreateVehicle(registry);
         assign_vehicle_ownership_to_client(registry, vehicle_entity, client_entity);
         notify_vehicle_entity_created(registry, vehicle_entity, client_entity);
+
+        // Make AABB of interest follow vehicle.
+        registry.get<edyn::aabb_of_interest>(client_entity).aabb = {-150 * edyn::vector3_one, 150 * edyn::vector3_one};
+
+        auto &veh = registry.get<Vehicle>(vehicle_entity);
+        registry.emplace<edyn::aabb_oi_follow>(client_entity, veh.chassis_entity);
     }
 
     g_pending_new_clients.clear();
@@ -71,7 +79,7 @@ int main() {
         VehicleSettings,
         VehicleState,
         VehicleInput
-    >(registry, std::tuple<VehicleState, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
+    >(registry, std::tuple<VehicleState, VehicleInput, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
 
     RegisterVehicleComponents(registry);
     edyn::set_external_system_pre_step(registry, &ExternalSystemUpdate);
