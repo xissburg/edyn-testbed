@@ -35,9 +35,14 @@ It uses these sounds from freesound:
 - "Billiard balls single hit-dry.wav" by juskiddink (https://freesound.org/people/juskiddink/sounds/108615/) licensed under CCBYNC 3.0
 - "big thud.wav" by Reitanna (https://freesound.org/people/Reitanna/sounds/332661/) licensed under CCBY 3.0
 
+## Networked physics
+
+To build the networked physics samples, set the CMake option `EDYN_BUILD_NETWORKING_EXAMPLE` to true and to build the server applications, set `EDYN_BUILD_SERVER` to true. The networked physics samples and the servers need the [ENet](https://github.com/lsalzman/enet) library.
+
+The servers are separate applications. Each distinct networking sample has a server associated with it and the server must be running before the sample is selected in the sample browser so it can connect to server. If the server is running in a different machine, it's necessary to edit the host name is the calls to `ExampleBasicNetworking::connectToServer`.
+
 # Running it
 
 Press `P` to pause/unpause the simulation. Press `L` to step the simulation when paused.
 
 https://user-images.githubusercontent.com/762769/148439511-9dad8f36-182c-43e7-af91-bdd43f430965.mp4
-
