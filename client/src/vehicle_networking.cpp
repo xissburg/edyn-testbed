@@ -33,6 +33,8 @@ public:
 
     void createScene() override
     {
+        m_vehicle_entity = entt::null;
+
         ExampleBasicNetworking::createScene();
 
         edyn::register_networked_components<
