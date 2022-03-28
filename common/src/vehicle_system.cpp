@@ -41,6 +41,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
     auto wheel_def = edyn::rigidbody_def{};
     wheel_def.material->restitution = 0.6;
     wheel_def.material->friction = 1;
+    wheel_def.material->roll_friction = 0.004;
     wheel_def.mass = 50;
     wheel_def.shape = edyn::cylinder_shape{0.4, 0.1};
     wheel_def.update_inertia();
@@ -59,13 +60,13 @@ entt::entity CreateVehicle(entt::registry &registry) {
         con.linear_dofs[1].offset_min = -0.8;
         con.linear_dofs[1].offset_max = 0;
         con.linear_dofs[1].bump_stop_length = 0.1;
-        con.linear_dofs[1].bump_stop_stiffness = 250000;
-        con.linear_dofs[1].spring_stiffness = 55000;
+        con.linear_dofs[1].bump_stop_stiffness = 180000;
+        con.linear_dofs[1].spring_stiffness = 45000;
         con.linear_dofs[1].rest_offset = -0.5;
-        con.linear_dofs[1].damping = 2000;
-        con.linear_dofs[1].friction_force = 50;
+        con.linear_dofs[1].damping = 1200;
+        con.linear_dofs[1].friction_force = 10;
         con.angular_dofs[0].limit_enabled = false;
-        con.angular_dofs[0].friction_torque = edyn::to_Nm_per_radian(0.01);
+        con.angular_dofs[0].friction_torque = edyn::to_Nm_per_radian(0.006);
 
         vehicle.wheel_entity[i] = wheel_entity;
         vehicle.suspension_entity[i] = con_ent;
