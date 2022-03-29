@@ -33,7 +33,7 @@ function(make_server ProjectName)
     endif ()
 
     if (WIN32)
-        target_link_libraries(${ProjectName} winmm)
+        target_link_libraries(${ProjectName} winmm Ws2_32)    
     endif ()
 endfunction()
 

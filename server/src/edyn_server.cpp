@@ -1,8 +1,9 @@
 #include "edyn_server.hpp"
-#include <edyn/networking/networking.hpp>
-#include <edyn/networking/sys/server_side.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
+#include <edyn/networking/networking.hpp>
+#include <edyn/networking/sys/server_side.hpp>
+#include <enet/enet.h>
 #include <iostream>
 
 struct PeerID {

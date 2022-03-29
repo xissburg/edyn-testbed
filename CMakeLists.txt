@@ -15,7 +15,7 @@ endif()
 #
 
 if(MSVC)
-  add_compile_options(/W4)
+  add_compile_options(/W4 /bigobj)
 else()
   add_compile_options(-Wall -Wno-reorder -Wno-long-long -Wimplicit-fallthrough)
 endif()
