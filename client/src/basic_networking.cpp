@@ -208,16 +208,14 @@ void ExampleBasicNetworking::updateNetworking()
 void ExampleBasicNetworking::updatePhysics(float deltaTime)
 {
     if (m_pick_entity != entt::null) {
-        // Position was marked as dirty earlier, which would cause a general
-        // snapshot to be sent with the new position, which is undesirable.
-        m_registry->remove<edyn::dirty>(m_pick_entity);
-
         if (!m_registry->any_of<edyn::networked_tag>(m_pick_entity)) {
             // Make pick entity networked.
             m_registry->emplace<edyn::networked_tag>(m_pick_entity);
             m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
             m_registry->emplace<PickInput>(m_pick_entity);
             m_registry->emplace<edyn::continuous>(m_pick_entity).insert(edyn::get_component_index<edyn::position>(*m_registry));
+            // Marking it as dirty will not cause a general_snapshot to be sent
+            // because PickInput is a transient component.
             m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).created<PickInput>();
         }
 
