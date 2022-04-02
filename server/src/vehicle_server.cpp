@@ -75,6 +75,7 @@ int main() {
     edyn_server_init(registry, VehicleServerPort);
 
     edyn::set_fixed_dt(registry, 0.008);
+    edyn::set_solver_velocity_iterations(registry, 16);
 
     edyn::register_networked_components<
         PickInput,

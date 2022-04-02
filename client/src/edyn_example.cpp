@@ -192,7 +192,6 @@ bool EdynExample::update()
                 }
             }
             dde.setColor(color);
-            //dde.setWireframe(true);
 
             float trans[16];
             edyn::vector3 origin;
@@ -258,9 +257,8 @@ bool EdynExample::update()
 
             dde.push();
 
-            uint32_t color = 0xffa0a0a0;
+            uint32_t color = 0xff303030;
             dde.setColor(color);
-            //dde.setWireframe(true);
 
             auto bxquat = to_bx(orn);
             float rot[16];

@@ -1,3 +1,6 @@
+#ifndef EDYN_TESTBED_CLIENT_BX_UTIL_HPP
+#define EDYN_TESTBED_CLIENT_BX_UTIL_HPP
+
 #include <edyn/math/vector3.hpp>
 #include <edyn/math/quaternion.hpp>
 #include <bx/math.h>
@@ -9,3 +12,5 @@ inline bx::Vec3 to_bx(edyn::vector3 v) {
 inline bx::Quaternion to_bx(edyn::quaternion q) {
     return {float(q.x), float(q.y), float(q.z), float(q.w)};
 }
+
+#endif // EDYN_TESTBED_CLIENT_BX_UTIL_HPP

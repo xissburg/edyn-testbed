@@ -4,6 +4,7 @@
 #include <edyn/edyn.hpp>
 #include <common/debugdraw/debugdraw.h>
 #include <edyn/shapes/polyhedron_shape.hpp>
+#include "bx_util.hpp"
 
 inline void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
     Sphere sphere;
@@ -14,7 +15,7 @@ inline void draw(DebugDrawEncoder &dde, const edyn::sphere_shape &sh) {
 
 inline void draw(DebugDrawEncoder &dde, const edyn::plane_shape &sh) {
     auto center = sh.normal * sh.constant;
-    dde.drawQuad(bx::Vec3(sh.normal.x, sh.normal.y, sh.normal.z), bx::Vec3(center.x, center.y, center.z), 10);
+    dde.drawQuad(to_bx(-sh.normal), to_bx(center), 20);
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::cylinder_shape &sh) {
@@ -26,8 +27,7 @@ inline void draw(DebugDrawEncoder &dde, const edyn::capsule_shape &sh) {
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
-    auto aabb = Aabb{bx::Vec3(-sh.half_extents.x, -sh.half_extents.y, -sh.half_extents.z),
-                     bx::Vec3( sh.half_extents.x,  sh.half_extents.y,  sh.half_extents.z)};
+    auto aabb = Aabb{to_bx(-sh.half_extents), to_bx(sh.half_extents)};
     dde.draw(aabb);
 }
 

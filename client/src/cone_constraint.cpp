@@ -22,12 +22,9 @@ public:
     void createScene() override
     {
         // Create floor
-        auto floor_def = edyn::rigidbody_def();
-        floor_def.kind = edyn::rigidbody_kind::rb_static;
-        floor_def.material->restitution = 1;
-        floor_def.material->friction = 0.5;
-        floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
-        auto floor_ent = edyn::make_rigidbody(*m_registry, floor_def);
+        auto static_def = edyn::rigidbody_def();
+        static_def.kind = edyn::rigidbody_kind::rb_static;
+        auto static_ent = edyn::make_rigidbody(*m_registry, static_def);
 
         // Add some boxes.
         auto def = edyn::rigidbody_def();
@@ -41,7 +38,7 @@ public:
         def.position = {0, 2, 0};
         auto entityA = edyn::make_rigidbody(*m_registry, def);
 
-        auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, floor_ent);
+        auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, static_ent);
         hinge.pivot[1] = def.position;
         hinge.set_axes({0, 1, 0}, {0, 1, 0});
         hinge.friction_torque = 10;

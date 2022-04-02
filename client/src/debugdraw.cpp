@@ -1,6 +1,5 @@
 #include "debugdraw.hpp"
 #include "drawing_properties.hpp"
-#include "bx_util.hpp"
 #include <bx/math.h>
 #include <common/debugdraw/debugdraw.h>
 
