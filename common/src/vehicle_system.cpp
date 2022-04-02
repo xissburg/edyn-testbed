@@ -42,6 +42,8 @@ entt::entity CreateVehicle(entt::registry &registry) {
     wheel_def.material->restitution = 0.6;
     wheel_def.material->friction = 1;
     wheel_def.material->roll_friction = 0.004;
+    wheel_def.material->stiffness = 86000;
+    wheel_def.material->damping = 800;
     wheel_def.mass = 50;
     wheel_def.shape = edyn::cylinder_shape{0.4, 0.1};
     wheel_def.update_inertia();
