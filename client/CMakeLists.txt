@@ -58,6 +58,7 @@ set(EdynTestbed_SOURCES
     src/cone_constraint.cpp
     src/ragdoll.cpp
     src/generic_constraint.cpp
+    src/sensors.cpp
     src/vehicle.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )

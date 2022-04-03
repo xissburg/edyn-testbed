@@ -235,7 +235,7 @@ void cmdToggleExtrapolation(const void* _userData) {
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleBasicNetworking
-    , "24-networking"
+    , "25-networking"
     , "Basic networking."
     , "https://github.com/xissburg/edyn-testbed"
     );

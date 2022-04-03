@@ -63,9 +63,9 @@ entt::entity CreateVehicle(entt::registry &registry) {
         con.linear_dofs[1].offset_max = 0;
         con.linear_dofs[1].bump_stop_length = 0.1;
         con.linear_dofs[1].bump_stop_stiffness = 180000;
-        con.linear_dofs[1].spring_stiffness = 45000;
+        con.linear_dofs[1].spring_stiffness = 40000;
         con.linear_dofs[1].rest_offset = -0.5;
-        con.linear_dofs[1].damping = 1200;
+        con.linear_dofs[1].damping = 1100;
         con.linear_dofs[1].friction_force = 10;
         con.angular_dofs[0].limit_enabled = false;
         con.angular_dofs[0].friction_torque = edyn::to_Nm_per_radian(0.006);

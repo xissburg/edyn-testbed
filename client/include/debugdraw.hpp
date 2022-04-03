@@ -64,4 +64,6 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::null_constrain
 inline
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::gravity_constraint &con, const entt::registry &reg) {}
 
+void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_manifold &manifold, const entt::registry &reg);
+
 #endif // EDYN_TESTBED_DEBUG_DRAW_HPP

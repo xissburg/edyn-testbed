@@ -183,13 +183,12 @@ bool EdynExample::update()
 
             uint32_t color = 0xffffffff;
 
-            if (m_registry->any_of<edyn::sleeping_tag>(ent)) {
+            if (auto *color_comp = m_registry->try_get<ColorComponent>(ent)) {
+                color = *color_comp;
+            } else if (m_registry->any_of<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
-            } else {
-                auto *resident = m_registry->try_get<edyn::island_resident>(ent);
-                if (resident) {
-                    color = m_registry->get<ColorComponent>(resident->island_entity);
-                }
+            } else if (auto *resident = m_registry->try_get<edyn::island_resident>(ent)) {
+                color = m_registry->get<ColorComponent>(resident->island_entity);
             }
             dde.setColor(color);
 
@@ -258,6 +257,11 @@ bool EdynExample::update()
             dde.push();
 
             uint32_t color = 0xff303030;
+
+            if (auto *color_comp = m_registry->try_get<ColorComponent>(ent)) {
+                color = *color_comp;
+            }
+
             dde.setColor(color);
 
             auto bxquat = to_bx(orn);
@@ -284,7 +288,7 @@ bool EdynExample::update()
 
     // Draw amorphous entities.
     {
-        auto view = m_registry->view<edyn::position, edyn::orientation>(entt::exclude_t<edyn::shape_index>{});
+        auto view = m_registry->view<edyn::position, edyn::orientation>(entt::exclude<edyn::shape_index>);
         view.each([&] (auto ent, auto &pos, auto &orn) {
             dde.push();
 
@@ -316,6 +320,14 @@ bool EdynExample::update()
                 draw(dde, ent, con, *m_registry);
             }), ...);
         }, edyn::constraints_tuple);
+    }
+
+    // Draw manifolds with no contact constraint.
+    {
+        auto view = m_registry->view<edyn::contact_manifold>(entt::exclude<edyn::contact_constraint>);
+        for (auto [ent, manifold] : view.each()) {
+            draw(dde, ent, manifold, *m_registry);
+        }
     }
 
     drawRaycast(dde);
