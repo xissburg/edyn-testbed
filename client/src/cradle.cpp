@@ -18,7 +18,6 @@ public:
         def.angvel = edyn::vector3_zero;
         def.mass = 100;
         def.shape = edyn::sphere_shape{0.2};
-        //def.gravity = edyn::vector3_zero;
         def.update_inertia();
 
         auto def_st = edyn::rigidbody_def();
@@ -34,8 +33,6 @@ public:
                 auto angle = edyn::pi * 0;
                 def.position.x += std::cos(angle) * height;
                 def.position.y = height - std::sin(angle) * height;
-                /* def.position.x += 1;
-                def.linvel.x = -5; */
             }
 
             auto ent = edyn::make_rigidbody(*m_registry, def);
