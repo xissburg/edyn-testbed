@@ -41,20 +41,26 @@ public:
 
     void setSteering(float steering) {
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
-        input.steering = steering;
-        edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        if (input.steering != steering) {
+            input.steering = steering;
+            edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        }
     }
 
     void setThrottle(float throttle) {
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
-        input.throttle = throttle;
-        edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        if (input.throttle != throttle) {
+            input.throttle = throttle;
+            edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        }
     }
 
     void setBrakes(float brakes) {
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
-        input.brakes = brakes;
-        edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        if (input.brakes != brakes) {
+            input.brakes = brakes;
+            edyn::refresh<VehicleInput>(*m_registry, m_vehicle_entity);
+        }
     }
 
     void updatePhysics(float deltaTime) override {
