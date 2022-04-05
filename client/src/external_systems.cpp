@@ -10,15 +10,12 @@ struct ClimbBehavior {
 // in this registry do not match up with the entities created in the main
 // registry.
 void UpdateClimbers(entt::registry &registry) {
-    auto &graph = registry.ctx<edyn::entity_graph>();
     auto manifoldView = registry.view<edyn::contact_manifold>();
-    auto climblersView = registry.view<edyn::graph_node, ClimbBehavior, edyn::position>();
+    auto climblersView = registry.view<ClimbBehavior, edyn::position>();
 
-    climblersView.each([&] (entt::entity entity, edyn::graph_node &node, ClimbBehavior &climber, edyn::position &posClimber) {
+    climblersView.each([&] (entt::entity entity, ClimbBehavior &climber, edyn::position &posClimber) {
         // Find contact manifolds for this entity.
-        graph.visit_edges(node.node_index, [&] (auto edgeIndex) {
-            auto manifoldEntity = graph.edge_entity(edgeIndex);
-
+        edyn::visit_edges(registry, entity, [&] (auto manifoldEntity) {
             if (!manifoldView.contains(manifoldEntity)) {
                 return;
             }
