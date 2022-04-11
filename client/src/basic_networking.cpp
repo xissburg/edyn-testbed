@@ -6,7 +6,9 @@
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/networking/packet/edyn_packet.hpp>
+#include <edyn/time/time.hpp>
 #include <edyn/util/rigidbody.hpp>
+#include <iomanip>
 #include <unordered_set>
 #include <enet/enet.h>
 #include <iostream>
@@ -227,6 +229,22 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
     edyn::update_network_client(*m_registry);
     EdynExample::updatePhysics(deltaTime);
     enet_host_flush(m_host);
+
+    auto time = edyn::performance_time();
+    auto dt = time - m_network_speed_timestamp;
+    if (dt > 1) {
+        m_network_speed_timestamp = time;
+        auto data_outgoing_delta = m_host->totalSentData - m_data_outgoing_total_prev;
+        auto data_incoming_delta = m_host->totalReceivedData - m_data_incoming_total_prev;
+        auto network_outgoing_data_rate = (data_outgoing_delta / dt) / 1024;
+        auto network_incoming_data_rate = (data_incoming_delta / dt) / 1024;
+        m_data_outgoing_total_prev = m_host->totalSentData;
+        m_data_incoming_total_prev = m_host->totalReceivedData;
+
+        std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(3)
+            << "Network data rate(kB/s): up " << network_outgoing_data_rate
+            << " | down " << network_incoming_data_rate << std::endl;
+    }
 }
 
 void cmdToggleExtrapolation(const void* _userData) {
