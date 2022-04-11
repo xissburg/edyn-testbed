@@ -43,7 +43,7 @@ public:
             VehicleSettings,
             VehicleState,
             VehicleInput
-        >(*m_registry, std::tuple<VehicleState, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
+        >(*m_registry);
         RegisterVehicleComponents(*m_registry);
 
         edyn::set_external_system_pre_step(*m_registry, &ExternalSystemUpdate);

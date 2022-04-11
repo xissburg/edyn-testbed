@@ -35,10 +35,10 @@ bool ExampleBasicNetworking::initEnet()
     }
 
     m_host = enet_host_create(NULL /* create a client host */,
-                                    2 /* allow 2 outgoing connections (one for game data stream) */,
-                                    2 /* allow up 2 channels to be used, 0 and 1 */,
-                                    0 /* 56K modem with 56 Kbps downstream bandwidth */,
-                                    0 /* 56K modem with 14 Kbps upstream bandwidth */);
+                              2 /* allow 2 outgoing connections (one for game data stream) */,
+                              2 /* allow up 2 channels to be used, 0 and 1 */,
+                              0 /* 56K modem with 56 Kbps downstream bandwidth */,
+                              0 /* 56K modem with 14 Kbps upstream bandwidth */);
     if (m_host == nullptr) {
         std::cout << "An error occurred while trying to create an ENet client host." << std::endl;
         return false;
@@ -220,7 +220,7 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
         }
 
         m_registry->get<PickInput>(m_pick_entity).position = m_registry->get<edyn::position>(m_pick_entity);
-        edyn::refresh<PickInput>(*m_registry, m_pick_entity);
+        m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
     }
 
     updateNetworking();

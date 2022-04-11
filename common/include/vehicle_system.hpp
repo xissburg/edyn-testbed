@@ -6,6 +6,7 @@
 #include <edyn/math/scalar.hpp>
 #include <entt/entity/fwd.hpp>
 #include <edyn/util/entity_map.hpp>
+#include <edyn/networking/comp/network_input.hpp>
 #include <vector>
 
 struct Vehicle {
@@ -15,7 +16,7 @@ struct Vehicle {
     entt::entity null_con_entity;
 };
 
-struct VehicleInput {
+struct VehicleInput : edyn::network_input {
     edyn::scalar steering{};
     edyn::scalar throttle{};
     edyn::scalar brakes{};

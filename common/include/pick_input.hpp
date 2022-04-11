@@ -3,8 +3,9 @@
 
 #include <entt/entity/registry.hpp>
 #include <edyn/comp/position.hpp>
+#include <edyn/networking/comp/network_input.hpp>
 
-struct PickInput {
+struct PickInput : edyn::network_input {
     edyn::vector3 position;
 };
 

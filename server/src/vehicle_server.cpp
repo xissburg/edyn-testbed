@@ -83,7 +83,7 @@ int main() {
         VehicleSettings,
         VehicleState,
         VehicleInput
-    >(registry, std::tuple<VehicleState, VehicleInput, PickInput>{}, std::tuple<VehicleInput, PickInput>{});
+    >(registry);
 
     RegisterVehicleComponents(registry);
     edyn::set_external_system_pre_step(registry, &ExternalSystemUpdate);
