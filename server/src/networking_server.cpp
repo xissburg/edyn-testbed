@@ -49,7 +49,7 @@ int main() {
     edyn_server_init(registry, NetworkingServerPort);
 
     edyn::register_external_components<PickInput>(registry);
-    edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
+    edyn::register_networked_components<PickInput>(registry);
     edyn::set_external_system_pre_step(registry, &UpdatePickInput);
 
     create_scene(registry);

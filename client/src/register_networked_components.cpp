@@ -4,7 +4,7 @@
 
 void RegisterNetworkedComponents(entt::registry &registry) {
     edyn::register_external_components<PickInput>(registry);
-    edyn::register_networked_components<PickInput>(registry, std::tuple<PickInput>{}, std::tuple<PickInput>{});
+    edyn::register_networked_components<PickInput>(registry);
 }
 
 void UnregisterNetworkedComponents(entt::registry &registry) {

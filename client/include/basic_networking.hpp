@@ -37,6 +37,9 @@ private:
     ENetHost *m_host {nullptr};
     ENetPeer *m_peer {nullptr};
     InputBinding* m_network_bindings;
+    double m_network_speed_timestamp{};
+    unsigned int m_data_outgoing_total_prev{};
+    unsigned int m_data_incoming_total_prev{};
 
 protected:
     uint16_t m_server_port;
