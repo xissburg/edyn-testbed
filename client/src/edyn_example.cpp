@@ -178,7 +178,7 @@ bool EdynExample::update()
     {
         auto com_view = m_registry->view<edyn::center_of_mass>();
         auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
-        view.each([&] (auto ent, auto &sh_idx, edyn::present_position &pos, edyn::present_orientation &orn) {
+        view.each([&](auto ent, auto &sh_idx, edyn::present_position &pos, edyn::present_orientation &orn) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -215,7 +215,7 @@ bool EdynExample::update()
 
             dde.pushTransform(mtx);
 
-            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
+            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&](auto &&s) {
                 draw(dde, s);
             });
 
@@ -237,7 +237,7 @@ bool EdynExample::update()
         dde.setWireframe(true);
 
         auto view = m_registry->view<edyn::AABB>();
-        view.each([&] (edyn::AABB &aabb) {
+        view.each([&](edyn::AABB &aabb) {
             dde.draw(Aabb{{aabb.min.x, aabb.min.y, aabb.min.z}, {aabb.max.x, aabb.max.y, aabb.max.z}});
         });
 
@@ -248,7 +248,7 @@ bool EdynExample::update()
     // Draw static and kinematic entities.
     {
         auto view = m_registry->view<edyn::shape_index, edyn::position, edyn::orientation>();
-        view.each([&] (auto ent, auto &sh_idx, auto &pos, auto &orn) {
+        view.each([&](auto ent, auto &sh_idx, auto &pos, auto &orn) {
             if (!m_registry->any_of<edyn::static_tag>(ent) &&
                 !m_registry->any_of<edyn::kinematic_tag>(ent)) {
                 return;
@@ -276,7 +276,7 @@ bool EdynExample::update()
             bx::mtxMul(mtx, rotT, trans);
             dde.pushTransform(mtx);
 
-            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&] (auto &&s) {
+            edyn::visit_shape(sh_idx, ent, shape_views_tuple, [&](auto &&s) {
                 draw(dde, s);
             });
 
@@ -289,7 +289,7 @@ bool EdynExample::update()
     // Draw amorphous entities.
     {
         auto view = m_registry->view<edyn::position, edyn::orientation>(entt::exclude<edyn::shape_index>);
-        view.each([&] (auto ent, auto &pos, auto &orn) {
+        view.each([&](auto ent, auto &pos, auto &orn) {
             dde.push();
 
             auto bxquat = to_bx(orn);
@@ -314,9 +314,9 @@ bool EdynExample::update()
 
     // Draw constraints.
     {
-        std::apply([&] (auto ...c) {
+        std::apply([&](auto ...c) {
             (
-            m_registry->view<decltype(c)>().each([&] (auto ent, auto &con) {
+            m_registry->view<decltype(c)>().each([&](auto ent, auto &con) {
                 draw(dde, ent, con, *m_registry);
             }), ...);
         }, edyn::constraints_tuple);
@@ -535,13 +535,13 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::compound_shape &compound,
 
     dde.pushTransform(mtx);
 
-    std::visit([&] (auto &&shape) {
+    std::visit([&](auto &&shape) {
         auto child_result = edyn::shape_raycast_result{
             result.fraction,
             result.normal
         };
 
-        std::visit([&] (auto &&child_info) {
+        std::visit([&](auto &&child_info) {
             child_result.info_var = child_info;
         }, info.child_info_var);
 
@@ -594,7 +594,7 @@ void EdynExample::drawRaycast(DebugDrawEncoder &dde) {
     auto camPos = edyn::vector3{cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
     auto shapeViews = edyn::get_tuple_of_shape_views(*m_registry);
     auto view = m_registry->view<edyn::shape_raycast_result, edyn::shape_index, edyn::position, edyn::orientation>();
-    view.each([&] (entt::entity entity, edyn::shape_raycast_result &result, edyn::shape_index &shapeIndex,
+    view.each([&](entt::entity entity, edyn::shape_raycast_result &result, edyn::shape_index &shapeIndex,
                     edyn::position &pos, edyn::orientation &orn) {
         auto bxquat = to_bx(orn);
 
@@ -610,7 +610,7 @@ void EdynExample::drawRaycast(DebugDrawEncoder &dde) {
 
         dde.pushTransform(mtx);
 
-        edyn::visit_shape(shapeIndex, entity, shapeViews, [&] (auto &&shape) {
+        edyn::visit_shape(shapeIndex, entity, shapeViews, [&](auto &&shape) {
             drawRaycastResult(dde, shape, result, camPos, m_rayDir * m_rayLength, pos, orn);
         });
 

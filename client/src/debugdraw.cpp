@@ -39,7 +39,7 @@ void draw(DebugDrawEncoder &dde, const edyn::mesh_shape &sh) {
 
 void draw(DebugDrawEncoder &dde, const edyn::paged_mesh_shape &sh) {
     dde.setWireframe(false);
-    sh.trimesh->visit_all_cached_edges([&] (auto mesh_idx, auto edge_idx) {
+    sh.trimesh->visit_all_cached_edges([&](auto mesh_idx, auto edge_idx) {
         auto trimesh = sh.trimesh->get_submesh(mesh_idx);
         dde.setColor(trimesh->is_boundary_edge(edge_idx) ? 0xff1081ea : 0xffc0c0c0);
         auto vertices = trimesh->get_edge_vertices(edge_idx);
@@ -101,7 +101,7 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
 
         dde.pushTransform(mtx);
 
-        std::visit([&] (auto &&s) {
+        std::visit([&](auto &&s) {
             draw(dde, s);
         }, node.shape_var);
 
@@ -115,7 +115,7 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_manifo
     auto posB = edyn::get_rigidbody_origin(reg, manifold.body[1]);
     auto ornB = reg.get<edyn::orientation>(manifold.body[1]);
 
-    manifold.each_point([&] (auto &cp) {
+    manifold.each_point([&](auto &cp) {
         auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
         auto tip = pB + cp.normal * 0.1;
 

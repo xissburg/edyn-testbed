@@ -8,7 +8,7 @@ void ContactStarted(entt::registry &registry, entt::entity entity) {
     EDYN_ASSERT(manifold.num_points > 0);
     float normal_impulse = 0;
 
-    manifold.each_point([&] (edyn::contact_point &cp) {
+    manifold.each_point([&](edyn::contact_point &cp) {
         normal_impulse += cp.normal_impulse + cp.normal_restitution_impulse;
     });
 
