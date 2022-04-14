@@ -11,7 +11,7 @@ void RegisterVehicleComponents(entt::registry &registry) {
         .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
         .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
         .data<&Vehicle::wheel_entity, entt::as_ref_t>("wheel_entity"_hs);
-    edyn::register_external_components<PickInput, Vehicle, VehicleSettings, VehicleState, VehicleInput>(registry);
+    edyn::register_external_components<PickInput, Vehicle, VehicleSettings, VehicleState, VehicleActions>(registry);
 }
 
 entt::entity CreateVehicle(entt::registry &registry) {
@@ -75,6 +75,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
     }
 
     registry.emplace<VehicleSettings>(vehicle_entity);
+    registry.emplace<VehicleActions>(vehicle_entity);
     registry.emplace<VehicleInput>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
     registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
@@ -82,68 +83,113 @@ entt::entity CreateVehicle(entt::registry &registry) {
     return vehicle_entity;
 }
 
-void UpdateVehicles(entt::registry &registry) {
-    auto vehicle_view = registry.view<const Vehicle, const VehicleInput, const VehicleSettings, VehicleState>().each();
-    auto dt = edyn::get_fixed_dt(registry);
+void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleSteeringAction &action) {
+    auto [settings, state] = registry.get<const VehicleSettings, VehicleState>(entity);
+    state.target_steering = action.value * settings.max_steering_angle;
+}
 
-    // Apply vehicle input and update state.
-    for (auto [entity, vehicle, input, settings, state] : vehicle_view) {
-        // Update steering.
-        state.target_steering = input.steering * settings.max_steering_angle;
-        auto steering_direction = state.target_steering > state.steering ? 1 : -1;
-        auto steering_increment = std::min(settings.max_steering_rate * dt, std::abs(state.target_steering - state.steering)) * steering_direction;
-        state.steering += steering_increment;
+void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleThrottleAction &action) {
+    auto [vehicle, state] = registry.get<const Vehicle, VehicleState>(entity);
 
-        // Update brakes and traction with rudimentary ABS and TCS.
-        for (int i = 0; i < 4; ++i) {
-            auto wheel_entity = vehicle.wheel_entity[i];
-            auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
-            auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
-            auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-            auto spin_axis = edyn::quaternion_x(wheel_orn);
-            auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
-            auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
+    for (int i = 0; i < 4; ++i) {
+        auto wheel_entity = vehicle.wheel_entity[i];
+        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
+        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
+        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
+        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
 
-            if (longitudinal_speed > 2 &&
-                std::abs(spin_speed) < edyn::to_radians(1))
-            {
-                state.brakes[i] = 0;
-            } else {
-                state.brakes[i] = input.brakes;
-            }
-
-            if (std::abs(spin_speed) * 0.25f > longitudinal_speed) {
-                state.throttle[i] = 0;
-            } else {
-                state.throttle[i] = input.throttle;
-            }
+        if (std::abs(spin_speed) * 0.25f > longitudinal_speed) {
+            state.throttle[i] = 0;
+        } else {
+            state.throttle[i] = action.value;
         }
     }
+}
 
-    // Apply vehicle state.
-    for (auto [entity, vehicle, settings, state] : registry.view<const Vehicle, const VehicleSettings, const VehicleState>().each()) {
-        for (int i = 0; i < 2; ++i) {
-            auto steering = state.steering;
+void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleBrakeAction &action) {
+    auto [vehicle, state] = registry.get<const Vehicle, VehicleState>(entity);
 
-            // Slight Ackerman effect.
-            if ((i == 0 && steering > 0) || (i == 1 && steering < 0)) {
-                steering *= 1.1;
-            }
+    for (int i = 0; i < 4; ++i) {
+        auto wheel_entity = vehicle.wheel_entity[i];
+        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
+        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
+        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
+        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
 
-            auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
-            con.frame[0] = edyn::to_matrix3x3(edyn::quaternion_axis_angle({0, 1, 0}, steering));
+        if (longitudinal_speed > 2 &&
+            std::abs(spin_speed) < edyn::to_radians(1))
+        {
+            state.brakes[i] = 0;
+        } else {
+            state.brakes[i] = action.value;
+        }
+    }
+}
+
+void ProcessActions(entt::registry &registry) {
+    for (auto [entity, actions] : registry.view<VehicleActions>().each()) {
+        for (auto &action : actions) {
+            std::visit([&registry, entity = entity](auto &&containedAction) {
+                ExecuteAction(registry, entity, containedAction);
+            }, action);
+        }
+        actions.clear();
+    }
+}
+
+void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
+                   const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
+    auto steering_direction = state.target_steering > state.steering ? 1 : -1;
+    auto steering_increment = std::min(settings.max_steering_rate * dt, std::abs(state.target_steering - state.steering)) * steering_direction;
+    state.steering += steering_increment;
+
+    for (int i = 0; i < 2; ++i) {
+        auto steering = state.steering;
+
+        // Slight Ackerman effect.
+        if ((i == 0 && steering > 0) || (i == 1 && steering < 0)) {
+            steering *= 1.1;
         }
 
-        for (int i = 0; i < 4; ++i) {
-            auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
-            con.angular_dofs[0].friction_torque = state.brakes[i] * settings.brake_torque + settings.bearing_torque;
+        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
+        con.frame[0] = edyn::to_matrix3x3(edyn::quaternion_axis_angle({0, 1, 0}, steering));
+    }
+}
 
-            auto wheel_entity = vehicle.wheel_entity[i];
-            auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-            auto spin_axis = edyn::quaternion_x(wheel_orn);
-            auto driving_torque = state.throttle[i] * settings.driving_torque * spin_axis;
-            edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
-        }
+void ApplyThrottle(entt::registry &registry, const Vehicle &vehicle,
+                   const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
+    for (int i = 0; i < 4; ++i) {
+        auto wheel_entity = vehicle.wheel_entity[i];
+        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+        auto spin_axis = edyn::quaternion_x(wheel_orn);
+
+        auto driving_torque = state.throttle[i] * settings.driving_torque * spin_axis;
+        edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
+    }
+}
+
+void ApplyBrakes(entt::registry &registry, const Vehicle &vehicle,
+                 const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
+    for (int i = 0; i < 4; ++i) {
+        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
+        con.angular_dofs[0].friction_torque = state.brakes[i] * settings.brake_torque + settings.bearing_torque;
+    }
+}
+
+void UpdateVehicles(entt::registry &registry) {
+    ProcessActions(registry);
+
+    auto dt = edyn::get_fixed_dt(registry);
+    auto vehicle_view = registry.view<const Vehicle, const VehicleSettings, VehicleState>();
+
+    for (auto [entity, vehicle, settings, state] : vehicle_view.each()) {
+        ApplySteering(registry, vehicle, settings, state, dt);
+        ApplyThrottle(registry, vehicle, settings, state, dt);
+        ApplyBrakes(registry, vehicle, settings, state, dt);
     }
 }
 
