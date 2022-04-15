@@ -5,6 +5,13 @@
 #include <entt/core/hashed_string.hpp>
 #include <edyn/edyn.hpp>
 
+template<>
+void edyn::merge_component<VehicleActions>(VehicleActions &actions, const VehicleActions &new_value) {
+    // Accumulate received actions. Action updates are only sent from
+    // coordinator to worker.
+    actions.values.insert(actions.values.end(), new_value.values.begin(), new_value.values.end());
+}
+
 void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
     entt::meta<Vehicle>().type()
@@ -132,6 +139,7 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleB
 
 void ProcessActions(entt::registry &registry) {
     for (auto [entity, actions] : registry.view<VehicleActions>().each()) {
+        // Consume actions.
         for (auto &action : actions) {
             std::visit([&registry, entity = entity](auto &&containedAction) {
                 ExecuteAction(registry, entity, containedAction);

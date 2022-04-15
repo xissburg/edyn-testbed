@@ -1,5 +1,6 @@
 #include "pick_input.hpp"
 #include <entt/entity/registry.hpp>
+#include <edyn/edyn.hpp>
 #include <edyn/networking/networking_external.hpp>
 
 void RegisterNetworkedComponents(entt::registry &registry) {

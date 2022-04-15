@@ -8,6 +8,7 @@
 #include <edyn/math/scalar.hpp>
 #include <entt/entity/fwd.hpp>
 #include <edyn/util/entity_map.hpp>
+#include <edyn/comp/merge_component.hpp>
 
 struct Vehicle {
     entt::entity chassis_entity;
@@ -112,6 +113,10 @@ template<typename Archive>
 void serialize(Archive &archive, VehicleActions &actions) {
     archive(actions.values);
 }
+
+// Declare custom merge function to accumulate actions instead of replace.
+template<>
+void edyn::merge_component<VehicleActions>(VehicleActions &actions, const VehicleActions &new_value);
 
 void RegisterVehicleComponents(entt::registry &);
 entt::entity CreateVehicle(entt::registry &);
