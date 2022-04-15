@@ -82,43 +82,32 @@ struct VehicleBrakeAction {
     edyn::scalar value {};
 };
 
-using VehicleActionVariant = std::variant<VehicleSteeringAction, VehicleBrakeAction, VehicleThrottleAction>;
-using VehicleActionsVector = std::vector<VehicleActionVariant>;
-
-struct VehicleActions {
-    VehicleActionsVector values;
-
-    auto begin() {
-        return values.begin();
-    }
-
-    auto end() {
-        return values.end();
-    }
-
-    auto & operator[](size_t i) {
-        return values[i];
-    }
-
-    void clear() {
-        values.clear();
-    }
-
-    void push_back(const VehicleActionVariant &value) {
-        values.push_back(value);
-    }
+struct VehicleAction {
+    std::variant<VehicleSteeringAction, VehicleBrakeAction, VehicleThrottleAction> var;
 };
 
 template<typename Archive>
-void serialize(Archive &archive, VehicleActions &actions) {
-    archive(actions.values);
+void serialize(Archive &archive, VehicleSteeringAction &action) {
+    archive(action.value);
 }
 
-// Declare custom merge function to accumulate actions instead of replace.
-template<>
-void edyn::merge_component<VehicleActions>(VehicleActions &actions, const VehicleActions &new_value);
+template<typename Archive>
+void serialize(Archive &archive, VehicleThrottleAction &action) {
+    archive(action.value);
+}
+
+template<typename Archive>
+void serialize(Archive &archive, VehicleBrakeAction &action) {
+    archive(action.value);
+}
+
+template<typename Archive>
+void serialize(Archive &archive, VehicleAction &action) {
+    archive(action.var);
+}
 
 void RegisterVehicleComponents(entt::registry &);
+void RegisterNetworkedVehicleComponents(entt::registry &);
 entt::entity CreateVehicle(entt::registry &);
 void UpdateVehicles(entt::registry &);
 std::vector<entt::entity> GetVehicleEntities(entt::registry &, entt::entity);

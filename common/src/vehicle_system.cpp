@@ -1,16 +1,11 @@
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
+#include <edyn/comp/action_list.hpp>
+#include <edyn/networking/networking_external.hpp>
 #include <entt/entity/registry.hpp>
 #include <entt/meta/factory.hpp>
 #include <entt/core/hashed_string.hpp>
 #include <edyn/edyn.hpp>
-
-template<>
-void edyn::merge_component<VehicleActions>(VehicleActions &actions, const VehicleActions &new_value) {
-    // Accumulate received actions. Action updates are only sent from
-    // coordinator to worker.
-    actions.values.insert(actions.values.end(), new_value.values.begin(), new_value.values.end());
-}
 
 void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
@@ -18,7 +13,18 @@ void RegisterVehicleComponents(entt::registry &registry) {
         .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
         .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
         .data<&Vehicle::wheel_entity, entt::as_ref_t>("wheel_entity"_hs);
-    edyn::register_external_components<PickInput, Vehicle, VehicleSettings, VehicleState, VehicleActions>(registry);
+    auto actions = std::tuple<VehicleAction>{};
+    edyn::register_external_components<PickInput, Vehicle, VehicleSettings, VehicleState>(registry, actions);
+}
+
+void RegisterNetworkedVehicleComponents(entt::registry &registry) {
+    auto actions = std::tuple<VehicleAction>{};
+    edyn::register_networked_components<
+        PickInput,
+        Vehicle,
+        VehicleSettings,
+        VehicleState
+    >(registry, actions);
 }
 
 entt::entity CreateVehicle(entt::registry &registry) {
@@ -82,9 +88,9 @@ entt::entity CreateVehicle(entt::registry &registry) {
     }
 
     registry.emplace<VehicleSettings>(vehicle_entity);
-    registry.emplace<VehicleActions>(vehicle_entity);
-    registry.emplace<VehicleInput>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
+    registry.emplace<edyn::action_list<VehicleAction>>(vehicle_entity);
+    registry.emplace<edyn::action_history>(vehicle_entity);
     registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     return vehicle_entity;
@@ -138,14 +144,13 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleB
 }
 
 void ProcessActions(entt::registry &registry) {
-    for (auto [entity, actions] : registry.view<VehicleActions>().each()) {
+    for (auto [entity, list] : registry.view<edyn::action_list<VehicleAction>>().each()) {
         // Consume actions.
-        for (auto &action : actions) {
+        for (auto &action : list.actions) {
             std::visit([&registry, entity = entity](auto &&containedAction) {
                 ExecuteAction(registry, entity, containedAction);
-            }, action);
+            }, action.var);
         }
-        actions.clear();
     }
 }
 

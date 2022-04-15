@@ -77,14 +77,7 @@ int main() {
     edyn::set_fixed_dt(registry, 0.008);
     edyn::set_solver_velocity_iterations(registry, 16);
 
-    edyn::register_networked_components<
-        PickInput,
-        Vehicle,
-        VehicleSettings,
-        VehicleState,
-        VehicleInput
-    >(registry);
-
+    RegisterNetworkedVehicleComponents(registry);
     RegisterVehicleComponents(registry);
     edyn::set_external_system_pre_step(registry, &ExternalSystemUpdate);
 

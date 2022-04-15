@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include "vehicle_system.hpp"
+#include <edyn/comp/action_list.hpp>
 #include <edyn/comp/orientation.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/math/math.hpp>
@@ -31,6 +32,7 @@ public:
         edyn::make_rigidbody(*m_registry, floor_def);
 
         m_vehicle_entity = CreateVehicle(*m_registry);
+        m_registry->emplace<VehicleInput>(m_vehicle_entity);
     }
 
     void destroyScene() override {
@@ -39,13 +41,15 @@ public:
         edyn::remove_external_systems(*m_registry);
     }
 
+    using ActionList = edyn::action_list<VehicleAction>;
+
     void setSteering(float steering) {
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
         if (input.steering != steering) {
             input.steering = steering;
-            m_registry->get<VehicleActions>(m_vehicle_entity)
-                .push_back(VehicleActionVariant{VehicleSteeringAction{steering}});
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<VehicleActions>();
+            m_registry->get<ActionList>(m_vehicle_entity)
+                .actions.push_back(VehicleAction{VehicleSteeringAction{steering}});
+            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<ActionList>();
         }
     }
 
@@ -53,9 +57,9 @@ public:
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
         if (input.throttle != throttle) {
             input.throttle = throttle;
-            m_registry->get<VehicleActions>(m_vehicle_entity)
-                .push_back(VehicleActionVariant{VehicleThrottleAction{throttle}});
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<VehicleActions>();
+            m_registry->get<ActionList>(m_vehicle_entity)
+                .actions.push_back(VehicleAction{VehicleThrottleAction{throttle}});
+            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<ActionList>();
         }
     }
 
@@ -63,18 +67,14 @@ public:
         auto &input = m_registry->get<VehicleInput>(m_vehicle_entity);
         if (input.brakes != brakes) {
             input.brakes = brakes;
-            m_registry->get<VehicleActions>(m_vehicle_entity)
-                .push_back(VehicleActionVariant{VehicleBrakeAction{brakes}});
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<VehicleActions>();
+            m_registry->get<ActionList>(m_vehicle_entity)
+                .actions.push_back(VehicleAction{VehicleBrakeAction{brakes}});
+            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<ActionList>();
         }
     }
 
     void updatePhysics(float deltaTime) override {
         EdynExample::updatePhysics(deltaTime);
-
-        for (auto [entity, actions] : m_registry->view<VehicleActions>().each()) {
-            actions.clear();
-        }
 
         if (inputGetKeyState(entry::Key::Left)) {
             setSteering(-1);
