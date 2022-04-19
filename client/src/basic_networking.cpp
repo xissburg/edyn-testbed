@@ -221,8 +221,13 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
             m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).created<PickInput>();
         }
 
-        m_registry->get<PickInput>(m_pick_entity).position = m_registry->get<edyn::position>(m_pick_entity);
-        m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
+        auto &pick_input = m_registry->get<PickInput>(m_pick_entity);
+        auto &pick_pos = m_registry->get<edyn::position>(m_pick_entity);
+
+        if (pick_input.position != pick_pos) {
+            pick_input.position = pick_pos;
+            m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
+        }
     }
 
     updateNetworking();
