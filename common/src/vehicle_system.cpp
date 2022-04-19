@@ -32,6 +32,10 @@ entt::entity CreateVehicle(entt::registry &registry) {
     edyn::tag_external_entity(registry, vehicle_entity);
 
     auto &vehicle = registry.emplace<Vehicle>(vehicle_entity);
+    auto &settings = registry.emplace<VehicleSettings>(vehicle_entity);
+    registry.emplace<VehicleState>(vehicle_entity);
+    registry.emplace<edyn::action_history>(vehicle_entity);
+    registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     // Vehicle body.
     auto chassis_def = edyn::rigidbody_def();
@@ -70,6 +74,8 @@ entt::entity CreateVehicle(entt::registry &registry) {
         edyn::exclude_collision(registry, chassis_entity, wheel_entity);
 
         auto [con_ent, con] = edyn::make_constraint<edyn::generic_constraint>(registry, chassis_entity, wheel_entity);
+        con.frame[0] = edyn::to_matrix3x3(
+            edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * -lateral)));
         con.pivot[0] = {lateral * 0.8f, 0, longitudinal * 1.45f};
         con.pivot[1] = {-0.1f * lateral, 0, 0};
         con.linear_dofs[1].offset_min = -0.8;
@@ -86,12 +92,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
         vehicle.wheel_entity[i] = wheel_entity;
         vehicle.suspension_entity[i] = con_ent;
     }
-
-    registry.emplace<VehicleSettings>(vehicle_entity);
-    registry.emplace<VehicleState>(vehicle_entity);
-    registry.emplace<edyn::action_list<VehicleAction>>(vehicle_entity);
-    registry.emplace<edyn::action_history>(vehicle_entity);
-    registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     return vehicle_entity;
 }
@@ -113,6 +113,7 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleT
         auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
         auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
 
+        // Rudimentary traction control.
         if (std::abs(spin_speed) * 0.25f > longitudinal_speed) {
             state.throttle[i] = 0;
         } else {
@@ -133,6 +134,7 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleB
         auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
         auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
 
+        // Rudimentary ABS.
         if (longitudinal_speed > 2 &&
             std::abs(spin_speed) < edyn::to_radians(1))
         {
@@ -169,7 +171,9 @@ void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
         }
 
         auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
-        con.frame[0] = edyn::to_matrix3x3(edyn::quaternion_axis_angle({0, 1, 0}, steering));
+        con.frame[0] = edyn::to_matrix3x3(
+            edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * (i == 0 ? -1 : 1))) *
+            edyn::quaternion_axis_angle({0, 1, 0}, steering));
     }
 }
 

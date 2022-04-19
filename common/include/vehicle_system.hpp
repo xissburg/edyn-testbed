@@ -17,12 +17,6 @@ struct Vehicle {
     entt::entity null_con_entity;
 };
 
-struct VehicleInput {
-    edyn::scalar steering{};
-    edyn::scalar throttle{};
-    edyn::scalar brakes{};
-};
-
 struct VehicleState {
     edyn::scalar target_steering;
     edyn::scalar steering;
@@ -36,6 +30,7 @@ struct VehicleSettings {
     edyn::scalar brake_torque {edyn::scalar(800)};
     edyn::scalar bearing_torque {edyn::scalar(6)};
     edyn::scalar driving_torque {edyn::scalar(300)};
+    edyn::scalar camber {edyn::to_radians(-6)};
 };
 
 template<typename Archive>
@@ -44,13 +39,6 @@ void serialize(Archive &archive, Vehicle &vehicle) {
     archive(vehicle.wheel_entity);
     archive(vehicle.suspension_entity);
     archive(vehicle.null_con_entity);
-}
-
-template<typename Archive>
-void serialize(Archive &archive, VehicleInput &input) {
-    archive(input.steering);
-    archive(input.throttle);
-    archive(input.brakes);
 }
 
 template<typename Archive>
@@ -68,6 +56,7 @@ void serialize(Archive &archive, VehicleSettings &settings) {
     archive(settings.brake_torque);
     archive(settings.bearing_torque);
     archive(settings.driving_torque);
+    archive(settings.camber);
 }
 
 struct VehicleSteeringAction {

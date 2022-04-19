@@ -230,6 +230,8 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
     EdynExample::updatePhysics(deltaTime);
     enet_host_flush(m_host);
 
+#define PRINT_NETWORK_STATS 1
+#if PRINT_NETWORK_STATS
     auto time = edyn::performance_time();
     auto dt = time - m_network_speed_timestamp;
     if (dt > 1) {
@@ -245,6 +247,7 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
             << "Network data rate(kB/s): up " << network_outgoing_data_rate
             << " | down " << network_incoming_data_rate << std::endl;
     }
+#endif
 }
 
 void cmdToggleExtrapolation(const void* _userData) {
