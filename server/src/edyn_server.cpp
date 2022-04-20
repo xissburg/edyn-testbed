@@ -100,7 +100,7 @@ void edyn_server_deinit(entt::registry &registry) {
 
 void edyn_server_process_packets(entt::registry &registry) {
     auto *host = registry.ctx<ENetHost *>();
-    auto &clientEntityMap = registry.ctx<ClientEntityMap>().map;
+    auto &client_entity_map = registry.ctx<ClientEntityMap>().map;
     ENetEvent event;
 
     while (enet_host_service(host, &event, 0) > 0) {
@@ -111,33 +111,25 @@ void edyn_server_process_packets(entt::registry &registry) {
                 enet_peer_timeout(event.peer, 0, 10000, 30000);
 
                 bool allow_full_ownership = false;
-                auto clientEntity = edyn::server_make_client(registry, allow_full_ownership);
-                registry.emplace<PeerID>(clientEntity, peerID);
-                clientEntityMap[peerID] = clientEntity;
+                auto client_entity = edyn::server_make_client(registry, allow_full_ownership);
+                registry.emplace<PeerID>(client_entity, peerID);
+                client_entity_map[peerID] = client_entity;
 
-                auto &client = registry.get<edyn::remote_client>(clientEntity);
+                auto &client = registry.get<edyn::remote_client>(client_entity);
                 client.snapshot_rate = 10;
 
                 auto delay = edyn::packet::set_playout_delay{client.playout_delay};
-                send_edyn_packet_to_client(registry, clientEntity, edyn::packet::edyn_packet{delay});
+                send_edyn_packet_to_client(registry, client_entity, edyn::packet::edyn_packet{delay});
 
-                std::cout << "Connected " << std::hex << entt::to_integral(clientEntity) << std::endl;
+                std::cout << "Connected " << std::hex << entt::to_integral(client_entity) << std::endl;
                 break;
             }
 
             case ENET_EVENT_TYPE_DISCONNECT: {
-                auto clientEntity = clientEntityMap.at(peerID);
-                auto &remoteClient = registry.get<edyn::remote_client>(clientEntity);
-
-                for (auto entity : remoteClient.owned_entities) {
-                    if (registry.valid(entity)) {
-                        registry.destroy(entity);
-                    }
-                }
-
-                registry.destroy(clientEntity);
-                clientEntityMap.erase(peerID);
-                std::cout << "Disconnected " << std::hex << entt::to_integral(clientEntity) << std::endl;
+                auto client_entity = client_entity_map.at(peerID);
+                edyn::server_destroy_client(registry, client_entity);
+                client_entity_map.erase(peerID);
+                std::cout << "Disconnected " << std::hex << entt::to_integral(client_entity) << std::endl;
                 break;
             }
 
@@ -146,9 +138,9 @@ void edyn_server_process_packets(entt::registry &registry) {
                 edyn::packet::edyn_packet packet;
                 archive(packet);
 
-                if (!archive.failed() && clientEntityMap.count(peerID)) {
-                    auto clientEntity = clientEntityMap.at(peerID);
-                    edyn::server_receive_packet(registry, clientEntity, packet);
+                if (!archive.failed() && client_entity_map.count(peerID)) {
+                    auto client_entity = client_entity_map.at(peerID);
+                    edyn::server_receive_packet(registry, client_entity, packet);
                 }
 
                 /* Clean up the packet now that we're done using it. */
@@ -164,22 +156,22 @@ void edyn_server_process_packets(entt::registry &registry) {
 }
 
 void edyn_server_update_latencies(entt::registry &registry) {
-    auto &clientEntityMap = registry.ctx<ClientEntityMap>().map;
+    auto &client_entity_map = registry.ctx<ClientEntityMap>().map;
     auto *host = registry.ctx<ENetHost *>();
 
-    for (auto [peerID, clientEntity] : clientEntityMap) {
+    for (auto [peerID, client_entity] : client_entity_map) {
         auto *peer = &host->peers[peerID];
-        edyn::server_set_client_round_trip_time(registry, clientEntity, peer->roundTripTime * 0.001);
+        edyn::server_set_client_round_trip_time(registry, client_entity, peer->roundTripTime * 0.001);
     }
 }
 
 void edyn_server_run(entt::registry &registry) {
     // Use a PID to keep updates at a fixed and controlled rate.
-    auto updateRate = 240;
-    auto desiredDt = 1.0 / updateRate;
-    auto proportionalTerm = 0.18;
-    auto integralTerm = 0.06;
-    auto iTerm = 0.0;
+    auto update_rate = 240;
+    auto desired_dt = 1.0 / update_rate;
+    auto proportional_term = 0.18;
+    auto integral_term = 0.06;
+    auto i_term = 0.0;
     auto time = edyn::performance_time();
     auto *host = registry.ctx<ENetHost *>();
 
@@ -196,9 +188,9 @@ void edyn_server_run(entt::registry &registry) {
         auto dt = t1 - time;
         time = t1;
 
-        auto error = desiredDt - dt;
-        iTerm = std::max(-1.0, std::min(iTerm + integralTerm * error, 1.0));
-        auto delay = std::max(0.0, proportionalTerm * error + iTerm);
+        auto error = desired_dt - dt;
+        i_term = std::max(-1.0, std::min(i_term + integral_term * error, 1.0));
+        auto delay = std::max(0.0, proportional_term * error + i_term);
         edyn::delay(delay * 1000);
     }
 }
