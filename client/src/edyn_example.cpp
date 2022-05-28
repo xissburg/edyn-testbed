@@ -1,7 +1,5 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
-#include <edyn/math/quaternion.hpp>
-#include <edyn/math/vector3.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
@@ -71,6 +69,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     edyn::init();
     edyn::attach(*m_registry);
+
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
     m_num_velocity_iterations = edyn::get_solver_velocity_iterations(*m_registry);
     m_num_position_iterations = edyn::get_solver_position_iterations(*m_registry);
@@ -383,11 +382,12 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::cylinder_shape &cylinder,
     auto intersection = rayPosLocal + rayDirLocal * result.fraction;
 
     auto info = std::get<edyn::cylinder_raycast_info>(result.info_var);
-    edyn::vector3 vertices[] = {
-        {cylinder.half_length, 0, 0},
-        {-cylinder.half_length, 0, 0},
+    const auto axis = edyn::coordinate_axis_vector(cylinder.axis);
+    auto vertices = std::array<edyn::vector3, 2>{
+        axis * cylinder.half_length,
+        axis * -cylinder.half_length
     };
-    auto axis = edyn::vector3_x;
+
     auto feature = info.feature;
     auto feature_index = info.face_index;
     auto tolerance = edyn::scalar(0.01);
@@ -417,8 +417,8 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::cylinder_shape &cylinder,
         dde.drawCylinder({from.x, from.y, from.z}, {to.x, to.y, to.z}, cylinder.radius);
         break;
     } case edyn::cylinder_feature::side_edge: {
-        auto p0 = edyn::vector3 {vertices[0].x, intersection.y, intersection.z};
-        auto p1 = edyn::vector3 {vertices[1].x, intersection.y, intersection.z};
+        auto p0 = edyn::project_plane(intersection, vertices[0], axis);
+        auto p1 = edyn::project_plane(intersection, vertices[1], axis);
         dde.moveTo(p0.x, p0.y, p0.z);
         dde.lineTo(p1.x, p1.y, p1.z);
     }}
@@ -437,13 +437,12 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::capsule_shape &capsule,
                        const edyn::shape_raycast_result &result,
                        edyn::vector3 rayPos, edyn::vector3 rayDir,
                        edyn::vector3 pos, edyn::quaternion orn) {
-    auto info = std::get<edyn::capsule_raycast_info>(result.info_var);
-
-    edyn::vector3 vertices[] = {
-        {capsule.half_length, 0, 0},
-        {-capsule.half_length, 0, 0},
+    const auto axis = edyn::coordinate_axis_vector(capsule.axis);
+    auto vertices = std::array<edyn::vector3, 2>{
+        axis * capsule.half_length,
+        axis * -capsule.half_length
     };
-    auto axis = edyn::vector3_x;
+    auto info = std::get<edyn::capsule_raycast_info>(result.info_var);
 
     switch (info.feature) {
     case edyn::capsule_feature::hemisphere: {
@@ -455,9 +454,8 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::capsule_shape &capsule,
         auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
         auto rayDirLocal = edyn::rotate(edyn::conjugate(orn), rayDir);
         auto intersection = rayPosLocal + rayDirLocal * result.fraction;
-
-        auto p0 = edyn::vector3 {vertices[0].x, intersection.y, intersection.z};
-        auto p1 = edyn::vector3 {vertices[1].x, intersection.y, intersection.z};
+        auto p0 = edyn::project_plane(intersection, vertices[0], axis);
+        auto p1 = edyn::project_plane(intersection, vertices[1], axis);
         dde.moveTo(p0.x, p0.y, p0.z);
         dde.lineTo(p1.x, p1.y, p1.z);
     }}
@@ -750,7 +748,7 @@ void EdynExample::showSettings() {
 
     ImGui::SliderInt("Time Step (ms)", &m_fixed_dt_ms, 1, 50);
     ImGui::SliderInt("Velocity Iterations", &m_num_velocity_iterations, 1, 100);
-    ImGui::SliderInt("Position Iterations", &m_num_position_iterations, 1, 100);
+    ImGui::SliderInt("Position Iterations", &m_num_position_iterations, 0, 100);
     ImGui::SliderFloat("Gravity (m/s^2)", &m_gui_gravity, 0, 50, "%.2f");
 
     ImGui::End();

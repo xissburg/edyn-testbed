@@ -1,6 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/collision/contact_manifold.hpp>
-#include <edyn/edyn.hpp>
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {
@@ -72,7 +70,7 @@ public:
             auto shapes_and_positions = std::vector<std::pair<edyn::shapes_variant_t, edyn::vector3>>{};
 
             shapes_and_positions.emplace_back(
-                edyn::cylinder_shape{0.15, 0.2},
+                edyn::cylinder_shape{0.15, 0.2, edyn::coordinate_axis::z},
                 edyn::vector3{0, 1, 0});
 
             shapes_and_positions.emplace_back(

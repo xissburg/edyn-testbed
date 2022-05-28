@@ -1,8 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/math/math.hpp>
-#include <edyn/math/quaternion.hpp>
-#include <edyn/shapes/box_shape.hpp>
-#include <edyn/util/rigidbody.hpp>
 
 static void SensorContactStarted(entt::registry &registry, entt::entity entity) {
     auto &manifold = registry.get<edyn::contact_manifold>(entity);
@@ -63,9 +59,8 @@ public:
         auto sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 
-        sensor_def.shape = edyn::cylinder_shape{0.34, 0.5};
+        sensor_def.shape = edyn::cylinder_shape{0.34, 0.5, edyn::coordinate_axis::y};
         sensor_def.position = {1.2, 0.5, 0.9};
-        sensor_def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(90));
         sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 

@@ -19,11 +19,13 @@ inline void draw(DebugDrawEncoder &dde, const edyn::plane_shape &sh) {
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::cylinder_shape &sh) {
-    dde.drawCylinder({-sh.half_length, 0, 0}, {sh.half_length, 0, 0}, sh.radius);
+    auto axis = edyn::coordinate_axis_vector(sh.axis);
+    dde.drawCylinder(to_bx(axis * -sh.half_length), to_bx(axis * sh.half_length), sh.radius);
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::capsule_shape &sh) {
-    dde.drawCapsule({-sh.half_length, 0, 0}, {sh.half_length, 0, 0}, sh.radius);
+    auto axis = edyn::coordinate_axis_vector(sh.axis);
+    dde.drawCapsule(to_bx(axis * -sh.half_length), to_bx(axis * sh.half_length), sh.radius);
 }
 
 inline void draw(DebugDrawEncoder &dde, const edyn::box_shape &sh) {
