@@ -98,6 +98,7 @@ public:
     edyn::vector3 m_rayDir;
     edyn::scalar m_rayLength {100.f};
     edyn::scalar m_rigid_body_axes_size {0.15f};
+    bool m_proportional_pick_stiffness {true};
 
 	std::string m_footer_text;
 	std::string m_default_footer_text {"Press 'P' to pause and 'L' to step simulation while paused."};

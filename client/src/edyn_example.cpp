@@ -671,8 +671,15 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 constraint.pivot[0] = pivot;
                 constraint.pivot[1] = edyn::vector3_zero;
                 constraint.distance = 0;
-                constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
-                constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
+
+                if (m_proportional_pick_stiffness) {
+                    constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
+                    constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
+                } else {
+                    constraint.stiffness = 1000;
+                    constraint.damping = 100;
+                }
+
                 m_pick_constraint_entity = con_ent;
             }
         } else {
