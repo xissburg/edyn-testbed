@@ -356,7 +356,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::box_shape &box,
     case edyn::box_feature::vertex: {
         auto v = box.get_vertex(feature_idx);
         auto normal = edyn::normalize(rayDirLocal);
-        dde.drawQuad({normal.x, normal.y, normal.z}, {v.x, v.y, v.z}, 0.015f);
+        dde.drawQuad(to_bx(normal), to_bx(v), 0.015f);
         break;
     } case edyn::box_feature::edge: {
         auto v = box.get_edge(feature_idx);
@@ -408,13 +408,12 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::cylinder_shape &cylinder,
     switch (feature) {
     case edyn::cylinder_feature::cap_edge: {
         auto center = vertices[feature_index];
-        dde.drawCircle({axis.x, axis.y, axis.z},
-                       {center.x, center.y, center.z}, cylinder.radius);
+        dde.drawCircle(to_bx(axis), to_bx(center), cylinder.radius);
         break;
     } case edyn::cylinder_feature::face: {
         auto from = vertices[feature_index];
         auto to = from + axis * 0.001f * (feature_index == 0 ? 1 : -1);
-        dde.drawCylinder({from.x, from.y, from.z}, {to.x, to.y, to.z}, cylinder.radius);
+        dde.drawCylinder(to_bx(from), to_bx(to), cylinder.radius);
         break;
     } case edyn::cylinder_feature::side_edge: {
         auto p0 = edyn::project_plane(intersection, vertices[0], axis);
@@ -429,8 +428,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::sphere_shape &sphere,
                        edyn::vector3 rayPos, edyn::vector3 rayDir,
                        edyn::vector3 pos, edyn::quaternion orn) {
     auto axis = edyn::rotate(edyn::conjugate(orn), edyn::normalize(rayDir));
-    dde.drawCircle({axis.x, axis.y, axis.z},
-                   {0,0,0}, sphere.radius);
+    dde.drawCircle(to_bx(axis), {0,0,0}, sphere.radius);
 }
 
 void drawRaycastResult(DebugDrawEncoder &dde, edyn::capsule_shape &capsule,
@@ -447,8 +445,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::capsule_shape &capsule,
     switch (info.feature) {
     case edyn::capsule_feature::hemisphere: {
         auto center = vertices[info.hemisphere_index];
-        dde.drawCircle({axis.x, axis.y, axis.z},
-                       {center.x, center.y, center.z}, capsule.radius);
+        dde.drawCircle(to_bx(axis), to_bx(center), capsule.radius);
         break;
     } case edyn::capsule_feature::side: {
         auto rayPosLocal = edyn::to_object_space(rayPos, pos, orn);
@@ -480,7 +477,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
 
         if (edyn::distance_sqr(v, intersection) < tolerance_sqr) {
             auto normal = edyn::normalize(rayDirLocal);
-            dde.drawQuad({normal.x, normal.y, normal.z}, {v.x, v.y, v.z}, 0.015f);
+            dde.drawQuad(to_bx(normal), to_bx(v), 0.015f);
             return;
         }
     }

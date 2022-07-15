@@ -229,9 +229,9 @@ void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::cone_constrain
 
     dde.pushTransform(mtx);
 
-    float frame[16] = {con.frame.row[0].x, con.frame.row[0].y, con.frame.row[0].z, 0.f,
-                       con.frame.row[1].x, con.frame.row[1].y, con.frame.row[1].z, 0.f,
-                       con.frame.row[2].x, con.frame.row[2].y, con.frame.row[2].z, 0.f,
+    float frame[16] = {(float)con.frame.row[0].x, (float)con.frame.row[0].y, (float)con.frame.row[0].z, 0.f,
+                       (float)con.frame.row[1].x, (float)con.frame.row[1].y, (float)con.frame.row[1].z, 0.f,
+                       (float)con.frame.row[2].x, (float)con.frame.row[2].y, (float)con.frame.row[2].z, 0.f,
                        0.f, 0.f, 0.f, 1.f};
     bx::mtxTranspose(rotT, frame);
     bx::mtxTranslate(trans, con.pivot[0].x, con.pivot[0].y, con.pivot[0].z);

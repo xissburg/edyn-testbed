@@ -112,7 +112,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleVehicleNetworking
-    , "26-vehicle-networking"
+    , "27-vehicle-networking"
     , "Networked vehicle."
     , "https://github.com/xissburg/edyn"
     );

@@ -60,6 +60,7 @@ set(EdynTestbed_SOURCES
     src/generic_constraint.cpp
     src/sensors.cpp
     src/vehicle.cpp
+    src/curb.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 
