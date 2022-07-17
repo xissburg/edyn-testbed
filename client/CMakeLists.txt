@@ -61,6 +61,7 @@ set(EdynTestbed_SOURCES
     src/sensors.cpp
     src/vehicle.cpp
     src/curb.cpp
+    src/hover.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 
