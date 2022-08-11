@@ -1,6 +1,8 @@
 #ifndef EDYN_TESTBED_EDYN_EXAMPLE_HPP
 #define EDYN_TESTBED_EDYN_EXAMPLE_HPP
 
+#include <edyn/collision/raycast.hpp>
+#include <edyn/math/vector3.hpp>
 #include <memory>
 #include <edyn/edyn.hpp>
 #include <entt/entt.hpp>
@@ -68,6 +70,9 @@ public:
     void setPaused(bool);
     void updateGUI();
     void updatePicking(float viewMtx[16], float proj[16]);
+    void processRaycast(const edyn::raycast_result &, edyn::vector3 p0, edyn::vector3 p1);
+    void onRaycastResult(edyn::raycast_id_type, const edyn::raycast_result &,
+                         edyn::vector3, edyn::vector3);
     void showSettings();
     void showFooter();
     void updateSettings();
@@ -95,6 +100,7 @@ public:
     std::unique_ptr<entt::registry> m_registry;
     entt::entity m_pick_entity {entt::null};
     entt::entity m_pick_constraint_entity {entt::null};
+    bool m_picking {false};
     edyn::vector3 m_rayDir;
     edyn::scalar m_rayLength {100.f};
     edyn::scalar m_rigid_body_axes_size {0.15f};

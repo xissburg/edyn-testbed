@@ -30,20 +30,16 @@ public:
         def.update_inertia();
         def.continuous_contacts = true;
 
-        std::vector<edyn::rigidbody_def> defs;
-
         for (int i = 0; i < 5; ++i) {
             for (int j = 0; j < 5; ++j) {
                 for (int k = 0; k < 5; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
                                     edyn::scalar(0.4 * i + 0.6),
                                     edyn::scalar(0.4 * k)};
-                    defs.push_back(def);
+                    edyn::make_rigidbody(*m_registry, def);
                 }
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

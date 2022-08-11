@@ -66,7 +66,6 @@ ENetHost * init_enet(uint16_t port) {
 
 bool edyn_server_init(entt::registry &registry, uint16_t port) {
     // Init Edyn.
-    edyn::init();
     edyn::attach(registry);
 
     // Init networking.

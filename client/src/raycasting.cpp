@@ -83,16 +83,12 @@ public:
             edyn::polyhedron_shape("../../../edyn-testbed/resources/cylinder.obj"),
             edyn::vector3{-0.1, 0.9, 0.5});
 
-        std::vector<edyn::rigidbody_def> defs;
-
         for (auto [shape, pos] : shapes_and_positions) {
             def.position = pos;
             def.shape = shape;
             def.update_inertia();
-            defs.push_back(def);
+            edyn::make_rigidbody(*m_registry, def);
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 
     void updatePhysics(float deltaTime) override {

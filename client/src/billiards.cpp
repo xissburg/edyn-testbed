@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/util/rigidbody.hpp>
 
 #ifdef EDYN_SOUND_ENABLED
 #include <soloud_wav.h>
@@ -112,11 +113,9 @@ public:
 
             for (auto j = 0; j < n; ++j) {
                 def.position.x = (j - float(i) / 2) * ball_diameter;
-                defs.push_back(def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
 
         cameraSetPosition({0.0f, 1.6f, -2.f});
         cameraSetVerticalAngle(-0.25f);

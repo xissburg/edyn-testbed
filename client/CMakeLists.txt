@@ -50,7 +50,7 @@ set(EdynTestbed_SOURCES
     src/platforms.cpp
     src/external_systems.cpp
     src/center_of_mass.cpp
-    src/raycasting.cpp
+    #src/raycasting.cpp
     src/friction.cpp
     src/billiards.cpp
     src/per_vertex_materials.cpp
@@ -61,7 +61,7 @@ set(EdynTestbed_SOURCES
     src/sensors.cpp
     src/vehicle.cpp
     src/curb.cpp
-    src/hover.cpp
+    #src/hover.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 

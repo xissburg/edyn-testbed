@@ -33,7 +33,6 @@ public:
         def.continuous_contacts = true;
         //def.linvel = {0, -2, 0};
         //def.angvel = {0, 0, -32};
-        auto defs = std::vector<edyn::rigidbody_def>{};
 
         const size_t n = 10;
 
@@ -41,14 +40,12 @@ public:
             def.material->restitution = 1 - edyn::scalar(i) / n;
             auto x = (edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8);
 
-            for (size_t j = 0; j < 2; ++j) {
+            for (size_t j = 0; j < 1; ++j) {
                 auto y = edyn::scalar(3 + 0.4 * j);
                 def.position = {x, y, 0};
-                defs.push_back(def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

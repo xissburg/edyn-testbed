@@ -25,20 +25,16 @@ void create_scene(entt::registry &registry) {
     def.continuous_contacts = true;
     def.networked = true;
 
-    std::vector<edyn::rigidbody_def> defs;
-
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 2; ++j) {
             for (int k = 0; k < 2; ++k) {
                 def.position = {edyn::scalar(0.4 * j),
                                 edyn::scalar(0.4 * i + 0.6),
                                 edyn::scalar(0.4 * k)};
-                defs.push_back(def);
+                edyn::make_rigidbody(registry, def);
             }
         }
     }
-
-    edyn::batch_rigidbodies(registry, defs);
 }
 
 void edyn_server_update(entt::registry &registry) {}
