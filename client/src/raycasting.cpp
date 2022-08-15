@@ -94,17 +94,40 @@ public:
     void updatePhysics(float deltaTime) override {
         EdynExample::updatePhysics(deltaTime);
 
+        if (m_rayDir == m_prevRayDir) {
+            return;
+        }
+
+        m_prevRayDir = m_rayDir;
         auto p0 = edyn::vector3{cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
         auto p1 = p0 + m_rayDir * m_rayLength;
 
-        m_registry->clear<edyn::shape_raycast_result>();
+        bool async_execution = edyn::get_execution_mode(*m_registry) == edyn::execution_mode::asynchronous;
 
-        auto result = edyn::raycast(*m_registry, p0, p1);
+        if (async_execution) {
+            auto delegate = entt::delegate(entt::connect_arg_t<&ExampleRaycasting::onRaycastResult>{}, *this);
+            edyn::raycast_async(*m_registry, p0, p1, delegate);
+        } else {
+            auto result = edyn::raycast(*m_registry, p0, p1);
+            processRaycast(result);
+        }
+    }
+
+    void processRaycast(const edyn::raycast_result &result) {
+        m_registry->clear<edyn::shape_raycast_result>();
 
         if (result.entity != entt::null) {
             m_registry->emplace<edyn::shape_raycast_result>(result.entity, result);
         }
     }
+
+    void onRaycastResult(edyn::raycast_id_type id, const edyn::raycast_result &result,
+                         edyn::vector3 p0, edyn::vector3 p1) {
+        processRaycast(result);
+    }
+
+private:
+    edyn::vector3 m_prevRayDir;
 };
 
 ENTRY_IMPLEMENT_MAIN(

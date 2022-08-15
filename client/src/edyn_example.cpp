@@ -648,9 +648,9 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
         if (!m_picking) {
             m_picking = true;
             auto p1 = cam_pos + m_rayDir * m_rayLength;
-            auto delegate = entt::delegate(entt::connect_arg_t<&EdynExample::onRaycastResult>{}, *this);
 
             if (async_execution) {
+                auto delegate = entt::delegate(entt::connect_arg_t<&EdynExample::onRaycastResult>{}, *this);
                 edyn::raycast_async(*m_registry, cam_pos, p1, delegate, {});
             } else {
                 auto result = edyn::raycast(*m_registry, cam_pos, p1, {});
