@@ -1,13 +1,7 @@
 #include "edyn_example.hpp"
 #include "vehicle_system.hpp"
 #include <edyn/comp/action_list.hpp>
-#include <edyn/comp/orientation.hpp>
-#include <edyn/edyn.hpp>
-#include <edyn/math/math.hpp>
-#include <edyn/math/quaternion.hpp>
-#include <edyn/math/vector3.hpp>
-#include <edyn/util/constraint_util.hpp>
-#include <edyn/util/rigidbody.hpp>
+#include <edyn/replication/register_external.hpp>
 
 class ExampleVehicle : public EdynExample
 {
@@ -21,7 +15,7 @@ public:
     void createScene() override
     {
         RegisterVehicleComponents(*m_registry);
-        edyn::set_external_system_pre_step(*m_registry, &UpdateVehicles);
+        edyn::set_pre_step_callback(*m_registry, &UpdateVehicles);
 
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -37,19 +31,19 @@ public:
     void destroyScene() override {
         EdynExample::destroyScene();
         edyn::remove_external_components(*m_registry);
-        edyn::remove_external_systems(*m_registry);
+        edyn::remove_pre_step_callback(*m_registry);
     }
 
     using ActionList = edyn::action_list<VehicleAction>;
 
     void insertAction(VehicleAction action) {
-        if (m_registry->all_of<ActionList>(m_vehicle_entity)) {
-            m_registry->get<ActionList>(m_vehicle_entity).actions.push_back(action);
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<ActionList>();
-        } else {
-            m_registry->emplace<ActionList>(m_vehicle_entity).actions.push_back(action);
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).created<ActionList>();
+        if (!m_registry->all_of<ActionList>(m_vehicle_entity)) {
+            m_registry->emplace<ActionList>(m_vehicle_entity);
         }
+
+        m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
+            list.actions.push_back(action);
+        });
     }
 
     void setSteering(float steering) {

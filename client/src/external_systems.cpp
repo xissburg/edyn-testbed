@@ -1,4 +1,6 @@
 #include "edyn_example.hpp"
+#include <edyn/replication/register_external.hpp>
+#include <edyn/util/shape_util.hpp>
 #include <random>
 
 struct ClimbBehavior {
@@ -100,7 +102,7 @@ public:
     void createScene() override
     {
         edyn::register_external_components<ClimbBehavior>(*m_registry);
-        edyn::set_external_system_pre_step(*m_registry, &UpdateClimbers);
+        edyn::set_pre_step_callback(*m_registry, &UpdateClimbers);
 
         // Create floor
         auto floor_def = edyn::rigidbody_def();
@@ -153,7 +155,6 @@ public:
             auto angle = edyn::scalar(dist(gen));
             auto dir = edyn::vector3{std::cos(angle), 0, std::sin(angle)};
             m_registry->emplace<ClimbBehavior>(climber_entity, dir);
-            m_registry->get_or_emplace<edyn::dirty>(climber_entity).created<ClimbBehavior>();
         }
     }
 };

@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/util/shape_util.hpp>
 
 class ExamplePerVertexMaterials : public EdynExample
 {

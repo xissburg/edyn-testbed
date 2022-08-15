@@ -60,7 +60,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     m_registry.reset(new entt::registry);
 
-    m_registry->on_construct<edyn::island>().connect<&OnCreateIsland>();
+    m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
     auto config = edyn::init_config{};
     config.execution_mode = edyn::execution_mode::asynchronous;
@@ -666,9 +666,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
 
             if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
                 //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
-                m_registry->get<edyn::position>(m_pick_entity) = next_pick_pos;
-                m_registry->get_or_emplace<edyn::dirty>(m_pick_entity)
-                    .updated<edyn::position>();
+                m_registry->replace<edyn::position>(m_pick_entity, next_pick_pos);
             }
         }
     } else {
@@ -701,21 +699,23 @@ void EdynExample::processRaycast(const edyn::raycast_result &result, edyn::vecto
     pick_def.presentation = false;
     m_pick_entity = edyn::make_rigidbody(*m_registry, pick_def);
 
-    auto &mass = m_registry->get<edyn::mass>(result.entity);
-    auto [con_ent, constraint] = edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, result.entity, m_pick_entity);
-    constraint.pivot[0] = pivot;
-    constraint.pivot[1] = edyn::vector3_zero;
-    constraint.distance = 0;
+    m_pick_constraint_entity =
+        edyn::make_constraint<edyn::soft_distance_constraint>(*m_registry, result.entity, m_pick_entity,
+            [&](edyn::soft_distance_constraint &con) {
+                con.pivot[0] = pivot;
+                con.pivot[1] = edyn::vector3_zero;
+                con.distance = 0;
 
-    if (m_proportional_pick_stiffness) {
-        constraint.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
-        constraint.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
-    } else {
-        constraint.stiffness = 1000;
-        constraint.damping = 100;
-    }
+                if (m_proportional_pick_stiffness) {
+                    auto &mass = m_registry->get<edyn::mass>(result.entity);
+                    con.stiffness = std::min(mass.s, edyn::scalar(1e6)) * 100;
+                    con.damping = std::min(mass.s, edyn::scalar(1e6)) * 10;
+                } else {
+                    con.stiffness = 1000;
+                    con.damping = 100;
+                }
+            });
 
-    m_pick_constraint_entity = con_ent;
     m_picking = true;
 }
 

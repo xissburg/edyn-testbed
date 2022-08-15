@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/edyn.hpp>
 
 class ExampleFriction : public EdynExample
 {

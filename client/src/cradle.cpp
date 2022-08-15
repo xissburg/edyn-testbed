@@ -42,19 +42,21 @@ public:
 
             {
                 auto ent_st = edyn::make_rigidbody(*m_registry, def_st);
-                auto [con_ent, constraint] = edyn::make_constraint<edyn::distance_constraint>(*m_registry, ent, ent_st);
-                constraint.pivot[0] = edyn::vector3_zero;
-                constraint.pivot[1] = edyn::vector3_zero;
-                constraint.distance = dist;
+                edyn::make_constraint<edyn::distance_constraint>(*m_registry, ent, ent_st, [&](edyn::distance_constraint &con) {
+                    con.pivot[0] = edyn::vector3_zero;
+                    con.pivot[1] = edyn::vector3_zero;
+                    con.distance = dist;
+                });
             }
 
             {
                 def_st.position.z *= -1;
                 auto ent_st = edyn::make_rigidbody(*m_registry, def_st);
-                auto [con_ent, constraint] = edyn::make_constraint<edyn::distance_constraint>(*m_registry, ent, ent_st);
-                constraint.pivot[0] = edyn::vector3_zero;
-                constraint.pivot[1] = edyn::vector3_zero;
-                constraint.distance = dist;
+                edyn::make_constraint<edyn::distance_constraint>(*m_registry, ent, ent_st, [&](edyn::distance_constraint &con) {
+                    con.pivot[0] = edyn::vector3_zero;
+                    con.pivot[1] = edyn::vector3_zero;
+                    con.distance = dist;
+                });
             }
         }
     }

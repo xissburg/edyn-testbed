@@ -1,5 +1,5 @@
 #include "edyn_example.hpp"
-#include <edyn/collision/raycast.hpp>
+#include <edyn/util/shape_util.hpp>
 
 class ExampleRaycasting : public EdynExample
 {

@@ -40,7 +40,7 @@ public:
             def.material->restitution = 1 - edyn::scalar(i) / n;
             auto x = (edyn::scalar(i) - edyn::scalar(n)/2) * edyn::scalar(0.8);
 
-            for (size_t j = 0; j < 1; ++j) {
+            for (size_t j = 0; j < 2; ++j) {
                 auto y = edyn::scalar(3 + 0.4 * j);
                 def.position = {x, y, 0};
                 edyn::make_rigidbody(*m_registry, def);

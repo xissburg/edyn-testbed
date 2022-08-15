@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
-#include <edyn/util/aabb_util.hpp>
+#include <edyn/replication/register_external.hpp>
+#include <edyn/util/shape_util.hpp>
 
 struct HoverForce {
     struct RayForce {
@@ -90,7 +91,7 @@ public:
     void createScene() override
     {
         edyn::register_external_components<HoverForce>(*m_registry);
-        edyn::set_external_system_pre_step(*m_registry, &ApplyRayForces);
+        edyn::set_pre_step_callback(*m_registry, &ApplyRayForces);
 
         // Create floor
         auto extent_x = 25;

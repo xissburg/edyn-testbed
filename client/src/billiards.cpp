@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/util/rigidbody.hpp>
 
 #ifdef EDYN_SOUND_ENABLED
 #include <soloud_wav.h>
@@ -94,13 +93,11 @@ public:
         def.update_inertia();
         def.continuous_contacts = true;
 
-        std::vector<edyn::rigidbody_def> defs;
-
         // Cue ball.
         def.position = {0, table_size.y + ball_radius, -(table_size.z / 2 - 0.15f) / 2};
         def.linvel = {0.001, 0, 3};
         def.angvel = {0, -3, 1};
-        defs.push_back(def);
+        edyn::make_rigidbody(*m_registry, def);
 
         // Other balls.
         def.linvel = {0, 0, 0};
@@ -120,7 +117,7 @@ public:
         cameraSetPosition({0.0f, 1.6f, -2.f});
         cameraSetVerticalAngle(-0.25f);
 
-        m_rigid_body_axes_size = ball_radius + 0.003f;
+        m_rigid_body_axes_size = ball_radius + 0.0033f;
         setPaused(true);
 
 #ifdef EDYN_SOUND_ENABLED

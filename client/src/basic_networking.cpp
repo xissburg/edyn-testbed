@@ -1,7 +1,5 @@
 #include "basic_networking.hpp"
 #include "server_ports.hpp"
-#include <edyn/comp/continuous.hpp>
-#include <edyn/comp/position.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>

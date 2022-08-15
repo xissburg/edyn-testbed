@@ -23,7 +23,7 @@ public:
         auto def = edyn::rigidbody_def();
         def.continuous_contacts = true;
         def.material->friction = 0.8;
-        def.material->roll_friction = 0.001;
+        def.material->roll_friction = 0.008;
         def.mass = 100;
         def.shape = edyn::capsule_shape{0.2, 0.35, edyn::coordinate_axis::z};
         def.update_inertia();
