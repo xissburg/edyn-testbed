@@ -35,8 +35,6 @@ public:
         rag_def.position = {0, 2.5, 0};
         rag_def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(24));
         edyn::make_ragdoll(*m_registry, rag_def);
-
-        setPaused(true);
     }
 };
 

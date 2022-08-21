@@ -92,7 +92,10 @@ public:
 
     void createScene() override
     {
-        edyn::register_external_components<HoverForce>(*m_registry);
+        if (edyn::get_execution_mode(*m_registry) == edyn::execution_mode::asynchronous) {
+            edyn::register_external_components<HoverForce>(*m_registry);
+        }
+
         edyn::set_pre_step_callback(*m_registry, &ApplyRayForces);
 
         // Create floor

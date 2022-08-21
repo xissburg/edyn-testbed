@@ -48,7 +48,6 @@ set(EdynTestbed_SOURCES
     src/boxes.cpp
     src/compound.cpp
     src/platforms.cpp
-    src/external_systems.cpp
     src/center_of_mass.cpp
     src/raycasting.cpp
     src/friction.cpp
