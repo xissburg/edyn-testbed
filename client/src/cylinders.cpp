@@ -53,7 +53,6 @@ public:
         def.material->restitution = 0;
         def.material->roll_friction = 0.005;
         def.update_inertia();
-        def.continuous_contacts = true;
 
         for (int i = 0; i < 5; ++i) {
             // Mix cylinders of different orientations.

@@ -92,10 +92,7 @@ public:
 
     void createScene() override
     {
-        if (edyn::get_execution_mode(*m_registry) == edyn::execution_mode::asynchronous) {
-            edyn::register_external_components<HoverForce>(*m_registry);
-        }
-
+        edyn::register_external_components<HoverForce>(*m_registry);
         edyn::set_pre_step_callback(*m_registry, &ApplyRayForces);
 
         // Create floor
@@ -138,7 +135,6 @@ public:
         auto box = edyn::box_shape{0.6, 0.4, 1.2};
         hover_def.shape = box;
         hover_def.update_inertia();
-        hover_def.continuous_contacts = true;
         hover_def.position = {-10, 2.2, 0};
         hover_def.orientation = edyn::quaternion_axis_angle({0, 1, 0}, edyn::half_pi);
         auto hover = edyn::make_rigidbody(*m_registry, hover_def);
@@ -172,7 +168,6 @@ public:
             def.material->restitution = 0;
             def.shape = edyn::box_shape{0.2, 0.15, 0.8};
             def.update_inertia();
-            def.continuous_contacts = true;
             def.position = {edyn::scalar(-4 + i * 2), 0.2, 0};
             edyn::make_rigidbody(*m_registry, def);
         }

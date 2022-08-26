@@ -26,7 +26,6 @@ public:
         dyn_def.mass = 100;
         dyn_def.material->restitution = 0;
         dyn_def.material->friction = 0.7;
-        dyn_def.continuous_contacts = true;
 
         dyn_def.shape =
             edyn::polyhedron_shape("../../../edyn-testbed/resources/box.obj",

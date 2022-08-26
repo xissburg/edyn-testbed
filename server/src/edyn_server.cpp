@@ -66,7 +66,9 @@ ENetHost * init_enet(uint16_t port) {
 
 bool edyn_server_init(entt::registry &registry, uint16_t port) {
     // Init Edyn.
-    edyn::attach(registry);
+    auto config = edyn::init_config{};
+    config.execution_mode = edyn::execution_mode::sequential_multithreaded;
+    edyn::attach(registry, config);
 
     // Init networking.
     auto *host = init_enet(port);
@@ -91,7 +93,6 @@ bool edyn_server_init(entt::registry &registry, uint16_t port) {
 void edyn_server_deinit(entt::registry &registry) {
     edyn::detach(registry);
     edyn::deinit_network_server(registry);
-    edyn::deinit();
 
     auto &host = registry.ctx().at<ENetHost &>();
     enet_host_destroy(&host);

@@ -16,7 +16,6 @@ public:
         def.material->restitution = 0.9;
         def.material->friction = 0.8;
         def.shape = edyn::box_shape{0.5, 0.1, 0.1};
-        def.continuous_contacts = true;
         def.position = {0, 3, 0};
         def.kind = edyn::rigidbody_kind::rb_static;
         auto entityA = edyn::make_rigidbody(*m_registry, def);

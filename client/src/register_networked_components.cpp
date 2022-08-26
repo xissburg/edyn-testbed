@@ -8,6 +8,6 @@ void RegisterNetworkedComponents(entt::registry &registry) {
 }
 
 void UnregisterNetworkedComponents(entt::registry &registry) {
-    edyn::remove_external_components(registry);
+        edyn::remove_external_components(registry);
     edyn::unregister_networked_components(registry);
 }

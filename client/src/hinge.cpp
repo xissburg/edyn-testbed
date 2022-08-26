@@ -26,7 +26,6 @@ public:
         def.mass = 100;
         def.shape = edyn::box_shape{0.2, 0.5, 0.05};
         def.update_inertia();
-        def.continuous_contacts = true;
 
         std::vector<entt::entity> boxes;
 

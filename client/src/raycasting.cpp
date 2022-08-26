@@ -51,7 +51,6 @@ public:
         def.mass = 50;
         def.material->friction = 0.8;
         def.material->restitution = 0;
-        def.continuous_contacts = true;
 
         auto shapes_and_positions = std::vector<std::pair<edyn::shapes_variant_t, edyn::vector3>>{};
 

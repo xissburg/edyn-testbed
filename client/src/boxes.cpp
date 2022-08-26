@@ -28,7 +28,6 @@ public:
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         def.update_inertia();
-        def.continuous_contacts = true;
 
         for (int i = 0; i < 5; ++i) {
             for (int j = 0; j < 5; ++j) {

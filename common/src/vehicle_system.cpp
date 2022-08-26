@@ -7,7 +7,6 @@
 #include <entt/core/hashed_string.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/replication/register_external.hpp>
-#include <edyn/util/get_component_index.hpp>
 
 void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
@@ -36,7 +35,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
     auto &settings = registry.emplace<VehicleSettings>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
     registry.emplace<edyn::action_history>(vehicle_entity);
-    registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     // Vehicle body.
     auto chassis_def = edyn::rigidbody_def();
@@ -45,7 +43,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
     chassis_def.mass = 600;
     chassis_def.shape = edyn::box_shape{0.65, 0.5, 1.85};
     chassis_def.update_inertia();
-    chassis_def.continuous_contacts = true;
     chassis_def.position = {0, 2, 0};
     auto chassis_entity = edyn::make_rigidbody(registry, chassis_def);
 

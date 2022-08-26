@@ -107,7 +107,7 @@ void ExampleBasicNetworking::createScene()
     edyn::init_network_client(*m_registry);
 
     RegisterNetworkedComponents(*m_registry);
-    edyn::set_external_system_pre_step(*m_registry, &UpdatePickInput);
+    edyn::set_pre_step_callback(*m_registry, &UpdatePickInput);
 
     edyn::network_client_extrapolation_timeout_sink(*m_registry).connect<&PrintExtrapolationTimeoutWarning>();
 
@@ -140,7 +140,7 @@ void ExampleBasicNetworking::destroyScene()
 
     edyn::deinit_network_client(*m_registry);
 
-    edyn::remove_external_systems(*m_registry);
+    edyn::remove_pre_step_callback(*m_registry);
     UnregisterNetworkedComponents(*m_registry);
 
     m_footer_text = m_default_footer_text;
@@ -213,10 +213,6 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
             m_registry->emplace<edyn::networked_tag>(m_pick_entity);
             m_registry->emplace<edyn::networked_tag>(m_pick_constraint_entity);
             m_registry->emplace<PickInput>(m_pick_entity);
-            m_registry->emplace<edyn::continuous>(m_pick_entity).insert(edyn::get_component_index<edyn::position>(*m_registry));
-            // Marking it as dirty will not cause a general_snapshot to be sent
-            // because PickInput is a transient component.
-            m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).created<PickInput>();
         }
 
         auto &pick_input = m_registry->get<PickInput>(m_pick_entity);
@@ -224,7 +220,7 @@ void ExampleBasicNetworking::updatePhysics(float deltaTime)
 
         if (pick_input.position != pick_pos) {
             pick_input.position = pick_pos;
-            m_registry->get_or_emplace<edyn::dirty>(m_pick_entity).updated<PickInput>();
+            m_registry->patch<PickInput>(m_pick_entity);
         }
     }
 
@@ -259,7 +255,7 @@ void cmdToggleExtrapolation(const void* _userData) {
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleBasicNetworking
-    , "26-networking"
+    , "00-networking"
     , "Basic networking."
     , "https://github.com/xissburg/edyn-testbed"
     );

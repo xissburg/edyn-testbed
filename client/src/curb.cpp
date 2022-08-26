@@ -56,7 +56,6 @@ public:
         def.material->roll_friction = 0.005;
         def.shape = edyn::cylinder_shape{0.3, 0.2, edyn::coordinate_axis::x};
         def.update_inertia();
-        def.continuous_contacts = true;
 
         edyn::make_rigidbody(*m_registry, def);
     }

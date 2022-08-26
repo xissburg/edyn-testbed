@@ -25,7 +25,6 @@ public:
         def.shape = edyn::box_shape{0.06, 0.5, 0.06};
         def.update_inertia();
         def.inertia.row[1][1] = def.inertia.row[0][0];
-        def.continuous_contacts = true;
         def.position = {0, 2, 0};
         auto entityA = edyn::make_rigidbody(*m_registry, def);
 

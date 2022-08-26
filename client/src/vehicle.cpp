@@ -14,10 +14,7 @@ public:
 
     void createScene() override
     {
-        if (edyn::get_execution_mode(*m_registry) == edyn::execution_mode::asynchronous) {
-            RegisterVehicleComponents(*m_registry);
-        }
-
+        RegisterVehicleComponents(*m_registry);
         edyn::set_pre_step_callback(*m_registry, &UpdateVehicles);
 
         // Create floor

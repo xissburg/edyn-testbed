@@ -46,7 +46,6 @@ public:
         dyn_def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         dyn_def.update_inertia();
         dyn_def.position = {1, 0, 0};
-        dyn_def.continuous_contacts = true;
         edyn::make_rigidbody(*m_registry, dyn_def);
 
         auto sensor_def = edyn::rigidbody_def();
@@ -55,7 +54,6 @@ public:
         sensor_def.shape = edyn::box_shape{0.8, 0.15, 0.5};
         sensor_def.position = {0.2, 0.15, 0};
         sensor_def.orientation = edyn::quaternion_axis_angle({0, 1, 0}, edyn::to_radians(38));
-        sensor_def.continuous_contacts = true;
         auto sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 

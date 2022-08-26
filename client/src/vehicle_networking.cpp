@@ -3,7 +3,7 @@
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
 
-void ExternalSystemUpdate(entt::registry &registry) {
+void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
     UpdateVehicles(registry);
 }
@@ -32,7 +32,7 @@ public:
         RegisterNetworkedVehicleComponents(*m_registry);
         RegisterVehicleComponents(*m_registry);
 
-        edyn::set_pre_step_callback(*m_registry, &ExternalSystemUpdate);
+        edyn::set_pre_step_callback(*m_registry, &PreStepUpdate);
 
         m_registry->on_construct<Vehicle>().connect<&ExampleVehicleNetworking::onConstructVehicle>(*this);
     }

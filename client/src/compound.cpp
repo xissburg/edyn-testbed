@@ -44,7 +44,6 @@ public:
     #endif
 
         auto dyn_def = edyn::rigidbody_def();
-        dyn_def.continuous_contacts = true;
         dyn_def.mass = 50;
         dyn_def.shape = compound;
         dyn_def.update_inertia();

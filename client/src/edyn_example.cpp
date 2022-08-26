@@ -63,7 +63,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
     auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::asynchronous;
+    config.execution_mode = edyn::execution_mode::sequential_multithreaded;
     edyn::attach(*m_registry, config);
 
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);

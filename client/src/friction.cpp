@@ -28,7 +28,6 @@ public:
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.1, 0.1, 0.1};
         def.update_inertia();
-        def.continuous_contacts = true;
 
         size_t num_boxes = 24;
         float radius = 1.2;
