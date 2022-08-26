@@ -1,4 +1,4 @@
-#include "basic_networking.hpp"
+#include "networking.hpp"
 #include "server_ports.hpp"
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
@@ -8,11 +8,11 @@ void PreStepUpdate(entt::registry &registry) {
     UpdateVehicles(registry);
 }
 
-class ExampleVehicleNetworking : public ExampleBasicNetworking
+class ExampleVehicleNetworking : public ExampleNetworking
 {
 public:
     ExampleVehicleNetworking(const char* _name, const char* _description, const char* _url)
-        : ExampleBasicNetworking(_name, _description, _url)
+        : ExampleNetworking(_name, _description, _url)
     {
         m_server_port = VehicleServerPort;
     }
@@ -27,7 +27,7 @@ public:
     {
         m_vehicle_entity = entt::null;
 
-        ExampleBasicNetworking::createScene();
+        ExampleNetworking::createScene();
 
         RegisterNetworkedVehicleComponents(*m_registry);
         RegisterVehicleComponents(*m_registry);
@@ -93,7 +93,7 @@ public:
             }
         }
 
-        ExampleBasicNetworking::updatePhysics(deltaTime);
+        ExampleNetworking::updatePhysics(deltaTime);
     }
 
     entt::entity m_vehicle_entity{entt::null};
