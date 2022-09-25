@@ -33,7 +33,7 @@ void assign_vehicle_ownership_to_client(entt::registry &registry,
                                         entt::entity client_entity) {
     auto entities = GetVehicleEntities(registry, vehicle_entity);
     auto &client = registry.get<edyn::remote_client>(client_entity);
-    client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
+    client.owned_entities.insert(entities.begin(), entities.end());
 
     for (auto entity : entities) {
         registry.emplace<edyn::entity_owner>(entity, client_entity);

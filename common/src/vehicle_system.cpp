@@ -100,8 +100,10 @@ entt::entity CreateVehicle(entt::registry &registry) {
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleSteeringAction &action) {
-    auto [settings, state] = registry.get<const VehicleSettings, VehicleState>(entity);
-    state.target_steering = action.value * settings.max_steering_angle;
+    auto &settings = registry.get<const VehicleSettings>(entity);
+    registry.patch<VehicleState>(entity, [&](VehicleState &state) {
+        state.target_steering = action.value * settings.max_steering_angle;
+    });
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleThrottleAction &action) {
@@ -183,12 +185,16 @@ void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
 void ApplyThrottle(entt::registry &registry, const Vehicle &vehicle,
                    const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
     for (int i = 0; i < 4; ++i) {
-        auto wheel_entity = vehicle.wheel_entity[i];
-        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto throttle = state.throttle[i];
 
-        auto driving_torque = state.throttle[i] * settings.driving_torque * spin_axis;
-        edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
+        if (throttle > 0) {
+            auto wheel_entity = vehicle.wheel_entity[i];
+            auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+            auto spin_axis = edyn::quaternion_x(wheel_orn);
+
+            auto driving_torque = throttle * settings.driving_torque * spin_axis;
+            edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
+        }
     }
 }
 

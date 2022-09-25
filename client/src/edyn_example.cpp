@@ -63,7 +63,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
     auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::sequential_multithreaded;
+    config.execution_mode = edyn::execution_mode::asynchronous;
     edyn::attach(*m_registry, config);
 
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
@@ -172,7 +172,7 @@ bool EdynExample::update()
     {
         auto com_view = m_registry->view<edyn::center_of_mass>();
         auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
-        view.each([&](auto ent, auto &sh_idx, edyn::present_position &pos, edyn::present_orientation &orn) {
+        for (auto [ent, sh_idx, pos, orn] : view.each()) {
             dde.push();
 
             uint32_t color = 0xffffffff;
@@ -220,7 +220,7 @@ bool EdynExample::update()
             dde.popTransform();
 
             dde.pop();
-        });
+        }
     }
 
     // Draw AABBs.
