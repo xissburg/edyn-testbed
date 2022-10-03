@@ -156,11 +156,6 @@ public:
         }
         m_registry->patch<HoverForce>(hover);
 
-        // Override shape AABB so it extends below the box to enclose the rays.
-        auto aabb_override = edyn::AABB_override{edyn::shape_aabb(box, edyn::vector3_zero, edyn::quaternion_identity)};
-        aabb_override.min.y -= 0.5;
-        m_registry->emplace<edyn::AABB_override>(hover, aabb_override);
-
         for (int i = 0; i < 4; ++i) {
             auto def = edyn::rigidbody_def{};
             def.mass = 100;
