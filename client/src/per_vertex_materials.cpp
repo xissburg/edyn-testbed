@@ -57,7 +57,6 @@ public:
         def.material->friction = 0.8;
         def.material->restitution = 0.7;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
-        def.update_inertia();
 
         for (int i = 0; i < 14; ++i) {
             for (int j = 0; j < 1; ++j) {

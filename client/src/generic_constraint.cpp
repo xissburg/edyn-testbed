@@ -22,7 +22,6 @@ public:
 
         def.kind = edyn::rigidbody_kind::rb_dynamic;
         def.mass = 100;
-        def.update_inertia();
         def.position = {1, 3, 0};
         //def.orientation = edyn::quaternion_axis_angle({1,0,0}, edyn::to_radians(180));
         auto entityB = edyn::make_rigidbody(*m_registry, def);

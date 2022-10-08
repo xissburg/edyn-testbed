@@ -22,7 +22,6 @@ public:
         def.material->friction = 0.8;
         def.mass = 3000;
         def.shape = edyn::box_shape{0.5, 0.1, 0.1};
-        def.update_inertia();
         def.position = {0, 2, 0};
         auto entityA = edyn::make_rigidbody(*m_registry, def);
 
@@ -35,7 +34,6 @@ public:
             });
 
         def.mass = 100;
-        def.update_inertia();
         def.position = {0.65, 1.35, 0};
         def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(-90));
         auto entityB = edyn::make_rigidbody(*m_registry, def);

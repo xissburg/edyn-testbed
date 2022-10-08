@@ -52,7 +52,6 @@ public:
         def.material->friction = 0.8;
         def.material->restitution = 0;
         def.material->roll_friction = 0.005;
-        def.update_inertia();
 
         for (int i = 0; i < 5; ++i) {
             // Mix cylinders of different orientations.
@@ -66,9 +65,6 @@ public:
                 def.shape = edyn::cylinder_shape{0.2, 0.2, edyn::coordinate_axis::z};
                 def.orientation = edyn::quaternion_axis_angle({1, 0, 0}, edyn::half_pi);
             }
-
-            // Assign inertia from shape.
-            def.update_inertia();
 
             for (int j = 0; j < 5; ++j) {
                 for (int k = 0; k < 5; ++k) {

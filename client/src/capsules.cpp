@@ -25,7 +25,6 @@ public:
         def.material->roll_friction = 0.001;
         def.mass = 100;
         def.shape = edyn::capsule_shape{0.2, 0.35, edyn::coordinate_axis::z};
-        def.update_inertia();
 
         def.material->restitution = 0;
         def.position = {0, 0.7, 0};
@@ -48,7 +47,6 @@ public:
         edyn::make_rigidbody(*m_registry, def);
 
         def.shape = edyn::capsule_shape{0.22, 0.5};
-        def.update_inertia();
         def.position = {3, 0.5, 0};
         edyn::make_rigidbody(*m_registry, def);
 

@@ -98,7 +98,6 @@ public:
             for (auto [shape, pos] : shapes_and_positions) {
                 def.position = pos;
                 def.shape = shape;
-                def.update_inertia();
                 edyn::make_rigidbody(*m_registry, def);
             }
         }

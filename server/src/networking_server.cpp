@@ -22,7 +22,6 @@ void create_scene(entt::registry &registry) {
     def.material->friction = 0.8;
     def.material->restitution = 0;
     def.shape = edyn::box_shape{0.2, 0.2, 0.2};
-    def.update_inertia();
     def.networked = true;
 
     for (int i = 0; i < 5; ++i) {

@@ -44,7 +44,6 @@ public:
         dyn_def.angvel = edyn::vector3_zero;
         dyn_def.mass = 100;
         dyn_def.shape = edyn::box_shape{0.2, 0.2, 0.2};
-        dyn_def.update_inertia();
         dyn_def.position = {1, 0, 0};
         edyn::make_rigidbody(*m_registry, dyn_def);
 

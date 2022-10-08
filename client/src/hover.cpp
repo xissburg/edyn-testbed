@@ -134,7 +134,6 @@ public:
         hover_def.material->restitution = 0;
         auto box = edyn::box_shape{0.6, 0.4, 1.2};
         hover_def.shape = box;
-        hover_def.update_inertia();
         hover_def.position = {-10, 2.2, 0};
         hover_def.orientation = edyn::quaternion_axis_angle({0, 1, 0}, edyn::half_pi);
         auto hover = edyn::make_rigidbody(*m_registry, hover_def);
@@ -162,7 +161,6 @@ public:
             def.material->friction = 0.7;
             def.material->restitution = 0;
             def.shape = edyn::box_shape{0.2, 0.15, 0.8};
-            def.update_inertia();
             def.position = {edyn::scalar(-4 + i * 2), 0.2, 0};
             edyn::make_rigidbody(*m_registry, def);
         }

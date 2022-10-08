@@ -90,7 +90,6 @@ public:
         def.material->friction = 0.2;
         def.material->restitution = 0.95;
         def.shape = edyn::sphere_shape{ball_radius};
-        def.update_inertia();
 
         // Cue ball.
         def.position = {0, table_size.y + ball_radius, -(table_size.z / 2 - 0.15f) / 2};

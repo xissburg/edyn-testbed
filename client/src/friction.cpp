@@ -27,7 +27,6 @@ public:
         def.material->friction = 1;
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.1, 0.1, 0.1};
-        def.update_inertia();
 
         size_t num_boxes = 24;
         float radius = 1.2;

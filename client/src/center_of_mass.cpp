@@ -30,7 +30,6 @@ public:
         {
             dyn_def.shape = edyn::box_shape{0.2, 0.2, 0.2};
             dyn_def.center_of_mass = {0.1, 0.1, 0.1};
-            dyn_def.update_inertia();
             dyn_def.position = {0.0, 0.5, 0.0};
             edyn::make_rigidbody(*m_registry, dyn_def);
         }
@@ -38,7 +37,6 @@ public:
         {
             dyn_def.shape = edyn::cylinder_shape{0.15, 0.2, edyn::coordinate_axis::z};
             dyn_def.center_of_mass = {0.01, 0.05, -0.1};
-            dyn_def.update_inertia();
             dyn_def.position = {0.0, 1, 0.0};
             edyn::make_rigidbody(*m_registry, dyn_def);
         }
@@ -46,7 +44,6 @@ public:
         {
             dyn_def.shape = edyn::sphere_shape{0.25};
             dyn_def.center_of_mass = {0.0, 0.2, 0.02};
-            dyn_def.update_inertia();
             dyn_def.position = {0.0, 2, 0.0};
             edyn::make_rigidbody(*m_registry, dyn_def);
         }

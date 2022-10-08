@@ -42,7 +42,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
     chassis_def.material->friction = 0.3;
     chassis_def.mass = 600;
     chassis_def.shape = edyn::box_shape{0.65, 0.5, 1.85};
-    chassis_def.update_inertia();
     chassis_def.position = {0, 2, 0};
     auto chassis_entity = edyn::make_rigidbody(registry, chassis_def);
 
@@ -62,7 +61,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
     wheel_def.material->damping = 800;
     wheel_def.mass = 50;
     wheel_def.shape = edyn::cylinder_shape{0.4, 0.1};
-    wheel_def.update_inertia();
 
     for (int i = 0; i < 4; ++i) {
         auto lateral = i == 0 || i == 2 ? 1 : -1;
