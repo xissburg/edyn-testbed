@@ -158,7 +158,6 @@ void ExampleNetworking::updateNetworking()
     while (enet_host_service(m_host, &event, 0) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
-                edyn::set_network_client_max_concurrent_extrapolations(*m_registry, 1);
                 edyn::network_client_packet_sink(*m_registry)
                     .connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
                 m_footer_text = "Connected to server.";

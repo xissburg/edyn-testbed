@@ -67,7 +67,7 @@ ENetHost * init_enet(uint16_t port) {
 bool edyn_server_init(entt::registry &registry, uint16_t port) {
     // Init Edyn.
     auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::sequential_multithreaded;
+    config.execution_mode = edyn::execution_mode::asynchronous;
     edyn::attach(registry, config);
 
     // Init networking.
