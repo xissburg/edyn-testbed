@@ -1,5 +1,5 @@
 #include "edyn_example.hpp"
-#include <edyn/collision/raycast.hpp>
+#include <edyn/util/shape_util.hpp>
 
 class ExampleRaycasting : public EdynExample
 {
@@ -51,7 +51,6 @@ public:
         def.mass = 50;
         def.material->friction = 0.8;
         def.material->restitution = 0;
-        def.continuous_contacts = true;
 
         auto shapes_and_positions = std::vector<std::pair<edyn::shapes_variant_t, edyn::vector3>>{};
 
@@ -83,32 +82,51 @@ public:
             edyn::polyhedron_shape("../../../edyn-testbed/resources/cylinder.obj"),
             edyn::vector3{-0.1, 0.9, 0.5});
 
-        std::vector<edyn::rigidbody_def> defs;
-
         for (auto [shape, pos] : shapes_and_positions) {
             def.position = pos;
             def.shape = shape;
             def.update_inertia();
-            defs.push_back(def);
+            edyn::make_rigidbody(*m_registry, def);
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 
     void updatePhysics(float deltaTime) override {
         EdynExample::updatePhysics(deltaTime);
 
+        if (m_rayDir == m_prevRayDir) {
+            return;
+        }
+
+        m_prevRayDir = m_rayDir;
         auto p0 = edyn::vector3{cameraGetPosition().x, cameraGetPosition().y, cameraGetPosition().z};
         auto p1 = p0 + m_rayDir * m_rayLength;
 
-        m_registry->clear<edyn::shape_raycast_result>();
+        bool async_execution = edyn::get_execution_mode(*m_registry) == edyn::execution_mode::asynchronous;
 
-        auto result = edyn::raycast(*m_registry, p0, p1);
+        if (async_execution) {
+            auto delegate = entt::delegate(entt::connect_arg_t<&ExampleRaycasting::onRaycastResult>{}, *this);
+            edyn::raycast_async(*m_registry, p0, p1, delegate);
+        } else {
+            auto result = edyn::raycast(*m_registry, p0, p1);
+            processRaycast(result);
+        }
+    }
+
+    void processRaycast(const edyn::raycast_result &result) {
+        m_registry->clear<edyn::shape_raycast_result>();
 
         if (result.entity != entt::null) {
             m_registry->emplace<edyn::shape_raycast_result>(result.entity, result);
         }
     }
+
+    void onRaycastResult(edyn::raycast_id_type id, const edyn::raycast_result &result,
+                         edyn::vector3 p0, edyn::vector3 p1) {
+        processRaycast(result);
+    }
+
+private:
+    edyn::vector3 m_prevRayDir;
 };
 
 ENTRY_IMPLEMENT_MAIN(

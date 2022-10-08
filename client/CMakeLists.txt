@@ -48,7 +48,6 @@ set(EdynTestbed_SOURCES
     src/boxes.cpp
     src/compound.cpp
     src/platforms.cpp
-    src/external_systems.cpp
     src/center_of_mass.cpp
     src/raycasting.cpp
     src/friction.cpp
@@ -71,7 +70,7 @@ if (EDYN_BUILD_NETWORKING_EXAMPLE)
     set(EdynTestbed_SOURCES
         ${EdynTestbed_SOURCES}
         src/vehicle_networking.cpp
-        src/basic_networking.cpp
+        src/networking.cpp
         src/register_networked_components.cpp)
 endif ()
 

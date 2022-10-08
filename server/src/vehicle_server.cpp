@@ -33,7 +33,7 @@ void assign_vehicle_ownership_to_client(entt::registry &registry,
                                         entt::entity client_entity) {
     auto entities = GetVehicleEntities(registry, vehicle_entity);
     auto &client = registry.get<edyn::remote_client>(client_entity);
-    client.owned_entities.insert(client.owned_entities.end(), entities.begin(), entities.end());
+    client.owned_entities.insert(entities.begin(), entities.end());
 
     for (auto entity : entities) {
         registry.emplace<edyn::entity_owner>(entity, client_entity);
@@ -64,7 +64,7 @@ void edyn_server_update(entt::registry &registry) {
     g_pending_new_clients.clear();
 }
 
-void ExternalSystemUpdate(entt::registry &registry) {
+void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
     UpdateVehicles(registry);
 }
@@ -77,9 +77,9 @@ int main() {
     edyn::set_fixed_dt(registry, 0.008);
     edyn::set_solver_velocity_iterations(registry, 16);
 
-    RegisterNetworkedVehicleComponents(registry);
     RegisterVehicleComponents(registry);
-    edyn::set_external_system_pre_step(registry, &ExternalSystemUpdate);
+    RegisterNetworkedVehicleComponents(registry);
+    edyn::set_pre_step_callback(registry, &PreStepUpdate);
 
     registry.on_construct<edyn::remote_client>().connect<&on_construct_remote_client>();
 

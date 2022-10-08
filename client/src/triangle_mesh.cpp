@@ -1,4 +1,6 @@
 #include "edyn_example.hpp"
+#include <edyn/serialization/file_archive.hpp>
+#include <edyn/util/shape_util.hpp>
 #include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity) {

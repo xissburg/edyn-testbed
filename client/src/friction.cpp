@@ -1,5 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/edyn.hpp>
 
 class ExampleFriction : public EdynExample
 {
@@ -29,9 +28,7 @@ public:
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.1, 0.1, 0.1};
         def.update_inertia();
-        def.continuous_contacts = true;
 
-        std::vector<edyn::rigidbody_def> defs;
         size_t num_boxes = 24;
         float radius = 1.2;
 
@@ -43,10 +40,8 @@ public:
             def.linvel = {edyn::scalar(std::cos(angle)), edyn::scalar(0), edyn::scalar(std::sin(angle))};
             def.linvel *= 5;
             def.material->friction = 1 - std::sqrt(float(i) / float(num_boxes));
-            defs.push_back(def);
+            edyn::make_rigidbody(*m_registry, def);
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

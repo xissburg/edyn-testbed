@@ -26,7 +26,6 @@ public:
         def.mass = 100;
         def.shape = edyn::box_shape{0.2, 0.5, 0.05};
         def.update_inertia();
-        def.continuous_contacts = true;
 
         std::vector<entt::entity> boxes;
 
@@ -46,22 +45,24 @@ public:
             auto entityA = boxes[i];
             auto entityB = boxes[i + 1];
             auto z = static_cast<edyn::scalar>((static_cast<int>(i) % 2) * 2 - 1);
-            auto [hinge_ent, hinge] = edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB);
-            hinge.pivot[0] = {0, 0.45, -0.05f * z};
-            hinge.pivot[1] = {0, -0.45, 0.05f * z};
-            hinge.set_axes({0, 0, 1}, {0, 0, 1});
-            hinge.angle_min = -edyn::half_pi * 1.5;
-            hinge.angle_max = -hinge.angle_min;
-            hinge.limit_restitution = 0.25;
-            hinge.damping = 20;
-            hinge.friction_torque = 10;
-            hinge.bump_stop_angle = edyn::pi * 0.25;
-            hinge.bump_stop_stiffness = 3000;
-            hinge.stiffness = 20;
-            hinge.rest_angle = 0;
-            hinge.reset_angle(
-                m_registry->get<edyn::orientation>(entityA),
-                m_registry->get<edyn::orientation>(entityB));
+            edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, entityB,
+                [&](edyn::hinge_constraint &hinge) {
+                    hinge.pivot[0] = {0, 0.45, -0.05f * z};
+                    hinge.pivot[1] = {0, -0.45, 0.05f * z};
+                    hinge.set_axes({0, 0, 1}, {0, 0, 1});
+                    hinge.angle_min = -edyn::half_pi * 1.5;
+                    hinge.angle_max = -hinge.angle_min;
+                    hinge.limit_restitution = 0.25;
+                    hinge.damping = 20;
+                    hinge.friction_torque = 10;
+                    hinge.bump_stop_angle = edyn::pi * 0.25;
+                    hinge.bump_stop_stiffness = 3000;
+                    hinge.stiffness = 20;
+                    hinge.rest_angle = 0;
+                    hinge.reset_angle(
+                        m_registry->get<edyn::orientation>(entityA),
+                        m_registry->get<edyn::orientation>(entityB));
+                });
         }
     }
 };

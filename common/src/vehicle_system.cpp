@@ -6,6 +6,7 @@
 #include <entt/meta/factory.hpp>
 #include <entt/core/hashed_string.hpp>
 #include <edyn/edyn.hpp>
+#include <edyn/replication/register_external.hpp>
 
 void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
@@ -31,11 +32,9 @@ entt::entity CreateVehicle(entt::registry &registry) {
     auto vehicle_entity = registry.create();
     edyn::tag_external_entity(registry, vehicle_entity);
 
-    auto &vehicle = registry.emplace<Vehicle>(vehicle_entity);
     auto &settings = registry.emplace<VehicleSettings>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
     registry.emplace<edyn::action_history>(vehicle_entity);
-    registry.emplace<edyn::continuous>(vehicle_entity).insert(edyn::get_component_index<VehicleState>(registry));
 
     // Vehicle body.
     auto chassis_def = edyn::rigidbody_def();
@@ -44,15 +43,15 @@ entt::entity CreateVehicle(entt::registry &registry) {
     chassis_def.mass = 600;
     chassis_def.shape = edyn::box_shape{0.65, 0.5, 1.85};
     chassis_def.update_inertia();
-    chassis_def.continuous_contacts = true;
     chassis_def.position = {0, 2, 0};
     auto chassis_entity = edyn::make_rigidbody(registry, chassis_def);
+
+    auto vehicle = Vehicle{};
     vehicle.chassis_entity = chassis_entity;
 
     // Create a connection between vehicle entity and chassis entity to ensure
     // the vehicle entity will be present wherever the chassis goes.
-    vehicle.null_con_entity = registry.create();
-    edyn::make_constraint<edyn::null_constraint>(vehicle.null_con_entity, registry, vehicle_entity, chassis_entity);
+    vehicle.null_con_entity = edyn::make_constraint<edyn::null_constraint>(registry, vehicle_entity, chassis_entity);
 
     // Wheels.
     auto wheel_def = edyn::rigidbody_def{};
@@ -73,32 +72,38 @@ entt::entity CreateVehicle(entt::registry &registry) {
 
         edyn::exclude_collision(registry, chassis_entity, wheel_entity);
 
-        auto [con_ent, con] = edyn::make_constraint<edyn::generic_constraint>(registry, chassis_entity, wheel_entity);
-        con.frame[0] = edyn::to_matrix3x3(
-            edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * -lateral)));
-        con.pivot[0] = {lateral * 0.8f, 0, longitudinal * 1.45f};
-        con.pivot[1] = {-0.1f * lateral, 0, 0};
-        con.linear_dofs[1].offset_min = -0.8;
-        con.linear_dofs[1].offset_max = 0;
-        con.linear_dofs[1].bump_stop_length = 0.1;
-        con.linear_dofs[1].bump_stop_stiffness = 180000;
-        con.linear_dofs[1].spring_stiffness = 40000;
-        con.linear_dofs[1].rest_offset = -0.5;
-        con.linear_dofs[1].damping = 1100;
-        con.linear_dofs[1].friction_force = 10;
-        con.angular_dofs[0].limit_enabled = false;
-        con.angular_dofs[0].friction_torque = edyn::to_Nm_per_radian(0.006);
+        auto con_ent = edyn::make_constraint<edyn::generic_constraint>(registry, chassis_entity, wheel_entity,
+            [&](edyn::generic_constraint &con) {
+                con.frame[0] = edyn::to_matrix3x3(
+                    edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * -lateral)));
+                con.pivot[0] = {lateral * 0.8f, 0, longitudinal * 1.45f};
+                con.pivot[1] = {-0.1f * lateral, 0, 0};
+                con.linear_dofs[1].offset_min = -0.8;
+                con.linear_dofs[1].offset_max = 0;
+                con.linear_dofs[1].bump_stop_length = 0.1;
+                con.linear_dofs[1].bump_stop_stiffness = 180000;
+                con.linear_dofs[1].spring_stiffness = 40000;
+                con.linear_dofs[1].rest_offset = -0.5;
+                con.linear_dofs[1].damping = 1100;
+                con.linear_dofs[1].friction_force = 10;
+                con.angular_dofs[0].limit_enabled = false;
+                con.angular_dofs[0].friction_torque = edyn::to_Nm_per_radian(0.006);
+            });
 
         vehicle.wheel_entity[i] = wheel_entity;
         vehicle.suspension_entity[i] = con_ent;
     }
 
+    registry.emplace<Vehicle>(vehicle_entity, vehicle);
+
     return vehicle_entity;
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleSteeringAction &action) {
-    auto [settings, state] = registry.get<const VehicleSettings, VehicleState>(entity);
-    state.target_steering = action.value * settings.max_steering_angle;
+    auto &settings = registry.get<const VehicleSettings>(entity);
+    registry.patch<VehicleState>(entity, [&](VehicleState &state) {
+        state.target_steering = action.value * settings.max_steering_angle;
+    });
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleThrottleAction &action) {
@@ -180,12 +185,16 @@ void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
 void ApplyThrottle(entt::registry &registry, const Vehicle &vehicle,
                    const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
     for (int i = 0; i < 4; ++i) {
-        auto wheel_entity = vehicle.wheel_entity[i];
-        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto throttle = state.throttle[i];
 
-        auto driving_torque = state.throttle[i] * settings.driving_torque * spin_axis;
-        edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
+        if (throttle > 0) {
+            auto wheel_entity = vehicle.wheel_entity[i];
+            auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+            auto spin_axis = edyn::quaternion_x(wheel_orn);
+
+            auto driving_torque = throttle * settings.driving_torque * spin_axis;
+            edyn::rigidbody_apply_torque_impulse(registry, vehicle.wheel_entity[i], driving_torque * dt);
+        }
     }
 }
 

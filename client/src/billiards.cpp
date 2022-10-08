@@ -91,15 +91,12 @@ public:
         def.material->restitution = 0.95;
         def.shape = edyn::sphere_shape{ball_radius};
         def.update_inertia();
-        def.continuous_contacts = true;
-
-        std::vector<edyn::rigidbody_def> defs;
 
         // Cue ball.
         def.position = {0, table_size.y + ball_radius, -(table_size.z / 2 - 0.15f) / 2};
         def.linvel = {0.001, 0, 3};
         def.angvel = {0, -3, 1};
-        defs.push_back(def);
+        edyn::make_rigidbody(*m_registry, def);
 
         // Other balls.
         def.linvel = {0, 0, 0};
@@ -112,16 +109,14 @@ public:
 
             for (auto j = 0; j < n; ++j) {
                 def.position.x = (j - float(i) / 2) * ball_diameter;
-                defs.push_back(def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
 
         cameraSetPosition({0.0f, 1.6f, -2.f});
         cameraSetVerticalAngle(-0.25f);
 
-        m_rigid_body_axes_size = ball_radius + 0.003f;
+        m_rigid_body_axes_size = ball_radius + 0.0033f;
         setPaused(true);
 
 #ifdef EDYN_SOUND_ENABLED

@@ -21,7 +21,6 @@ public:
 
         // Add some capsules.
         auto def = edyn::rigidbody_def();
-        def.continuous_contacts = true;
         def.material->friction = 0.8;
         def.material->roll_friction = 0.001;
         def.mass = 100;

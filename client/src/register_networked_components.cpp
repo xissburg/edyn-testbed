@@ -1,6 +1,5 @@
 #include "pick_input.hpp"
-#include <entt/entity/registry.hpp>
-#include <edyn/edyn.hpp>
+#include <edyn/replication/register_external.hpp>
 #include <edyn/networking/networking_external.hpp>
 
 void RegisterNetworkedComponents(entt::registry &registry) {
@@ -9,6 +8,6 @@ void RegisterNetworkedComponents(entt::registry &registry) {
 }
 
 void UnregisterNetworkedComponents(entt::registry &registry) {
-    edyn::remove_external_components(registry);
+        edyn::remove_external_components(registry);
     edyn::unregister_networked_components(registry);
 }

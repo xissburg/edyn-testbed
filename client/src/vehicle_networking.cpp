@@ -1,26 +1,18 @@
-#include "basic_networking.hpp"
+#include "networking.hpp"
 #include "server_ports.hpp"
 #include "vehicle_system.hpp"
-#include <edyn/comp/dirty.hpp>
-#include <edyn/comp/orientation.hpp>
-#include <edyn/edyn.hpp>
-#include <edyn/math/math.hpp>
-#include <edyn/math/quaternion.hpp>
-#include <edyn/math/vector3.hpp>
-#include <edyn/util/constraint_util.hpp>
-#include <edyn/util/rigidbody.hpp>
 #include "pick_input.hpp"
 
-void ExternalSystemUpdate(entt::registry &registry) {
+void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
     UpdateVehicles(registry);
 }
 
-class ExampleVehicleNetworking : public ExampleBasicNetworking
+class ExampleVehicleNetworking : public ExampleNetworking
 {
 public:
     ExampleVehicleNetworking(const char* _name, const char* _description, const char* _url)
-        : ExampleBasicNetworking(_name, _description, _url)
+        : ExampleNetworking(_name, _description, _url)
     {
         m_server_port = VehicleServerPort;
     }
@@ -35,12 +27,12 @@ public:
     {
         m_vehicle_entity = entt::null;
 
-        ExampleBasicNetworking::createScene();
+        ExampleNetworking::createScene();
 
         RegisterNetworkedVehicleComponents(*m_registry);
         RegisterVehicleComponents(*m_registry);
 
-        edyn::set_external_system_pre_step(*m_registry, &ExternalSystemUpdate);
+        edyn::set_pre_step_callback(*m_registry, &PreStepUpdate);
 
         m_registry->on_construct<Vehicle>().connect<&ExampleVehicleNetworking::onConstructVehicle>(*this);
     }
@@ -48,13 +40,13 @@ public:
     using ActionList = edyn::action_list<VehicleAction>;
 
     void insertAction(VehicleAction action) {
-        if (m_registry->all_of<ActionList>(m_vehicle_entity)) {
-            m_registry->get<ActionList>(m_vehicle_entity).actions.push_back(action);
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).updated<ActionList>();
-        } else {
-            m_registry->emplace<ActionList>(m_vehicle_entity).actions.push_back(action);
-            m_registry->get_or_emplace<edyn::dirty>(m_vehicle_entity).created<ActionList>();
+        if (!m_registry->all_of<ActionList>(m_vehicle_entity)) {
+            m_registry->emplace<ActionList>(m_vehicle_entity);
         }
+
+        m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
+            list.actions.push_back(action);
+        });
     }
 
     void setSteering(float steering) {
@@ -101,7 +93,7 @@ public:
             }
         }
 
-        ExampleBasicNetworking::updatePhysics(deltaTime);
+        ExampleNetworking::updatePhysics(deltaTime);
     }
 
     entt::entity m_vehicle_entity{entt::null};

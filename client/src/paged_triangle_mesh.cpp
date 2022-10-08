@@ -1,5 +1,7 @@
 #include "edyn_example.hpp"
-#include <edyn/edyn.hpp>
+#include <edyn/serialization/paged_triangle_mesh_s11n.hpp>
+#include <edyn/shapes/create_paged_triangle_mesh.hpp>
+#include <edyn/util/shape_util.hpp>
 
 void ContactStarted(entt::registry &registry, entt::entity entity);
 void ContactEnded(entt::registry &registry, entt::entity entity);

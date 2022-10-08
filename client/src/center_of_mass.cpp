@@ -22,20 +22,17 @@ public:
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add some dynamic rigid bodies.
-        std::vector<edyn::rigidbody_def> defs;
-
         auto dyn_def = edyn::rigidbody_def();
         dyn_def.mass = 100;
         dyn_def.material->restitution = 0;
         dyn_def.material->friction = 0.7;
-        dyn_def.continuous_contacts = true;
 
         {
             dyn_def.shape = edyn::box_shape{0.2, 0.2, 0.2};
             dyn_def.center_of_mass = {0.1, 0.1, 0.1};
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 0.5, 0.0};
-            defs.push_back(dyn_def);
+            edyn::make_rigidbody(*m_registry, dyn_def);
         }
 
         {
@@ -43,7 +40,7 @@ public:
             dyn_def.center_of_mass = {0.01, 0.05, -0.1};
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 1, 0.0};
-            defs.push_back(dyn_def);
+            edyn::make_rigidbody(*m_registry, dyn_def);
         }
 
         {
@@ -51,10 +48,8 @@ public:
             dyn_def.center_of_mass = {0.0, 0.2, 0.02};
             dyn_def.update_inertia();
             dyn_def.position = {0.0, 2, 0.0};
-            defs.push_back(dyn_def);
+            edyn::make_rigidbody(*m_registry, dyn_def);
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

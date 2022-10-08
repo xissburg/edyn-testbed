@@ -7,8 +7,6 @@
 #include <edyn/math/math.hpp>
 #include <edyn/math/scalar.hpp>
 #include <entt/entity/fwd.hpp>
-#include <edyn/util/entity_map.hpp>
-#include <edyn/comp/merge_component.hpp>
 
 struct Vehicle {
     entt::entity chassis_entity;

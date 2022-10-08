@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/util/ragdoll.hpp>
 
 class ExampleRagDoll : public EdynExample
 {
@@ -27,7 +28,6 @@ public:
         rag_def.friction = 0.4;
         rag_def.position = {0, 1, 0};
         rag_def.shape_type = edyn::ragdoll_shape_type::capsule;
-
         edyn::make_ragdoll(*m_registry, rag_def);
 
         rag_def.height = 1;
@@ -35,8 +35,6 @@ public:
         rag_def.position = {0, 2.5, 0};
         rag_def.orientation = edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(24));
         edyn::make_ragdoll(*m_registry, rag_def);
-
-        setPaused(true);
     }
 };
 

@@ -30,10 +30,8 @@ public:
         def.material->roll_friction = 0.0002;
         def.shape = edyn::sphere_shape{0.2};
         def.update_inertia();
-        def.continuous_contacts = true;
         //def.linvel = {0, -2, 0};
         //def.angvel = {0, 0, -32};
-        auto defs = std::vector<edyn::rigidbody_def>{};
 
         const size_t n = 10;
 
@@ -44,11 +42,9 @@ public:
             for (size_t j = 0; j < 2; ++j) {
                 auto y = edyn::scalar(3 + 0.4 * j);
                 def.position = {x, y, 0};
-                defs.push_back(def);
+                edyn::make_rigidbody(*m_registry, def);
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
     }
 };
 

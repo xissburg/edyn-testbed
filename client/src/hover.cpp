@@ -1,5 +1,7 @@
 #include "edyn_example.hpp"
+#include <edyn/replication/register_external.hpp>
 #include <edyn/util/aabb_util.hpp>
+#include <edyn/util/shape_util.hpp>
 
 struct HoverForce {
     struct RayForce {
@@ -21,6 +23,7 @@ void ApplyRayForces(entt::registry &registry) {
     auto vel_view = registry.view<edyn::linvel, edyn::angvel>();
     auto tr_view = registry.view<edyn::position, edyn::orientation>();
     auto view = registry.view<HoverForce, edyn::position, edyn::orientation>().each();
+
     for (auto [entity, coll, pos, orn] : view) {
         for (int i = 0; i < coll.count; ++i) {
             auto &ray = coll.rays[i];
@@ -30,6 +33,8 @@ void ApplyRayForces(entt::registry &registry) {
             constexpr auto num_springs = 4;
             std::array<edyn::vector3, num_springs> ray_locs;
             std::array<edyn::raycast_result, num_springs> results;
+            std::vector<entt::entity> ignore;
+            ignore.push_back(entity);
             int count = 0;
 
             for (int j = 0; j < num_springs; ++j) {
@@ -38,9 +43,7 @@ void ApplyRayForces(entt::registry &registry) {
                 auto ray_loc = ray.loc + ray_loc_offset_unit * ray.radius;
                 auto p0 = edyn::to_world_space(ray_loc, pos, orn);
                 auto p1 = p0 + dir * ray.length;
-                auto res = edyn::raycast(registry, p0, p1, [entity = entity] (entt::entity other) {
-                    return other == entity;
-                });
+                auto res = edyn::raycast(registry, p0, p1, {entity});
 
                 if (res.entity != entt::null) {
                     results[count] = res;
@@ -90,7 +93,7 @@ public:
     void createScene() override
     {
         edyn::register_external_components<HoverForce>(*m_registry);
-        edyn::set_external_system_pre_step(*m_registry, &ApplyRayForces);
+        edyn::set_pre_step_callback(*m_registry, &ApplyRayForces);
 
         // Create floor
         auto extent_x = 25;
@@ -132,7 +135,6 @@ public:
         auto box = edyn::box_shape{0.6, 0.4, 1.2};
         hover_def.shape = box;
         hover_def.update_inertia();
-        hover_def.continuous_contacts = true;
         hover_def.position = {-10, 2.2, 0};
         hover_def.orientation = edyn::quaternion_axis_angle({0, 1, 0}, edyn::half_pi);
         auto hover = edyn::make_rigidbody(*m_registry, hover_def);
@@ -152,11 +154,7 @@ public:
                                                        edyn::scalar(i < 2 ? 1 : -1)};
             ray.radius = 0.15;
         }
-
-        // Override shape AABB so it extends below the box to enclose the rays.
-        auto &aabb_override = m_registry->emplace<edyn::AABB_override>(hover);
-        aabb_override = edyn::shape_aabb(box, edyn::vector3_zero, edyn::quaternion_identity);
-        aabb_override.min.y -= 0.5;
+        m_registry->patch<HoverForce>(hover);
 
         for (int i = 0; i < 4; ++i) {
             auto def = edyn::rigidbody_def{};
@@ -165,7 +163,6 @@ public:
             def.material->restitution = 0;
             def.shape = edyn::box_shape{0.2, 0.15, 0.8};
             def.update_inertia();
-            def.continuous_contacts = true;
             def.position = {edyn::scalar(-4 + i * 2), 0.2, 0};
             edyn::make_rigidbody(*m_registry, def);
         }

@@ -1,8 +1,4 @@
 #include "edyn_example.hpp"
-#include <edyn/comp/linvel.hpp>
-#include <edyn/comp/orientation.hpp>
-#include <edyn/math/quaternion.hpp>
-#include <edyn/util/rigidbody.hpp>
 
 class ExamplePlatforms : public EdynExample
 {
@@ -32,9 +28,6 @@ public:
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
         def.update_inertia();
-        def.continuous_contacts = true;
-
-        std::vector<edyn::rigidbody_def> defs;
 
         for (int i = 0; i < 5; ++i) {
             for (int j = 0; j < 5; ++j) {
@@ -42,12 +35,10 @@ public:
                     def.position = {edyn::scalar(0.4 * j),
                                     edyn::scalar(0.4 * i + 1.6),
                                     edyn::scalar(0.4 * k)};
-                    defs.push_back(def);
+                    edyn::make_rigidbody(*m_registry, def);
                 }
             }
         }
-
-        edyn::batch_rigidbodies(*m_registry, defs);
 
         auto plat_def = edyn::rigidbody_def{};
         plat_def.material->restitution = 0;
@@ -71,17 +62,20 @@ public:
 
             // It's important to assign a proper velocity to the kinematic
             // entities for correct constraint behavior, i.e. friction.
-            m_registry->get<edyn::linvel>(m_square_platform_entity).x = std::sin(angle) * -4 * 0.8;
-            m_registry->get<edyn::position>(m_square_platform_entity).x = -0.3 + std::cos(angle) * 0.8;
-            m_registry->get_or_emplace<edyn::dirty>(m_square_platform_entity)
-                .updated<edyn::position, edyn::linvel>();
+            m_registry->patch<edyn::linvel>(m_square_platform_entity, [&](edyn::linvel &v) {
+                v.x = std::sin(angle) * -4 * 0.8;
+            });
+            m_registry->patch<edyn::position>(m_square_platform_entity, [&](edyn::position &p) {
+                p.x = -0.3 + std::cos(angle) * 0.8;
+            });
 
-            auto &angvel = m_registry->get<edyn::angvel>(m_disc_platform_entity);
-            angvel.y = edyn::pi * 0.25;
-            auto &orn = m_registry->get<edyn::orientation>(m_disc_platform_entity);
-            orn = edyn::integrate(orn, angvel, deltaTime);
-            m_registry->get_or_emplace<edyn::dirty>(m_disc_platform_entity)
-                .updated<edyn::orientation, edyn::angvel>();
+            auto angvel = edyn::vector3{0, edyn::pi * 0.25, 0};
+            m_registry->patch<edyn::angvel>(m_disc_platform_entity, [&](edyn::angvel &w) {
+                w = angvel;
+            });
+            m_registry->patch<edyn::orientation>(m_disc_platform_entity, [&](edyn::orientation &orn) {
+                orn = edyn::integrate(orn, angvel, deltaTime);
+            });
         }
 
         EdynExample::updatePhysics(deltaTime);
