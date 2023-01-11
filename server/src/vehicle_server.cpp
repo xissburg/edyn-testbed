@@ -3,6 +3,8 @@
 #include <edyn/networking/comp/remote_client.hpp>
 #include <edyn/networking/comp/aabb_of_interest.hpp>
 #include <edyn/networking/comp/aabb_oi_follow.hpp>
+#include <edyn/networking/sys/server_side.hpp>
+#include <edyn/networking/util/asset_util.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
@@ -37,25 +39,21 @@ void assign_vehicle_ownership_to_client(entt::registry &registry,
 
     for (auto entity : entities) {
         registry.emplace<edyn::entity_owner>(entity, client_entity);
-        registry.emplace<edyn::networked_tag>(entity);
     }
-}
-
-void notify_vehicle_entity_created(entt::registry &registry,
-                                   entt::entity vehicle_entity,
-                                   entt::entity client_entity) {
-    auto entities = GetVehicleEntities(registry, vehicle_entity);
-    edyn::server_notify_created_entities(registry, client_entity, entities);
 }
 
 void edyn_server_update(entt::registry &registry) {
     for (auto client_entity : g_pending_new_clients) {
         auto vehicle_entity = CreateVehicle(registry);
+        auto asset_entity = MakeVehicleNetworked(registry, vehicle_entity);
         assign_vehicle_ownership_to_client(registry, vehicle_entity, client_entity);
-        notify_vehicle_entity_created(registry, vehicle_entity, client_entity);
+
+        // Also assign ownership of asset.
+        registry.emplace<edyn::entity_owner>(asset_entity, client_entity);
+        registry.get<edyn::remote_client>(client_entity).owned_entities.emplace(asset_entity);
 
         // Make AABB of interest follow vehicle.
-        registry.get<edyn::aabb_of_interest>(client_entity).aabb = {-150 * edyn::vector3_one, 150 * edyn::vector3_one};
+        registry.get<edyn::aabb_of_interest>(client_entity).aabb = {-50 * edyn::vector3_one, 50 * edyn::vector3_one};
 
         auto &veh = registry.get<Vehicle>(vehicle_entity);
         registry.emplace<edyn::aabb_oi_follow>(client_entity, veh.chassis_entity);

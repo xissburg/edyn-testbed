@@ -2,6 +2,7 @@
 #define EDYN_TESTBED_VEHICLE_SYSTEM_HPP
 
 #include <array>
+#include <map>
 #include <vector>
 #include <variant>
 #include <edyn/math/math.hpp>
@@ -93,10 +94,29 @@ void serialize(Archive &archive, VehicleAction &action) {
     archive(action.var);
 }
 
+enum class VehicleAssetEntry : unsigned short {
+    Vehicle,
+    Chassis,
+    NullCon,
+    WheelFL,
+    WheelFR,
+    WheelRL,
+    WheelRR,
+    SuspensionFL,
+    SuspensionFR,
+    SuspensionRL,
+    SuspensionRR,
+};
+static constexpr unsigned VehicleAssetID = 2;
+
 void RegisterVehicleComponents(entt::registry &);
 void RegisterNetworkedVehicleComponents(entt::registry &);
 entt::entity CreateVehicle(entt::registry &);
+entt::entity MakeVehicleNetworked(entt::registry &, entt::entity vehicleEntity);
 void UpdateVehicles(entt::registry &);
 std::vector<entt::entity> GetVehicleEntities(entt::registry &, entt::entity);
+
+std::map<entt::id_type, entt::entity>
+CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity);
 
 #endif // EDYN_TESTBED_VEHICLE_SYSTEM_HPP

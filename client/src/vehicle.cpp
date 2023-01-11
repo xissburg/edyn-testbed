@@ -44,6 +44,10 @@ public:
         m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
             list.actions.push_back(action);
         });
+
+        auto residents = std::vector<entt::entity>{};
+        residents.push_back(m_vehicle_entity);
+        edyn::wake_up_island_residents(*m_registry, residents);
     }
 
     void setSteering(float steering) {

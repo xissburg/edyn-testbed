@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/comp/island.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
@@ -63,7 +64,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
     auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::asynchronous;
+    config.execution_mode = edyn::execution_mode::sequential;
     edyn::attach(*m_registry, config);
 
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
@@ -665,8 +666,14 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             auto next_pick_pos = cam_pos + m_rayDir * s;
 
             if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
-                //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
-                m_registry->replace<edyn::position>(m_pick_entity, next_pick_pos);
+                auto &pos = m_registry->get<edyn::position>(m_pick_entity);
+                if (pos != next_pick_pos) {
+                    pos = next_pick_pos;
+                    m_registry->patch<edyn::position>(m_pick_entity);
+
+                    auto &resident = m_registry->get<edyn::multi_island_resident>(m_pick_entity);
+                    edyn::wake_up_island(*m_registry, *resident.island_entities.begin());
+                }
             }
         }
     } else {
