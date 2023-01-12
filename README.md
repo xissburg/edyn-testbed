@@ -1,4 +1,4 @@
-![EdynLogo](https://xissburg.com/images/EdynLogo.svg)
+![EdynLogo](https://user-images.githubusercontent.com/762769/211650462-3ad6dab2-5e47-4b62-993c-ac7fc7650cde.svg)
 
 # Edyn Testbed
 
