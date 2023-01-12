@@ -64,7 +64,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
     m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
     auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::sequential;
+    config.execution_mode = edyn::execution_mode::asynchronous;
     edyn::attach(*m_registry, config);
 
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
@@ -670,9 +670,7 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
                 if (pos != next_pick_pos) {
                     pos = next_pick_pos;
                     m_registry->patch<edyn::position>(m_pick_entity);
-
-                    auto &resident = m_registry->get<edyn::multi_island_resident>(m_pick_entity);
-                    edyn::wake_up_island(*m_registry, *resident.island_entities.begin());
+                    edyn::wake_up_entity(*m_registry, m_pick_entity);
                 }
             }
         }

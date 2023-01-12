@@ -45,9 +45,7 @@ public:
             list.actions.push_back(action);
         });
 
-        auto residents = std::vector<entt::entity>{};
-        residents.push_back(m_vehicle_entity);
-        edyn::wake_up_island_residents(*m_registry, residents);
+        edyn::wake_up_entity(*m_registry, m_vehicle_entity);
     }
 
     void setSteering(float steering) {
