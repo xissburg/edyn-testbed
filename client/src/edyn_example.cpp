@@ -1,6 +1,5 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
-#include <edyn/comp/island.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 
