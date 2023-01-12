@@ -58,6 +58,17 @@ void serialize(Archive &archive, VehicleSettings &settings) {
     archive(settings.camber);
 }
 
+inline void merge_component(VehicleState &state, const VehicleState &new_value) {
+    // Always select the steering value that's closer to the target
+    // to avoid glitches due to overriding, particularly after
+    // extrapolation.
+    const auto steering_remaining = std::abs(state.steering - new_value.target_steering);
+    const auto steering_remaining_new = std::abs(new_value.steering - new_value.target_steering);
+    const auto steering = steering_remaining < steering_remaining_new ? state.steering : new_value.steering;
+    state = new_value;
+    state.steering = steering;
+}
+
 struct VehicleSteeringAction {
     edyn::scalar value {};
 };
