@@ -3,7 +3,6 @@
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
 #include <edyn/networking/sys/client_side.hpp>
-#include <edyn/util/island_util.hpp>
 
 void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
@@ -49,9 +48,7 @@ public:
             list.actions.push_back(action);
         });
 
-        auto residents = std::vector<entt::entity>{};
-        residents.push_back(m_vehicle_entity);
-        edyn::wake_up_island_residents(*m_registry, residents);
+        edyn::wake_up_entity(*m_registry, m_vehicle_entity);
     }
 
     void setSteering(float steering) {
