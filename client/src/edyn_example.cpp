@@ -665,8 +665,12 @@ void EdynExample::updatePicking(float viewMtx[16], float proj[16]) {
             auto next_pick_pos = cam_pos + m_rayDir * s;
 
             if (edyn::distance_sqr(pick_pos, next_pick_pos) > 0.000025) {
-                //edyn::update_kinematic_position(*m_registry, m_pick_entity, next_pick_pos, deltaTime);
-                m_registry->replace<edyn::position>(m_pick_entity, next_pick_pos);
+                auto &pos = m_registry->get<edyn::position>(m_pick_entity);
+                if (pos != next_pick_pos) {
+                    pos = next_pick_pos;
+                    m_registry->patch<edyn::position>(m_pick_entity);
+                    edyn::wake_up_entity(*m_registry, m_pick_entity);
+                }
             }
         }
     } else {

@@ -2,11 +2,16 @@
 #include "server_ports.hpp"
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
+#include <edyn/networking/sys/client_side.hpp>
 
 void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
     UpdateVehicles(registry);
 }
+
+class ExampleVehicleNetworking;
+
+void OnEntityEnteredVehicle(ExampleVehicleNetworking &, entt::entity asset_entity);
 
 class ExampleVehicleNetworking : public ExampleNetworking
 {
@@ -17,24 +22,19 @@ public:
         m_server_port = VehicleServerPort;
     }
 
-    void onConstructVehicle(entt::registry &registry, entt::entity entity) {
-        if (edyn::client_owns_entity(registry, entity)) {
-            m_vehicle_entity = entity;
-        }
-    }
-
     void createScene() override
     {
         m_vehicle_entity = entt::null;
+        auto &registry = *m_registry;
 
         ExampleNetworking::createScene();
 
-        RegisterNetworkedVehicleComponents(*m_registry);
-        RegisterVehicleComponents(*m_registry);
+        RegisterNetworkedVehicleComponents(registry);
+        RegisterVehicleComponents(registry);
 
-        edyn::set_pre_step_callback(*m_registry, &PreStepUpdate);
+        edyn::network_client_entity_entered_sink(registry).connect<&OnEntityEnteredVehicle>(*this);
 
-        m_registry->on_construct<Vehicle>().connect<&ExampleVehicleNetworking::onConstructVehicle>(*this);
+        edyn::set_pre_step_callback(registry, &PreStepUpdate);
     }
 
     using ActionList = edyn::action_list<VehicleAction>;
@@ -47,6 +47,8 @@ public:
         m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
             list.actions.push_back(action);
         });
+
+        edyn::wake_up_entity(*m_registry, m_vehicle_entity);
     }
 
     void setSteering(float steering) {
@@ -101,6 +103,21 @@ public:
     edyn::scalar m_throttle{};
     edyn::scalar m_brakes{};
 };
+
+void OnEntityEnteredVehicle(ExampleVehicleNetworking &example, entt::entity asset_entity) {
+    auto &registry = *example.m_registry;
+    auto &asset = registry.get<edyn::asset_ref>(asset_entity);
+
+    if (asset.id == VehicleAssetID) {
+        auto vehicleEntity = CreateVehicle(registry);
+        auto emap = CreateVehicleAssetEntityMap(registry, vehicleEntity);
+        edyn::client_link_asset(registry, asset_entity, emap);
+
+        if (edyn::client_owns_entity(registry, asset_entity)) {
+            example.m_vehicle_entity = vehicleEntity;
+        }
+    }
+}
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleVehicleNetworking

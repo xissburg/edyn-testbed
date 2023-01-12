@@ -2,6 +2,8 @@
 #define EDYN_TESTBED_VEHICLE_SYSTEM_HPP
 
 #include <array>
+#include <entt/core/hashed_string.hpp>
+#include <map>
 #include <vector>
 #include <variant>
 #include <edyn/math/math.hpp>
@@ -57,6 +59,17 @@ void serialize(Archive &archive, VehicleSettings &settings) {
     archive(settings.camber);
 }
 
+inline void merge_component(VehicleState &state, const VehicleState &new_value) {
+    // Always select the steering value that's closer to the target
+    // to avoid glitches due to overriding, particularly after
+    // extrapolation.
+    const auto steering_remaining = std::abs(state.steering - new_value.target_steering);
+    const auto steering_remaining_new = std::abs(new_value.steering - new_value.target_steering);
+    const auto steering = steering_remaining < steering_remaining_new ? state.steering : new_value.steering;
+    state = new_value;
+    state.steering = steering;
+}
+
 struct VehicleSteeringAction {
     edyn::scalar value {};
 };
@@ -93,10 +106,29 @@ void serialize(Archive &archive, VehicleAction &action) {
     archive(action.var);
 }
 
+enum class VehicleAssetEntry : unsigned short {
+    Vehicle,
+    Chassis,
+    NullCon,
+    WheelFL,
+    WheelFR,
+    WheelRL,
+    WheelRR,
+    SuspensionFL,
+    SuspensionFR,
+    SuspensionRL,
+    SuspensionRR,
+};
+static constexpr auto VehicleAssetID = entt::hashed_string{"VehicleAsset"};
+
 void RegisterVehicleComponents(entt::registry &);
 void RegisterNetworkedVehicleComponents(entt::registry &);
 entt::entity CreateVehicle(entt::registry &);
+entt::entity MakeVehicleNetworked(entt::registry &, entt::entity vehicleEntity);
 void UpdateVehicles(entt::registry &);
 std::vector<entt::entity> GetVehicleEntities(entt::registry &, entt::entity);
+
+std::map<entt::id_type, entt::entity>
+CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity);
 
 #endif // EDYN_TESTBED_VEHICLE_SYSTEM_HPP

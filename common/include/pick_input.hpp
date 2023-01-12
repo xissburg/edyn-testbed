@@ -1,6 +1,8 @@
 #ifndef EDYN_TESTBED_PICK_INPUT_HPP
 #define EDYN_TESTBED_PICK_INPUT_HPP
 
+#include <edyn/comp/island.hpp>
+#include <edyn/util/rigidbody.hpp>
 #include <entt/entity/registry.hpp>
 #include <edyn/comp/position.hpp>
 #include <edyn/networking/comp/network_input.hpp>
@@ -16,7 +18,10 @@ void serialize(Archive &archive, PickInput &input) {
 
 inline void UpdatePickInput(entt::registry &registry) {
     for (auto [entity, position, input] : registry.view<edyn::position, PickInput>().each()) {
-        position = input.position;
+        if (position != input.position) {
+            position = input.position;
+            edyn::wake_up_entity(registry, entity);
+        }
     }
 }
 

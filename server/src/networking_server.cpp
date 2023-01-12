@@ -1,6 +1,6 @@
 #include <edyn/replication/register_external.hpp>
+#include <edyn/util/rigidbody.hpp>
 #include <entt/entity/registry.hpp>
-#include <edyn/edyn.hpp>
 #include <edyn/networking/networking.hpp>
 #include "pick_input.hpp"
 #include "edyn_server.hpp"
@@ -14,6 +14,7 @@ void create_scene(entt::registry &registry) {
     floor_def.material->friction = 0.5;
     floor_def.shape = edyn::plane_shape{{0, 1, 0}, 0};
     floor_def.networked = true;
+    floor_def.presentation = false;
     edyn::make_rigidbody(registry, floor_def);
 
     // Create boxes.
@@ -23,6 +24,7 @@ void create_scene(entt::registry &registry) {
     def.material->restitution = 0;
     def.shape = edyn::box_shape{0.2, 0.2, 0.2};
     def.networked = true;
+    def.presentation = false;
 
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 2; ++j) {

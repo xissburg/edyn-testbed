@@ -1,7 +1,9 @@
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
 #include <edyn/comp/action_list.hpp>
+#include <edyn/networking/comp/asset_ref.hpp>
 #include <edyn/networking/networking_external.hpp>
+#include <edyn/networking/util/asset_util.hpp>
 #include <entt/entity/registry.hpp>
 #include <entt/meta/factory.hpp>
 #include <entt/core/hashed_string.hpp>
@@ -67,7 +69,6 @@ entt::entity CreateVehicle(entt::registry &registry) {
         auto longitudinal = i == 0 || i == 1 ? 1 : -1;
         wheel_def.position = {lateral * 0.9f, 1.5, longitudinal * 1.45f};
         auto wheel_entity = edyn::make_rigidbody(registry, wheel_def);
-
         edyn::exclude_collision(registry, chassis_entity, wheel_entity);
 
         auto con_ent = edyn::make_constraint<edyn::generic_constraint>(registry, chassis_entity, wheel_entity,
@@ -95,6 +96,37 @@ entt::entity CreateVehicle(entt::registry &registry) {
     registry.emplace<Vehicle>(vehicle_entity, vehicle);
 
     return vehicle_entity;
+}
+
+entt::entity MakeVehicleNetworked(entt::registry &registry, entt::entity vehicle_entity) {
+    auto asset_entity = registry.create();
+    registry.emplace<edyn::asset_ref>(asset_entity, VehicleAssetID);
+
+    auto &vehicle = registry.get<Vehicle>(vehicle_entity);
+
+    edyn::assign_to_asset<VehicleState>(registry, vehicle_entity, asset_entity,
+                                        static_cast<unsigned>(VehicleAssetEntry::Vehicle));
+    edyn::assign_to_asset<
+        edyn::position, edyn::orientation,
+        edyn::linvel, edyn::angvel>(registry, vehicle.chassis_entity, asset_entity,
+                                    static_cast<unsigned>(VehicleAssetEntry::Chassis));
+    edyn::assign_to_asset<
+        edyn::position, edyn::orientation,
+        edyn::linvel, edyn::angvel>(registry, vehicle.null_con_entity, asset_entity,
+                                    static_cast<unsigned>(VehicleAssetEntry::NullCon));
+
+    for (int i = 0; i < 4; ++i) {
+        edyn::assign_to_asset<
+            edyn::position, edyn::orientation,
+            edyn::linvel, edyn::angvel>(registry, vehicle.wheel_entity[i], asset_entity,
+                                        static_cast<unsigned>(VehicleAssetEntry::WheelFL) + i);
+        edyn::assign_to_asset<
+            edyn::position, edyn::orientation,
+            edyn::linvel, edyn::angvel>(registry, vehicle.suspension_entity[i], asset_entity,
+                                        static_cast<unsigned>(VehicleAssetEntry::SuspensionFL) + i);
+    }
+
+    return asset_entity;
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleSteeringAction &action) {
@@ -229,4 +261,19 @@ std::vector<entt::entity> GetVehicleEntities(entt::registry &registry,
     entities.push_back(vehicle.null_con_entity);
 
     return entities;
+}
+
+std::map<entt::id_type, entt::entity>
+CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity)
+{
+    auto &vehicle = registry.get<Vehicle>(vehicleEntity);
+    auto emap = std::map<entt::id_type, entt::entity>{};
+    emap[static_cast<unsigned>(VehicleAssetEntry::Vehicle)] = vehicleEntity;
+    emap[static_cast<unsigned>(VehicleAssetEntry::Chassis)] = vehicle.chassis_entity;
+    emap[static_cast<unsigned>(VehicleAssetEntry::NullCon)] = vehicle.null_con_entity;
+    for (int i = 0; i < 4; i++) {
+        emap[static_cast<unsigned>(VehicleAssetEntry::WheelFL) + i] = vehicle.wheel_entity[i];
+        emap[static_cast<unsigned>(VehicleAssetEntry::SuspensionFL) + i] = vehicle.suspension_entity[i];
+    }
+    return emap;
 }

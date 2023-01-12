@@ -4,6 +4,7 @@
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/networking/packet/edyn_packet.hpp>
+#include <edyn/networking/sys/client_side.hpp>
 #include <edyn/time/time.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <iomanip>
@@ -104,12 +105,13 @@ void ExampleNetworking::createScene()
         return;
     }
 
-    edyn::init_network_client(*m_registry);
+    auto &registry = *m_registry;
+    edyn::init_network_client(registry);
 
-    RegisterNetworkedComponents(*m_registry);
-    edyn::set_pre_step_callback(*m_registry, &UpdatePickInput);
+    RegisterNetworkedComponents(registry);
+    edyn::set_pre_step_callback(registry, &UpdatePickInput);
 
-    edyn::network_client_extrapolation_timeout_sink(*m_registry).connect<&PrintExtrapolationTimeoutWarning>();
+    edyn::network_client_extrapolation_timeout_sink(registry).connect<&PrintExtrapolationTimeoutWarning>();
 
     if (!connectToServer("localhost", m_server_port)) {
         return;
@@ -157,45 +159,44 @@ void ExampleNetworking::updateNetworking()
 
     while (enet_host_service(m_host, &event, 0) > 0) {
         switch (event.type) {
-            case ENET_EVENT_TYPE_CONNECT: {
-                edyn::network_client_packet_sink(*m_registry)
-                    .connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
-                m_footer_text = "Connected to server.";
-                break;
-            }
+        case ENET_EVENT_TYPE_CONNECT: {
+            edyn::network_client_packet_sink(*m_registry)
+                .connect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+            m_footer_text = "Connected to server.";
+            break;
+        }
 
-            case ENET_EVENT_TYPE_DISCONNECT: {
-                edyn::network_client_packet_sink(*m_registry)
-                    .disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
-                m_footer_text = "Disconnected.";
-                break;
-            }
+        case ENET_EVENT_TYPE_DISCONNECT: {
+            edyn::network_client_packet_sink(*m_registry)
+                .disconnect<&ExampleNetworking::sendEdynPacketToServer>(*this);
+            m_footer_text = "Disconnected.";
+            break;
+        }
 
-            case ENET_EVENT_TYPE_RECEIVE: {
-                auto archive = edyn::memory_input_archive(event.packet->data, event.packet->dataLength);
-                edyn::packet::edyn_packet packet;
-                archive(packet);
+        case ENET_EVENT_TYPE_RECEIVE: {
+            auto archive = edyn::memory_input_archive(event.packet->data, event.packet->dataLength);
+            edyn::packet::edyn_packet packet;
+            archive(packet);
 
-                if (!archive.failed()) {
-                    edyn::client_receive_packet(*m_registry, packet);
+            if (!archive.failed()) {
+                edyn::client_receive_packet(*m_registry, packet);
 
-                    // Assign server settings to UI.
-                    if (std::holds_alternative<edyn::packet::server_settings>(packet.var)) {
-                        auto &settings = std::get<edyn::packet::server_settings>(packet.var);
-                        m_fixed_dt_ms = settings.fixed_dt * 1000;
-                        m_num_velocity_iterations = settings.num_solver_velocity_iterations;
-                        m_num_position_iterations = settings.num_solver_position_iterations;
-                    }
+                // Assign server settings to UI.
+                if (std::holds_alternative<edyn::packet::server_settings>(packet.var)) {
+                    auto &settings = std::get<edyn::packet::server_settings>(packet.var);
+                    m_fixed_dt_ms = settings.fixed_dt * 1000;
+                    m_num_velocity_iterations = settings.num_solver_velocity_iterations;
+                    m_num_position_iterations = settings.num_solver_position_iterations;
                 }
-
-                /* Clean up the packet now that we're done using it. */
-                enet_packet_destroy(event.packet);
-
-                break;
             }
 
-            default:
-                break;
+            /* Clean up the packet now that we're done using it. */
+            enet_packet_destroy(event.packet);
+            break;
+        }
+
+        default:
+            break;
         }
     }
 

@@ -44,6 +44,8 @@ public:
         m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
             list.actions.push_back(action);
         });
+
+        edyn::wake_up_entity(*m_registry, m_vehicle_entity);
     }
 
     void setSteering(float steering) {
