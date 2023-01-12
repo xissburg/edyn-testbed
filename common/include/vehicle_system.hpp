@@ -2,6 +2,7 @@
 #define EDYN_TESTBED_VEHICLE_SYSTEM_HPP
 
 #include <array>
+#include <entt/core/hashed_string.hpp>
 #include <map>
 #include <vector>
 #include <variant>
@@ -118,7 +119,7 @@ enum class VehicleAssetEntry : unsigned short {
     SuspensionRL,
     SuspensionRR,
 };
-static constexpr unsigned VehicleAssetID = 2;
+static constexpr auto VehicleAssetID = entt::hashed_string{"VehicleAsset"};
 
 void RegisterVehicleComponents(entt::registry &);
 void RegisterNetworkedVehicleComponents(entt::registry &);
