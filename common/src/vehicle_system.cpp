@@ -52,7 +52,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
 
     // Create a connection between vehicle entity and chassis entity to ensure
     // the vehicle entity will be present wherever the chassis goes.
-    vehicle.null_con_entity = edyn::make_constraint<edyn::null_constraint>(registry, vehicle_entity, chassis_entity);
+    edyn::make_constraint<edyn::null_constraint>(registry, vehicle_entity, chassis_entity);
 
     // Wheels.
     auto wheel_def = edyn::rigidbody_def{};
@@ -110,10 +110,6 @@ entt::entity MakeVehicleNetworked(entt::registry &registry, entt::entity vehicle
         edyn::position, edyn::orientation,
         edyn::linvel, edyn::angvel>(registry, vehicle.chassis_entity, asset_entity,
                                     static_cast<unsigned>(VehicleAssetEntry::Chassis));
-    edyn::assign_to_asset<
-        edyn::position, edyn::orientation,
-        edyn::linvel, edyn::angvel>(registry, vehicle.null_con_entity, asset_entity,
-                                    static_cast<unsigned>(VehicleAssetEntry::NullCon));
 
     for (int i = 0; i < 4; ++i) {
         edyn::assign_to_asset<
@@ -258,7 +254,6 @@ std::vector<entt::entity> GetVehicleEntities(entt::registry &registry,
     entities.push_back(vehicle.chassis_entity);
     entities.insert(entities.end(), vehicle.wheel_entity.begin(), vehicle.wheel_entity.end());
     entities.insert(entities.end(), vehicle.suspension_entity.begin(), vehicle.suspension_entity.end());
-    entities.push_back(vehicle.null_con_entity);
 
     return entities;
 }
@@ -270,7 +265,6 @@ CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity
     auto emap = std::map<entt::id_type, entt::entity>{};
     emap[static_cast<unsigned>(VehicleAssetEntry::Vehicle)] = vehicleEntity;
     emap[static_cast<unsigned>(VehicleAssetEntry::Chassis)] = vehicle.chassis_entity;
-    emap[static_cast<unsigned>(VehicleAssetEntry::NullCon)] = vehicle.null_con_entity;
     for (int i = 0; i < 4; i++) {
         emap[static_cast<unsigned>(VehicleAssetEntry::WheelFL) + i] = vehicle.wheel_entity[i];
         emap[static_cast<unsigned>(VehicleAssetEntry::SuspensionFL) + i] = vehicle.suspension_entity[i];

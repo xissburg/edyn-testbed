@@ -14,7 +14,6 @@ struct Vehicle {
     entt::entity chassis_entity;
     std::array<entt::entity, 4> wheel_entity;
     std::array<entt::entity, 4> suspension_entity;
-    entt::entity null_con_entity;
 };
 
 struct VehicleState {
@@ -38,7 +37,6 @@ void serialize(Archive &archive, Vehicle &vehicle) {
     archive(vehicle.chassis_entity);
     archive(vehicle.wheel_entity);
     archive(vehicle.suspension_entity);
-    archive(vehicle.null_con_entity);
 }
 
 template<typename Archive>
@@ -109,7 +107,6 @@ void serialize(Archive &archive, VehicleAction &action) {
 enum class VehicleAssetEntry : unsigned short {
     Vehicle,
     Chassis,
-    NullCon,
     WheelFL,
     WheelFR,
     WheelRL,
