@@ -24,8 +24,6 @@ void RegisterNetworkedVehicleComponents(entt::registry &registry) {
     auto actions = std::tuple<VehicleAction>{};
     edyn::register_networked_components<
         PickInput,
-        Vehicle,
-        VehicleSettings,
         VehicleState
     >(registry, actions);
 }
