@@ -2,6 +2,7 @@
 #include "server_ports.hpp"
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
+#include <edyn/networking/networking.hpp>
 #include <edyn/networking/sys/client_side.hpp>
 
 void PreStepUpdate(entt::registry &registry) {
@@ -37,14 +38,8 @@ public:
         edyn::set_pre_step_callback(registry, &PreStepUpdate);
     }
 
-    using ActionList = edyn::action_list<VehicleAction>;
-
     void insertAction(VehicleAction action) {
-        if (!m_registry->all_of<ActionList>(m_vehicle_entity)) {
-            m_registry->emplace<ActionList>(m_vehicle_entity);
-        }
-
-        m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
+        m_registry->patch<VehicleActionList>(m_vehicle_entity, [&](VehicleActionList &list) {
             list.actions.push_back(action);
         });
 

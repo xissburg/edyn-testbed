@@ -1,6 +1,5 @@
 #include "edyn_example.hpp"
 #include "vehicle_system.hpp"
-#include <edyn/comp/action_list.hpp>
 #include <edyn/replication/register_external.hpp>
 
 class ExampleVehicle : public EdynExample
@@ -34,14 +33,8 @@ public:
         edyn::remove_pre_step_callback(*m_registry);
     }
 
-    using ActionList = edyn::action_list<VehicleAction>;
-
     void insertAction(VehicleAction action) {
-        if (!m_registry->all_of<ActionList>(m_vehicle_entity)) {
-            m_registry->emplace<ActionList>(m_vehicle_entity);
-        }
-
-        m_registry->patch<ActionList>(m_vehicle_entity, [&](ActionList &list) {
+        m_registry->patch<VehicleActionList>(m_vehicle_entity, [&](VehicleActionList &list) {
             list.actions.push_back(action);
         });
 
@@ -70,8 +63,6 @@ public:
     }
 
     void updatePhysics(float deltaTime) override {
-        EdynExample::updatePhysics(deltaTime);
-
         if (inputGetKeyState(entry::Key::Left)) {
             setSteering(-1);
         } else if (inputGetKeyState(entry::Key::Right)) {
@@ -91,6 +82,11 @@ public:
         } else {
             setBrakes(0);
         }
+
+        // Update after inserting actions which will cause the action lists to
+        // be sent to the simulation worker. Action lists are cleared in this
+        // call.
+        EdynExample::updatePhysics(deltaTime);
     }
 
     entt::entity m_vehicle_entity;

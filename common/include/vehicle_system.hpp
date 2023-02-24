@@ -2,6 +2,7 @@
 #define EDYN_TESTBED_VEHICLE_SYSTEM_HPP
 
 #include <array>
+#include <edyn/comp/action_list.hpp>
 #include <entt/core/hashed_string.hpp>
 #include <map>
 #include <vector>
@@ -83,6 +84,8 @@ struct VehicleBrakeAction {
 struct VehicleAction {
     std::variant<VehicleSteeringAction, VehicleBrakeAction, VehicleThrottleAction> var;
 };
+
+using VehicleActionList = edyn::action_list<VehicleAction>;
 
 template<typename Archive>
 void serialize(Archive &archive, VehicleSteeringAction &action) {

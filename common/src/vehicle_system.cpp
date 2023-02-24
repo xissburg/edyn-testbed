@@ -1,6 +1,6 @@
 #include "vehicle_system.hpp"
 #include "pick_input.hpp"
-#include <edyn/comp/action_list.hpp>
+#include <edyn/comp/tag.hpp>
 #include <edyn/networking/comp/asset_ref.hpp>
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/networking/util/asset_util.hpp>
@@ -35,6 +35,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
     auto &settings = registry.emplace<VehicleSettings>(vehicle_entity);
     registry.emplace<VehicleState>(vehicle_entity);
     registry.emplace<edyn::action_history>(vehicle_entity);
+    registry.emplace<VehicleActionList>(vehicle_entity);
 
     // Vehicle body.
     auto chassis_def = edyn::rigidbody_def();
@@ -175,12 +176,19 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleB
 }
 
 void ProcessActions(entt::registry &registry) {
-    for (auto [entity, list] : registry.view<edyn::action_list<VehicleAction>>().each()) {
-        // Consume actions.
-        for (auto &action : list.actions) {
-            std::visit([&registry, entity = entity](auto &&containedAction) {
-                ExecuteAction(registry, entity, containedAction);
-            }, action.var);
+    auto sleeping_view = registry.view<edyn::sleeping_tag>();
+
+    for (auto [entity, list] : registry.view<VehicleActionList>().each()) {
+        if (!list.actions.empty()) {
+            for (auto &action : list.actions) {
+                std::visit([&registry, entity = entity](auto &&containedAction) {
+                    ExecuteAction(registry, entity, containedAction);
+                }, action.var);
+            }
+
+            if (sleeping_view.contains(entity)) {
+                edyn::wake_up_entity(registry, entity);
+            }
         }
     }
 }
@@ -257,8 +265,7 @@ std::vector<entt::entity> GetVehicleEntities(entt::registry &registry,
 }
 
 std::map<entt::id_type, entt::entity>
-CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity)
-{
+CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity) {
     auto &vehicle = registry.get<Vehicle>(vehicleEntity);
     auto emap = std::map<entt::id_type, entt::entity>{};
     emap[static_cast<unsigned>(VehicleAssetEntry::Vehicle)] = vehicleEntity;
