@@ -99,7 +99,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
 
 entt::entity MakeVehicleNetworked(entt::registry &registry, entt::entity vehicle_entity) {
     auto asset_entity = registry.create();
-    registry.emplace<edyn::asset_ref>(asset_entity, VehicleAssetID);
+    registry.emplace<edyn::asset_ref>(asset_entity, VehicleAssetID, 0);
 
     auto &vehicle = registry.get<Vehicle>(vehicle_entity);
 

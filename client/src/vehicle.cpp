@@ -16,6 +16,8 @@ public:
         RegisterVehicleComponents(*m_registry);
         edyn::set_pre_step_callback(*m_registry, &UpdateVehicles);
 
+        m_fixed_dt_ms = 8;
+
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
