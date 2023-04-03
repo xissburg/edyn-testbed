@@ -132,47 +132,17 @@ void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleS
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleThrottleAction &action) {
-    auto [vehicle, state] = registry.get<const Vehicle, VehicleState>(entity);
-
-    for (int i = 0; i < 4; ++i) {
-        auto wheel_entity = vehicle.wheel_entity[i];
-        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
-        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
-        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-        auto spin_axis = edyn::quaternion_x(wheel_orn);
-        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
-        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
-
-        // Rudimentary traction control.
-        if (std::abs(spin_speed) * 0.25f > longitudinal_speed) {
-            state.throttle[i] = 0;
-        } else {
-            state.throttle[i] = action.value;
-        }
-    }
+    registry.patch<VehicleState>(entity,
+        [&action](VehicleState &state) {
+            state.throttle = action.value;
+        });
 }
 
 void ExecuteAction(entt::registry &registry, entt::entity entity, const VehicleBrakeAction &action) {
-    auto [vehicle, state] = registry.get<const Vehicle, VehicleState>(entity);
-
-    for (int i = 0; i < 4; ++i) {
-        auto wheel_entity = vehicle.wheel_entity[i];
-        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
-        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
-        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
-        auto spin_axis = edyn::quaternion_x(wheel_orn);
-        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
-        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
-
-        // Rudimentary ABS.
-        if (longitudinal_speed > 2 &&
-            std::abs(spin_speed) < edyn::to_radians(1))
-        {
-            state.brakes[i] = 0;
-        } else {
-            state.brakes[i] = action.value;
-        }
-    }
+    registry.patch<VehicleState>(entity,
+        [&action](VehicleState &state) {
+            state.brakes = action.value;
+        });
 }
 
 void ProcessActions(entt::registry &registry) {
@@ -207,17 +177,33 @@ void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
             steering *= 1.1;
         }
 
-        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
-        con.frame[0] = edyn::to_matrix3x3(
-            edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * (i == 0 ? -1 : 1))) *
-            edyn::quaternion_axis_angle({0, 1, 0}, steering));
+        registry.patch<edyn::generic_constraint>(vehicle.suspension_entity[i],
+            [&](edyn::generic_constraint &con) {
+                con.frame[0] = edyn::to_matrix3x3(
+                    edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * (i == 0 ? -1 : 1))) *
+                    edyn::quaternion_axis_angle({0, 1, 0}, steering));
+            });
     }
 }
 
 void ApplyThrottle(entt::registry &registry, const Vehicle &vehicle,
-                   const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
+                   const VehicleSettings &settings, const VehicleState &state, edyn::scalar dt) {
     for (int i = 0; i < 4; ++i) {
-        auto throttle = state.throttle[i];
+        auto wheel_entity = vehicle.wheel_entity[i];
+        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
+        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
+        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
+        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
+        edyn::scalar throttle;
+
+        // Rudimentary traction control.
+        if (std::abs(spin_speed) * 0.25f > longitudinal_speed) {
+            throttle = 0;
+        } else {
+            throttle = state.throttle;
+        }
 
         if (throttle > 0) {
             auto wheel_entity = vehicle.wheel_entity[i];
@@ -231,10 +217,30 @@ void ApplyThrottle(entt::registry &registry, const Vehicle &vehicle,
 }
 
 void ApplyBrakes(entt::registry &registry, const Vehicle &vehicle,
-                 const VehicleSettings &settings, VehicleState &state, edyn::scalar dt) {
+                 const VehicleSettings &settings, const VehicleState &state, edyn::scalar dt) {
     for (int i = 0; i < 4; ++i) {
-        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
-        con.angular_dofs[0].friction_torque = state.brakes[i] * settings.brake_torque + settings.bearing_torque;
+        auto wheel_entity = vehicle.wheel_entity[i];
+        auto &wheel_linvel = registry.get<edyn::linvel>(wheel_entity);
+        auto &wheel_angvel = registry.get<edyn::angvel>(wheel_entity);
+        auto &wheel_orn = registry.get<edyn::orientation>(wheel_entity);
+        auto spin_axis = edyn::quaternion_x(wheel_orn);
+        auto spin_speed = edyn::dot(wheel_angvel, spin_axis);
+        auto longitudinal_speed = edyn::length(edyn::project_direction(wheel_linvel, spin_axis));
+        edyn::scalar brakes;
+
+        // Rudimentary ABS.
+        if (longitudinal_speed > 2 &&
+            std::abs(spin_speed) < edyn::to_radians(1))
+        {
+            brakes = 0;
+        } else {
+            brakes = state.brakes;
+        }
+
+        registry.patch<edyn::generic_constraint>(vehicle.suspension_entity[i],
+            [&](edyn::generic_constraint &con) {
+                con.angular_dofs[0].friction_torque = brakes * settings.brake_torque + settings.bearing_torque;
+            });
     }
 }
 
@@ -248,6 +254,7 @@ void UpdateVehicles(entt::registry &registry) {
         ApplySteering(registry, vehicle, settings, state, dt);
         ApplyThrottle(registry, vehicle, settings, state, dt);
         ApplyBrakes(registry, vehicle, settings, state, dt);
+        registry.patch<VehicleState>(entity);
     }
 }
 

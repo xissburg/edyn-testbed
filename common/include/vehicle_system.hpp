@@ -20,8 +20,8 @@ struct Vehicle {
 struct VehicleState {
     edyn::scalar target_steering;
     edyn::scalar steering;
-    std::array<edyn::scalar, 4> throttle;
-    std::array<edyn::scalar, 4> brakes;
+    edyn::scalar throttle;
+    edyn::scalar brakes;
 };
 
 struct VehicleSettings {
