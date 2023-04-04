@@ -248,7 +248,7 @@ void UpdateVehicles(entt::registry &registry) {
     ProcessActions(registry);
 
     auto dt = edyn::get_fixed_dt(registry);
-    auto vehicle_view = registry.view<const Vehicle, const VehicleSettings, VehicleState>();
+    auto vehicle_view = registry.view<const Vehicle, const VehicleSettings, VehicleState>(edyn::exclude_sleeping_disabled);
 
     for (auto [entity, vehicle, settings, state] : vehicle_view.each()) {
         ApplySteering(registry, vehicle, settings, state, dt);
