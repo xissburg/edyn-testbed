@@ -14,6 +14,7 @@ void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
     entt::meta<Vehicle>().type()
         .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
+        .data<&Vehicle::null_con_entity, entt::as_ref_t>("null_con_entity"_hs)
         .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
         .data<&Vehicle::wheel_entity, entt::as_ref_t>("wheel_entity"_hs);
     auto actions = std::tuple<VehicleAction>{};
@@ -51,7 +52,7 @@ entt::entity CreateVehicle(entt::registry &registry) {
 
     // Create a connection between vehicle entity and chassis entity to ensure
     // the vehicle entity will be present wherever the chassis goes.
-    edyn::make_constraint<edyn::null_constraint>(registry, vehicle_entity, chassis_entity);
+    vehicle.null_con_entity = edyn::make_constraint<edyn::null_constraint>(registry, vehicle_entity, chassis_entity);
 
     // Wheels.
     auto wheel_def = edyn::rigidbody_def{};
@@ -109,6 +110,9 @@ entt::entity MakeVehicleNetworked(entt::registry &registry, entt::entity vehicle
         edyn::position, edyn::orientation,
         edyn::linvel, edyn::angvel>(registry, vehicle.chassis_entity, asset_entity,
                                     static_cast<unsigned>(VehicleAssetEntry::Chassis));
+
+    edyn::assign_to_asset(registry, vehicle.null_con_entity, asset_entity,
+                          static_cast<unsigned>(VehicleAssetEntry::NullCon));
 
     for (int i = 0; i < 4; ++i) {
         edyn::assign_to_asset<
@@ -177,12 +181,10 @@ void ApplySteering(entt::registry &registry, const Vehicle &vehicle,
             steering *= 1.1;
         }
 
-        registry.patch<edyn::generic_constraint>(vehicle.suspension_entity[i],
-            [&](edyn::generic_constraint &con) {
-                con.frame[0] = edyn::to_matrix3x3(
-                    edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * (i == 0 ? -1 : 1))) *
-                    edyn::quaternion_axis_angle({0, 1, 0}, steering));
-            });
+        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
+        con.frame[0] = edyn::to_matrix3x3(
+            edyn::quaternion_axis_angle({0, 0, 1}, edyn::to_radians(settings.camber * (i == 0 ? -1 : 1))) *
+            edyn::quaternion_axis_angle({0, 1, 0}, steering));
     }
 }
 
@@ -237,10 +239,8 @@ void ApplyBrakes(entt::registry &registry, const Vehicle &vehicle,
             brakes = state.brakes;
         }
 
-        registry.patch<edyn::generic_constraint>(vehicle.suspension_entity[i],
-            [&](edyn::generic_constraint &con) {
-                con.angular_dofs[0].friction_torque = brakes * settings.brake_torque + settings.bearing_torque;
-            });
+        auto &con = registry.get<edyn::generic_constraint>(vehicle.suspension_entity[i]);
+        con.angular_dofs[0].friction_torque = brakes * settings.brake_torque + settings.bearing_torque;
     }
 }
 
@@ -277,6 +277,7 @@ CreateVehicleAssetEntityMap(entt::registry &registry, entt::entity vehicleEntity
     auto emap = std::map<entt::id_type, entt::entity>{};
     emap[static_cast<unsigned>(VehicleAssetEntry::Vehicle)] = vehicleEntity;
     emap[static_cast<unsigned>(VehicleAssetEntry::Chassis)] = vehicle.chassis_entity;
+    emap[static_cast<unsigned>(VehicleAssetEntry::NullCon)] = vehicle.null_con_entity;
     for (int i = 0; i < 4; i++) {
         emap[static_cast<unsigned>(VehicleAssetEntry::WheelFL) + i] = vehicle.wheel_entity[i];
         emap[static_cast<unsigned>(VehicleAssetEntry::SuspensionFL) + i] = vehicle.suspension_entity[i];
