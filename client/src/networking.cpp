@@ -5,6 +5,7 @@
 #include <edyn/networking/networking_external.hpp>
 #include <edyn/networking/packet/edyn_packet.hpp>
 #include <edyn/networking/sys/client_side.hpp>
+#include <edyn/networking/extrapolation/extrapolation_callback.hpp>
 #include <edyn/time/time.hpp>
 #include <edyn/util/rigidbody.hpp>
 #include <iomanip>
@@ -110,6 +111,7 @@ void ExampleNetworking::createScene()
 
     RegisterNetworkedComponents(registry);
     edyn::set_pre_step_callback(registry, &UpdatePickInput);
+    edyn::set_extrapolation_pre_step_callback(registry, &UpdatePickInput);
 
     edyn::network_client_extrapolation_timeout_sink(registry).connect<&PrintExtrapolationTimeoutWarning>();
 
@@ -142,7 +144,8 @@ void ExampleNetworking::destroyScene()
 
     edyn::deinit_network_client(*m_registry);
 
-    edyn::remove_pre_step_callback(*m_registry);
+    edyn::set_pre_step_callback(*m_registry, nullptr);
+    edyn::set_extrapolation_pre_step_callback(*m_registry, nullptr);
     UnregisterNetworkedComponents(*m_registry);
 
     m_footer_text = m_default_footer_text;
@@ -244,7 +247,7 @@ void ExampleNetworking::updatePhysics(float deltaTime)
 
         std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(3)
             << "Network data rate(kB/s): up " << network_outgoing_data_rate
-            << " | down " << network_incoming_data_rate << std::endl;
+            << " | down " << network_incoming_data_rate << ", RTT " << std::dec << m_peer->roundTripTime << std::endl;
     }
 #endif
 }

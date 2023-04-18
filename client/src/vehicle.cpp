@@ -32,7 +32,7 @@ public:
     void destroyScene() override {
         EdynExample::destroyScene();
         edyn::remove_external_components(*m_registry);
-        edyn::remove_pre_step_callback(*m_registry);
+        edyn::set_pre_step_callback(*m_registry, nullptr);
     }
 
     void insertAction(VehicleAction action) {

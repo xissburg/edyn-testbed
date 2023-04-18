@@ -1,7 +1,7 @@
 #include "edyn_example.hpp"
 #include <edyn/serialization/paged_triangle_mesh_s11n.hpp>
 #include <edyn/shapes/create_paged_triangle_mesh.hpp>
-#include <edyn/util/shape_util.hpp>
+#include <edyn/util/shape_io.hpp>
 
 void ContactStarted(entt::registry &registry, entt::entity entity);
 void ContactEnded(entt::registry &registry, entt::entity entity);
@@ -97,11 +97,12 @@ public:
                 edyn::vector3{1.6, 1, 0});
 
             shapes_and_positions.emplace_back(
-                edyn::polyhedron_shape("../../../edyn-testbed/resources/rock.obj", {0,0,0}, {0,0,0,1}, {0.8,0.9,1.1}),
+                edyn::load_convex_polyhedrons_from_obj("../../../edyn-testbed/resources/rock.obj",
+                                                       {0,0,0}, {0,0,0,1}, {0.8,0.9,1.1}).front().shape,
                 edyn::vector3{2.1, 0.9, 0});
 
             shapes_and_positions.emplace_back(
-                edyn::compound_shape("../../../edyn-testbed/resources/chain_link.obj"),
+                edyn::load_compound_shape_from_obj("../../../edyn-testbed/resources/chain_link.obj"),
                 edyn::vector3{2.5, 1, 0});
 
             for (auto [shape, pos] : shapes_and_positions) {

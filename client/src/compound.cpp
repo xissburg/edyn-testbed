@@ -1,4 +1,5 @@
 #include "edyn_example.hpp"
+#include <edyn/util/shape_io.hpp>
 
 class ExampleCompound : public EdynExample
 {
@@ -39,8 +40,8 @@ public:
         compound.finish();
     #elif COMPOUND_TYPE == COMPOUND_TYPE_OBJ
         auto obj_path = "../../../edyn-testbed/resources/chain_link.obj";
-        auto compound = edyn::compound_shape(obj_path, edyn::vector3_zero,
-                                             edyn::quaternion_axis_angle({0, 1, 0}, edyn::pi * 0.5));
+        auto compound = edyn::load_compound_shape_from_obj(obj_path,
+            edyn::vector3_zero, edyn::quaternion_axis_angle({0, 1, 0}, edyn::pi * 0.5));
     #endif
 
         auto dyn_def = edyn::rigidbody_def();

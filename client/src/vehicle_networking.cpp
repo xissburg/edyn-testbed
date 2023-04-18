@@ -4,6 +4,7 @@
 #include "pick_input.hpp"
 #include <edyn/networking/networking.hpp>
 #include <edyn/networking/sys/client_side.hpp>
+#include <edyn/networking/extrapolation/extrapolation_callback.hpp>
 
 void PreStepUpdate(entt::registry &registry) {
     UpdatePickInput(registry);
@@ -36,6 +37,7 @@ public:
         edyn::network_client_entity_entered_sink(registry).connect<&OnEntityEnteredVehicle>(*this);
 
         edyn::set_pre_step_callback(registry, &PreStepUpdate);
+        edyn::set_extrapolation_pre_step_callback(registry, &PreStepUpdate);
     }
 
     void insertAction(VehicleAction action) {
