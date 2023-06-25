@@ -466,7 +466,7 @@ void drawRaycastResult(DebugDrawEncoder &dde, edyn::polyhedron_shape &poly,
     auto face_idx = std::get<edyn::polyhedron_raycast_info>(result.info_var).face_index;
     auto tolerance = edyn::scalar(0.01);
     auto tolerance_sqr = tolerance * tolerance;
-    auto num_vertices = poly.mesh->vertex_count(face_idx);
+    auto num_vertices = poly.mesh->face_vertex_count(face_idx);
 
     for (unsigned i = 0; i < num_vertices; ++i) {
         auto v_idx = poly.mesh->face_vertex_index(face_idx, i);
