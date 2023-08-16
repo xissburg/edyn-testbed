@@ -29,7 +29,7 @@ public:
         edyn::make_constraint<edyn::hinge_constraint>(*m_registry, entityA, static_ent, [&](edyn::hinge_constraint &hinge) {
             hinge.pivot[1] = def.position;
             hinge.set_axes({0, 1, 0}, {0, 1, 0});
-            hinge.friction_torque = 10;
+            hinge.torque = 10;
             hinge.damping = 3;
         });
 

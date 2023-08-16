@@ -29,7 +29,7 @@ public:
             [&](edyn::hinge_constraint &hinge) {
                 hinge.pivot[1] = def.position;
                 hinge.set_axes({1, 0, 0}, {1, 0, 0});
-                hinge.friction_torque = 1;
+                hinge.torque = 1;
                 hinge.damping = 3;
             });
 

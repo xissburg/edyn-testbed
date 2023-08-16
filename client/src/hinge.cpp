@@ -53,7 +53,7 @@ public:
                     hinge.angle_max = -hinge.angle_min;
                     hinge.limit_restitution = 0.25;
                     hinge.damping = 20;
-                    hinge.friction_torque = 10;
+                    hinge.torque = 10;
                     hinge.bump_stop_angle = edyn::pi * 0.25;
                     hinge.bump_stop_stiffness = 3000;
                     hinge.stiffness = 20;
