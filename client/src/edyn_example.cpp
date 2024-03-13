@@ -171,7 +171,7 @@ bool EdynExample::update()
     // Draw dynamic entities.
     {
         auto com_view = m_registry->view<edyn::center_of_mass>();
-        auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation>();
+        auto view = m_registry->view<edyn::shape_index, edyn::present_position, edyn::present_orientation, edyn::dynamic_tag>();
         for (auto [ent, sh_idx, pos, orn] : view.each()) {
             dde.push();
 

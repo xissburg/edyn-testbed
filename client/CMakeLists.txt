@@ -61,6 +61,7 @@ set(EdynTestbed_SOURCES
     src/vehicle.cpp
     src/curb.cpp
     src/hover.cpp
+    src/rigidbody_kind.cpp
     src/shape_shifting.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
