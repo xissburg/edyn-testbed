@@ -63,6 +63,7 @@ set(EdynTestbed_SOURCES
     src/hover.cpp
     src/rigidbody_kind.cpp
     src/shape_shifting.cpp
+    src/soft_contacts.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 
