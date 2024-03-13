@@ -62,10 +62,10 @@ public:
             // It's important to assign a proper velocity to the kinematic
             // entities for correct constraint behavior, i.e. friction.
             m_registry->patch<edyn::linvel>(m_square_platform_entity, [&](edyn::linvel &v) {
-                v.x = std::sin(angle) * -4 * 0.8;
+                v.x = std::sin(angle) * -0.8;
             });
             m_registry->patch<edyn::position>(m_square_platform_entity, [&](edyn::position &p) {
-                p.x = -0.3 + std::cos(angle) * 0.8;
+                p.x = -0.9 + std::cos(angle) * 0.8;
             });
 
             auto angvel = edyn::vector3{0, edyn::pi * 0.25, 0};
