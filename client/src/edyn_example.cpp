@@ -182,7 +182,8 @@ bool EdynExample::update()
             } else if (m_registry->any_of<edyn::sleeping_tag>(ent)) {
                 color = 0x80000000;
             } else if (auto *resident = m_registry->try_get<edyn::island_resident>(ent);
-                       resident && resident->island_entity != entt::null) {
+                       resident && resident->island_entity != entt::null &&
+                       m_registry->valid(resident->island_entity)) {
                 color = m_registry->get<ColorComponent>(resident->island_entity);
             }
 

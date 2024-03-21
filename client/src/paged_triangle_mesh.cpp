@@ -2,10 +2,27 @@
 #include <edyn/serialization/paged_triangle_mesh_s11n.hpp>
 #include <edyn/shapes/create_paged_triangle_mesh.hpp>
 #include <edyn/util/shape_io.hpp>
+#include <edyn/util/paged_mesh_load_reporting.hpp>
+#include <iostream>
 
 void ContactStarted(entt::registry &registry, entt::entity entity);
 void ContactEnded(entt::registry &registry, entt::entity entity);
 void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index);
+
+void PageLoaded(entt::registry &registry, entt::entity entity, unsigned index) {
+    auto &mesh = registry.get<edyn::paged_mesh_shape>(entity);
+    auto trimesh = mesh.trimesh->get_submesh(index);
+
+    if (trimesh) {
+        std::cout << "Page " << index << " loaded: "
+                << trimesh->num_vertices() << " verts, "
+                << trimesh->num_edges() << " edges, "
+                << trimesh->num_triangles() << " tris."
+                << std::endl;
+    } else {
+        std::cout << "Unloaded page " << index << std::endl;
+    }
+}
 
 class ExamplePagedTriangleMesh : public EdynExample
 {
@@ -116,6 +133,8 @@ public:
         edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);
         //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);
         edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);
+
+        edyn::on_paged_mesh_page_loaded(*m_registry).connect<&PageLoaded>(*m_registry);
     }
 
     void destroyScene() override {
