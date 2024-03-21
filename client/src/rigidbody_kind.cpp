@@ -1,5 +1,7 @@
 #include "edyn_example.hpp"
+#include <edyn/comp/tag.hpp>
 #include <edyn/config/solver_iteration_config.hpp>
+#include <edyn/dynamics/moment_of_inertia.hpp>
 #include <edyn/util/rigidbody.hpp>
 
 class ExampleRigidBodyKind : public EdynExample
@@ -36,6 +38,10 @@ public:
         def.linvel = {0, 2, 0};
         def.position = {0, 3.8, 0};
         m_ball_entity[1] = edyn::make_rigidbody(*m_registry, def);
+
+        def.linvel = {0, 1.2, 0};
+        def.position = {0, 4.5, 0};
+        m_ball_entity[2] = edyn::make_rigidbody(*m_registry, def);
     }
 
     void updatePhysics(float deltaTime) override
@@ -44,7 +50,7 @@ public:
 
         if (m_timer > 3) {
             m_timer = 0;
-            auto kind = m_registry->all_of<edyn::static_tag>(m_ball_entity[0]) ? edyn::rigidbody_kind::rb_dynamic : edyn::rigidbody_kind::rb_static;
+            auto kind = m_registry->all_of<edyn::dynamic_tag>(m_ball_entity[0]) ? edyn::rigidbody_kind::rb_static : edyn::rigidbody_kind::rb_dynamic;
             edyn::rigidbody_set_kind(*m_registry, m_ball_entity[0], kind);
         }
 
@@ -52,7 +58,7 @@ public:
     }
 
     float m_timer {};
-    entt::entity m_ball_entity[2];
+    entt::entity m_ball_entity[3];
 };
 
 ENTRY_IMPLEMENT_MAIN(
