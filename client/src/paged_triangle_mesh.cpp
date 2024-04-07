@@ -66,7 +66,7 @@ public:
                 *paged_trimesh,
                 vertices.begin(), vertices.end(),
                 indices.begin(), indices.end(),
-                1 << 11, {});
+                1 << 11, {}, {});
 
             {
                 // After creating the paged triangle mesh all nodes are loaded into
