@@ -18,7 +18,7 @@ public:
         auto vertices = std::vector<edyn::vector3>{};
         auto colors = std::vector<edyn::vector3>{};
         auto indices = std::vector<uint32_t>{};
-        auto scale = edyn::scalar(1) * edyn::vector3_one;
+        auto scale = edyn::vector3_one;
         auto rotation = edyn::quaternion_axis_angle({1,0,0}, -edyn::half_pi);
         edyn::load_tri_mesh_from_obj("../../../edyn-testbed/resources/plane_per_vert.obj",
                                      vertices, indices, &colors, {0,0,0}, rotation, scale);
@@ -46,9 +46,11 @@ public:
         // Restitution of the trimesh must be non-zero or else the restitution
         // solver would ignore this rigid body. More precisely, a
         // `edyn::contact_manifold_with_restitution` tag would not be assigned
-        // to contact manifolds containing this body. The exact value is not used
-        // because the per-vertex restitution will be considered instead.
+        // to contact manifolds containing this body.
         floor_def.material->restitution = 1;
+        // The vertex friction and restitution will be multiplied by the values
+        // in the material. This allows the final values to be scaled.
+        floor_def.material->friction = 1;
         edyn::make_rigidbody(*m_registry, floor_def);
 
         // Add boxes.
