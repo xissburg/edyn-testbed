@@ -2,6 +2,7 @@
 #include <dear-imgui/imgui.h>
 #include <fenv.h>
 #include "bx_util.hpp"
+#include <edyn/edyn.hpp>
 
 void cmdTogglePause(const void* _userData) {
     ((EdynExample *)_userData)->togglePausePhysics();
@@ -13,6 +14,13 @@ void cmdStepSimulation(const void* _userData) {
 
 void OnCreateIsland(entt::registry &registry, entt::entity entity) {
     registry.emplace<ColorComponent>(entity, 0xff000000 | (0x00ffffff & rand()));
+}
+
+void EdynExample::initEdyn()
+{
+    auto config = edyn::init_config{};
+    config.execution_mode = edyn::execution_mode::asynchronous;
+    edyn::attach(*m_registry, config);
 }
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
@@ -62,9 +70,7 @@ void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width,
 
     m_registry->on_construct<edyn::island_tag>().connect<&OnCreateIsland>();
 
-    auto config = edyn::init_config{};
-    config.execution_mode = edyn::execution_mode::asynchronous;
-    edyn::attach(*m_registry, config);
+    initEdyn();
 
     m_fixed_dt_ms = static_cast<int>(edyn::get_fixed_dt(*m_registry) * 1000);
     m_num_velocity_iterations = edyn::get_solver_velocity_iterations(*m_registry);

@@ -5,8 +5,10 @@
 #include <edyn/math/vector3.hpp>
 #include <memory>
 #include <edyn/edyn.hpp>
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
+#include <entt/entity/entity.hpp>
 
+#include <bgfx/bgfx.h>
 #include <common/common.h>
 #include <common/bgfx_utils.h>
 #include <common/imgui/imgui.h>
@@ -62,6 +64,7 @@ public:
 
     bool update() override;
 
+    virtual void initEdyn();
     virtual void createScene() = 0;
     virtual void destroyScene() {};
     virtual void updatePhysics(float deltaTime);

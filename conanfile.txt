@@ -1,5 +1,6 @@
 [requires]
 entt/3.10.1
+taskflow/3.8.0
 
 [generators]
 cmake
