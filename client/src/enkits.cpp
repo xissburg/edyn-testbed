@@ -25,7 +25,7 @@ struct DelegateWithCompletionTaskSet : public enki::ITaskSet {
     enki::Dependency m_dependency;
     edyn::task_delegate_t m_task;
 
-    DelegateWithCompletionTaskSet(uint32_t size) : enki::ITaskSet(size)
+    DelegateWithCompletionTaskSet(uint32_t size, uint32_t grain) : enki::ITaskSet(size, grain)
     {
         m_task_deleter.SetDependency(m_task_deleter.m_dependency, this);
     }
@@ -38,7 +38,7 @@ struct DelegateWithCompletionTaskSet : public enki::ITaskSet {
 struct DelegateTaskSet : public enki::ITaskSet {
     edyn::task_delegate_t m_task;
 
-    DelegateTaskSet(uint32_t size) : enki::ITaskSet(size) {}
+    DelegateTaskSet(uint32_t size, uint32_t grain) : enki::ITaskSet(size, grain) {}
 
     void ExecuteRange(enki::TaskSetPartition range, uint32_t threadnum) override {
         m_task(range.start, range.end);
@@ -71,13 +71,15 @@ public:
         auto config = edyn::init_config{};
         config.execution_mode = edyn::execution_mode::asynchronous;
         config.enqueue_task = [](edyn::task_delegate_t task, unsigned size, edyn::task_completion_delegate_t completion) {
-            auto task_set = new DelegateWithCompletionTaskSet(size);
+            auto grain_size = std::max(size / g_TS.GetNumTaskThreads(), 1u);
+            auto task_set = new DelegateWithCompletionTaskSet(size, grain_size);
             task_set->m_task = std::move(task);
             task_set->m_task_deleter.m_completion = std::move(completion);
             g_TS.AddTaskSetToPipe(task_set);
         };
         config.enqueue_task_wait = [](edyn::task_delegate_t task, unsigned size) {
-            DelegateTaskSet task_set(size);
+            auto grain_size = std::max(size / g_TS.GetNumTaskThreads(), 1u);
+            DelegateTaskSet task_set(size, grain_size);
             task_set.m_task = std::move(task);
             g_TS.AddTaskSetToPipe(&task_set);
             g_TS.WaitforTask(&task_set);
@@ -118,7 +120,7 @@ public:
 
 ENTRY_IMPLEMENT_MAIN(
     ExampleEnkiTS
-    , "00-enkiTS"
+    , "33-enkiTS"
     , "enkiTS."
     , "https://github.com/xissburg/edyn-testbed"
     );
