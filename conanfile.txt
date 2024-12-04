@@ -1,8 +1,8 @@
 [requires]
 entt/3.10.1
 taskflow/3.8.0
+enkits/1.11
 
 [generators]
-cmake
-cmake_find_package
-cmake_paths
+CMakeToolchain
+CMakeDeps
