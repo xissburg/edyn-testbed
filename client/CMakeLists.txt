@@ -6,6 +6,10 @@ set(Bgfx_INCLUDE_DIR ${PROJECTS_DIR}/bgfx/include;${PROJECTS_DIR}/bgfx/examples;
 set(Bimg_INCLUDE_DIR ${PROJECTS_DIR}/bimg/include CACHE PATH "bimg include directory.")
 set(Bgfx_LIBRARY_DIR ${PROJECTS_DIR}/bgfx/.build CACHE PATH "bgfx library directory.")
 
+find_package(Taskflow)
+find_package(enkits)
+find_library(enkiTS_LIBRARY enkiTS PATHS ${enkits_LIB_DIRS_RELEASE})
+
 find_library(Bx_LIBRARY_RELEASE bxRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bx_LIBRARY_DEBUG bxDebug PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bgfx_LIBRARY_RELEASE bgfxRelease PATHS ${Bgfx_LIBRARY_DIR})
@@ -64,6 +68,8 @@ set(EdynTestbed_SOURCES
     src/rigidbody_kind.cpp
     src/shape_shifting.cpp
     src/soft_contacts.cpp
+    src/taskflow.cpp
+    src/enkits.cpp
     ${CMAKE_SOURCE_DIR}/common/src/vehicle_system.cpp
 )
 
@@ -98,6 +104,7 @@ target_include_directories(EdynTestbed
 target_include_directories(EdynTestbed SYSTEM
     PUBLIC ${Edyn_INCLUDE_DIR}
     PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
+    PUBLIC ${enkits_INCLUDE_DIRS}
     PUBLIC ${Bx_INCLUDE_DIR}
     PUBLIC ${Bgfx_INCLUDE_DIR}
     PUBLIC ${Bimg_INCLUDE_DIR}
@@ -121,6 +128,11 @@ target_link_libraries(EdynTestbed
     EnTT::EnTT
     optimized ${Edyn_LIBRARY}
     debug ${Edyn_LIBRARY_DEBUG}
+)
+
+target_link_libraries(EdynTestbed
+    Taskflow::Taskflow
+    ${enkiTS_LIBRARY}
 )
 
 if (EDYN_BUILD_NETWORKING_EXAMPLE)
