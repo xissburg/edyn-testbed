@@ -45,7 +45,6 @@ public:
         m_input = std::make_shared<edyn::paged_triangle_mesh_file_input_archive>("terrain_large.bin", edyn::get_enqueue_task(*m_registry));
         auto paged_trimesh = std::make_shared<edyn::paged_triangle_mesh>(std::static_pointer_cast<edyn::triangle_mesh_page_loader_base>(m_input));
         paged_trimesh->m_max_cache_num_vertices = 1 << 14;
-        m_input->open("terrain_large.bin");
 
         if (m_input->is_file_open()) {
             edyn::serialize(*m_input, *paged_trimesh);

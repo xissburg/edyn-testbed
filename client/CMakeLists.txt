@@ -126,8 +126,7 @@ target_compile_features(EdynTestbed PUBLIC cxx_std_17)
 
 target_link_libraries(EdynTestbed
     EnTT::EnTT
-    optimized ${Edyn_LIBRARY}
-    debug ${Edyn_LIBRARY_DEBUG}
+    Edyn::Edyn
 )
 
 target_link_libraries(EdynTestbed
