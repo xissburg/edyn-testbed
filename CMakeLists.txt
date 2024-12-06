@@ -33,10 +33,6 @@ option(EDYN_BUILD_SERVER "Build servers for networking examples." OFF)
 # Dependencies
 #
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
-conan_basic_setup()
-
 find_package(EnTT REQUIRED)
 #find_package(Edyn REQUIRED)
 

@@ -1,5 +1,5 @@
 [requires]
-entt/3.10.1
+entt/3.14.0
 taskflow/3.8.0
 enkits/1.11
 
