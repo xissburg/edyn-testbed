@@ -34,12 +34,7 @@ option(EDYN_BUILD_SERVER "Build servers for networking examples." OFF)
 #
 
 find_package(EnTT REQUIRED)
-#find_package(Edyn REQUIRED)
-
-set(Edyn_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../edyn/include;${CMAKE_SOURCE_DIR}/../edyn/build/include CACHE PATH "Edyn include directory.")
-set(Edyn_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../edyn/build/lib CACHE PATH "Edyn library directory.")
-find_library(Edyn_LIBRARY Edyn PATHS ${Edyn_LIBRARY_DIR} PATH_SUFFIXES Debug Release RelWithDebInfo)
-find_library(Edyn_LIBRARY_DEBUG Edyn_d PATHS ${Edyn_LIBRARY_DIR} PATH_SUFFIXES Debug Release RelWithDebInfo)
+find_package(Edyn REQUIRED)
 
 if (EDYN_BUILD_CLIENT)
     add_subdirectory(client)

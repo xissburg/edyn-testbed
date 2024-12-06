@@ -4,7 +4,6 @@
 
 # build
 build
-.cmake
 CMakeUserPresets.json
 
 # macOS
