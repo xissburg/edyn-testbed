@@ -29,7 +29,7 @@ After cloning the repo using [Git Bash](https://git-scm.com/downloads/win) and a
 ```
 $ conan install conanfile.txt -of=build
 $ cd build
-$  cmake .. -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+$ cmake .. -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 ```
 
 The _EdynTestbed.sln_ solution should be in the _build_ directory. It's important to set the working directory by going to the `EdynTestbed` target properties (`Alt Enter`) and under `Configuration Properties > Debugging > Working Directory` assign the bgfx examples runtime directory, such as `$(ProjectDir)..\..\bgfx\examples\runtime`.
