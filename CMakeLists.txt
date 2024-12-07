@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.23.0)
 
 project(EdynTestbed VERSION 1.3.0 LANGUAGES CXX)
 
