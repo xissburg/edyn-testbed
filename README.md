@@ -11,17 +11,15 @@ Dependencies:
 
 # Building
 
-In the terminal, go into the _edyn-testbed_ directory and do:
+In the terminal, `cd` into the _edyn-testbed_ directory and run:
 
 ```
-$ mkdir build
-$ cd build
-$ conan install ../conanfile.txt
-$ cmake ..
-$ make
+$ conan install conanfile.txt -of=build
+$ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+$ cmake --build build -j16
 ```
 
-You might have to tell CMake where to find the _bgfx_ and _Edyn_ libraries. For _bgfx_, just set `Bgfx_LIBRARY_DIR` to the directory where the _bgfx_ libraries are located and CMake should find and assign all of them.
+You'll have to tell CMake where to find the _bgfx_ libraries. Set `Bgfx_LIBRARY_DIR` to the directory where the _bgfx_ libraries are located and CMake should find and assign all of them.
 
 ## Windows and Visual Studio 2019
 
