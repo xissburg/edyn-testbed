@@ -25,7 +25,14 @@ You might have to tell CMake where to find the _bgfx_ and _Edyn_ libraries. For 
 
 ## Windows and Visual Studio 2019
 
-After running `cmake ..`, the _Edyn.sln_ solution should be in the _build_ directory. It's important to set the working directory by going to the `EdynTestbed` target properties (`Alt Enter`) and under `Configuration Properties > Debugging > Working Directory` assign the bgfx examples runtime directory, such as `$(ProjectDir)..\..\bgfx\examples\runtime`.
+After cloning the repo using [Git Bash](https://git-scm.com/downloads/win) and assuming [Conan 2.x](https://conan.io/) is installed, enter the following commands:
+```
+$ conan install conanfile.txt -of=build
+$ cd build
+$  cmake .. -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+```
+
+The _EdynTestbed.sln_ solution should be in the _build_ directory. It's important to set the working directory by going to the `EdynTestbed` target properties (`Alt Enter`) and under `Configuration Properties > Debugging > Working Directory` assign the bgfx examples runtime directory, such as `$(ProjectDir)..\..\bgfx\examples\runtime`.
 
 ## Sounds
 
