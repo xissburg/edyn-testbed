@@ -35,7 +35,7 @@ void send_edyn_packet_to_client(entt::registry &registry, entt::entity clientEnt
     archive(const_cast<edyn::packet::edyn_packet &>(packet));
 
     auto peerID = registry.get<PeerID>(clientEntity).value;
-    auto &host = registry.ctx().at<ENetHost &>();
+    auto &host = registry.ctx().get<ENetHost &>();
     send_to_client(&host, data.data(), data.size(), peerID, flags);
 }
 
@@ -83,7 +83,7 @@ bool edyn_server_init(entt::registry &registry, uint16_t port) {
     edyn::init_network_server(registry);
     edyn::network_server_packet_sink(registry).connect<&send_edyn_packet_to_client>(registry);
 
-    auto &settings = registry.ctx().at<edyn::settings>();
+    auto &settings = registry.ctx().get<edyn::settings>();
     auto &server_settings = std::get<edyn::server_network_settings>(settings.network_settings);
     server_settings.playout_delay_multiplier = 1.2;
 
@@ -94,7 +94,7 @@ void edyn_server_deinit(entt::registry &registry) {
     edyn::detach(registry);
     edyn::deinit_network_server(registry);
 
-    auto &host = registry.ctx().at<ENetHost &>();
+    auto &host = registry.ctx().get<ENetHost &>();
     enet_host_destroy(&host);
     enet_deinitialize();
 
@@ -103,8 +103,8 @@ void edyn_server_deinit(entt::registry &registry) {
 }
 
 void edyn_server_process_packets(entt::registry &registry) {
-    auto &host = registry.ctx().at<ENetHost &>();
-    auto &client_entity_map = registry.ctx().at<ClientEntityMap>().map;
+    auto &host = registry.ctx().get<ENetHost &>();
+    auto &client_entity_map = registry.ctx().get<ClientEntityMap>().map;
     ENetEvent event;
 
     while (enet_host_service(&host, &event, 0) > 0) {
@@ -158,8 +158,8 @@ void edyn_server_process_packets(entt::registry &registry) {
 }
 
 void edyn_server_update_latencies(entt::registry &registry) {
-    auto &client_entity_map = registry.ctx().at<ClientEntityMap>().map;
-    auto &host = registry.ctx().at<ENetHost &>();
+    auto &client_entity_map = registry.ctx().get<ClientEntityMap>().map;
+    auto &host = registry.ctx().get<ENetHost &>();
 
     for (auto [peerID, client_entity] : client_entity_map) {
         auto *peer = &host.peers[peerID];
@@ -175,7 +175,7 @@ void edyn_server_run(entt::registry &registry) {
     auto integral_term = 0.06;
     auto i_term = 0.0;
     auto time = edyn::performance_time();
-    auto &host = registry.ctx().at<ENetHost &>();
+    auto &host = registry.ctx().get<ENetHost &>();
 
     while (true) {
         edyn_server_process_packets(registry);

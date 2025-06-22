@@ -35,7 +35,7 @@ void assign_vehicle_ownership_to_client(entt::registry &registry,
                                         entt::entity client_entity) {
     auto entities = GetVehicleEntities(registry, vehicle_entity);
     auto &client = registry.get<edyn::remote_client>(client_entity);
-    client.owned_entities.insert(entities.begin(), entities.end());
+    client.owned_entities.push(entities.begin(), entities.end());
 
     for (auto entity : entities) {
         registry.emplace<edyn::entity_owner>(entity, client_entity);
@@ -50,7 +50,7 @@ void edyn_server_update(entt::registry &registry) {
 
         // Also assign ownership of asset.
         registry.emplace<edyn::entity_owner>(asset_entity, client_entity);
-        registry.get<edyn::remote_client>(client_entity).owned_entities.emplace(asset_entity);
+        registry.get<edyn::remote_client>(client_entity).owned_entities.push(asset_entity);
 
         // Make AABB of interest follow vehicle.
         registry.get<edyn::aabb_of_interest>(client_entity).aabb = {-50 * edyn::vector3_one, 50 * edyn::vector3_one};
