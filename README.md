@@ -15,11 +15,12 @@ In the terminal, `cd` into the _edyn-testbed_ directory and run:
 
 ```
 $ conan install conanfile.txt -of=build
-$ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
-$ cmake --build build -j16
+$ cd build
+$ cmake --preset=conan-release -DBgfx_LIBRARY_DIR:PATH="/path/to/bgfx/libs" ..
+$ cmake --build . -j16
 ```
 
-You'll have to tell CMake where to find the _bgfx_ libraries. Set `Bgfx_LIBRARY_DIR` to the directory where the _bgfx_ libraries are located and CMake should find and assign all of them.
+The `Bgfx_LIBRARY_DIR` points to the directory where the _bgfx_ libraries are located and CMake should find and assign all of them.
 
 ## Windows and Visual Studio 2019
 
@@ -36,7 +37,7 @@ The _EdynTestbed.sln_ solution should be in the _build_ directory. It's importan
 
 Some samples include sound effects, played via [SoLoud](https://github.com/jarikomppa/soloud). To enable sounds, set the CMake option `EDYN_SOUND_ENABLED` to true. You will have to link `SoLoud` and `SDL2`.
 
-It uses these sounds from freesound:
+Sound effects credits:
 - "Billiard balls single hit-dry.wav" by juskiddink (https://freesound.org/people/juskiddink/sounds/108615/) licensed under CCBYNC 3.0
 - "big thud.wav" by Reitanna (https://freesound.org/people/Reitanna/sounds/332661/) licensed under CCBY 3.0
 

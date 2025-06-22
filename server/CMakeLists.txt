@@ -11,8 +11,6 @@ function(make_server ProjectName)
     )
 
     target_include_directories(${ProjectName} SYSTEM
-        PUBLIC ${Edyn_INCLUDE_DIR}
-        PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
         PUBLIC ${ENet_INCLUDE_DIR}
     )
 
@@ -21,8 +19,7 @@ function(make_server ProjectName)
     # Link libraries.
     target_link_libraries(${ProjectName}
         EnTT::EnTT
-        optimized ${Edyn_LIBRARY}
-        debug ${Edyn_LIBRARY_DEBUG}
+        Edyn::Edyn
         ${ENet_LIBRARY}
     )
 
@@ -33,7 +30,7 @@ function(make_server ProjectName)
     endif ()
 
     if (WIN32)
-        target_link_libraries(${ProjectName} winmm Ws2_32)    
+        target_link_libraries(${ProjectName} winmm Ws2_32)
     endif ()
 endfunction()
 

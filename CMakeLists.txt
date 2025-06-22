@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23.0)
 
-project(EdynTestbed VERSION 1.3.0 LANGUAGES CXX)
+project(EdynTestbed VERSION 1.3.1 LANGUAGES CXX)
 
 #
 # Explicit debug build by default

@@ -8,7 +8,6 @@ set(Bgfx_LIBRARY_DIR ${PROJECTS_DIR}/bgfx/.build CACHE PATH "bgfx library direct
 
 find_package(Taskflow)
 find_package(enkits)
-find_library(enkiTS_LIBRARY enkiTS PATHS ${enkits_LIB_DIRS_RELEASE})
 
 find_library(Bx_LIBRARY_RELEASE bxRelease PATHS ${Bgfx_LIBRARY_DIR})
 find_library(Bx_LIBRARY_DEBUG bxDebug PATHS ${Bgfx_LIBRARY_DIR})
@@ -102,8 +101,6 @@ target_include_directories(EdynTestbed
 )
 
 target_include_directories(EdynTestbed SYSTEM
-    PUBLIC ${Edyn_INCLUDE_DIR}
-    PUBLIC ${CONAN_INCLUDE_DIRS_ENTT}
     PUBLIC ${enkits_INCLUDE_DIRS}
     PUBLIC ${Bx_INCLUDE_DIR}
     PUBLIC ${Bgfx_INCLUDE_DIR}
@@ -131,7 +128,7 @@ target_link_libraries(EdynTestbed
 
 target_link_libraries(EdynTestbed
     Taskflow::Taskflow
-    ${enkiTS_LIBRARY}
+    enkits::enkits
 )
 
 if (EDYN_BUILD_NETWORKING_EXAMPLE)
