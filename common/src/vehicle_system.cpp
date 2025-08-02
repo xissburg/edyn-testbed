@@ -12,7 +12,7 @@
 
 void RegisterVehicleComponents(entt::registry &registry) {
     using namespace entt::literals;
-    entt::meta<Vehicle>()
+    entt::meta_factory<Vehicle>()
         .data<&Vehicle::chassis_entity, entt::as_ref_t>("chassis_entity"_hs)
         .data<&Vehicle::null_con_entity, entt::as_ref_t>("null_con_entity"_hs)
         .data<&Vehicle::suspension_entity, entt::as_ref_t>("suspension_entity"_hs)
