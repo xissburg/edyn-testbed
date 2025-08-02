@@ -23,6 +23,7 @@ void ApplyRayForces(entt::registry &registry) {
     auto vel_view = registry.view<edyn::linvel, edyn::angvel>();
     auto tr_view = registry.view<edyn::position, edyn::orientation>();
     auto view = registry.view<HoverForce, edyn::position, edyn::orientation>().each();
+    auto dyn_view = registry.view<edyn::dynamic_tag>();
 
     for (auto [entity, coll, pos, orn] : view) {
         for (int i = 0; i < coll.count; ++i) {
@@ -59,10 +60,17 @@ void ApplyRayForces(entt::registry &registry) {
 
                 auto inclination_factor = std::abs(edyn::dot(res.normal, dir));
                 auto spring_force = (edyn::scalar(1) - res.fraction) * ray.length * ray.stiffness * inclination_factor * res.normal;
+                edyn::vector3 velA = {0,0,0}, velB = {0,0,0};
 
-                auto velA = vel_view.get<edyn::linvel>(entity) + edyn::cross(vel_view.get<edyn::angvel>(entity), p0 - pos);
-                auto velB = vel_view.get<edyn::linvel>(res.entity) +
-                            edyn::cross(vel_view.get<edyn::angvel>(res.entity), p0 - tr_view.get<edyn::position>(res.entity));
+                if (vel_view.contains(entity)) {
+                    velA = vel_view.get<edyn::linvel>(entity) + edyn::cross(vel_view.get<edyn::angvel>(entity), p0 - pos);
+                }
+
+                if (vel_view.contains(res.entity)) {
+                    velB = vel_view.get<edyn::linvel>(res.entity) +
+                           edyn::cross(vel_view.get<edyn::angvel>(res.entity), p0 - tr_view.get<edyn::position>(res.entity));
+                }
+
                 auto rel_vel = velA - velB;
                 auto normal_rel_vel = res.normal * edyn::dot(-rel_vel, res.normal);
                 auto damping_force = normal_rel_vel * ray.damping;
@@ -72,8 +80,10 @@ void ApplyRayForces(entt::registry &registry) {
                 auto impulse = (spring_force + damping_force) * dt / count;
                 edyn::rigidbody_apply_impulse(registry, entity, impulse, p0 - pos);
 
-                auto pos_other = tr_view.get<edyn::position>(res.entity);
-                edyn::rigidbody_apply_impulse(registry, res.entity, -impulse, p0 - pos_other);
+                if (dyn_view.contains(res.entity)) {
+                    auto pos_other = tr_view.get<edyn::position>(res.entity);
+                    edyn::rigidbody_apply_impulse(registry, res.entity, -impulse, p0 - pos_other);
+                }
             }
         }
     }
