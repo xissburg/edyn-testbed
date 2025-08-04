@@ -46,6 +46,10 @@ bool ExampleNetworking::initEnet()
         return false;
     }
 
+    if (enet_host_compress_with_range_coder(m_host) < 0) {
+        std::cout << "Failed to enable ENet compression." << std::endl;
+    }
+
     return true;
 }
 
@@ -82,7 +86,7 @@ void ExampleNetworking::sendEdynPacketToServer(const edyn::packet::edyn_packet &
 
     auto data = std::vector<uint8_t>{};
     auto archive = edyn::memory_output_archive(data);
-    archive(const_cast<edyn::packet::edyn_packet &>(packet));
+    archive(packet);
 
     sendToServer(data.data(), data.size(), flags);
 }
@@ -98,6 +102,7 @@ void ExampleNetworking::onConstructRigidBody(entt::registry &registry, entt::ent
 void ExampleNetworking::toggleExtrapolation()
 {
     edyn::toggle_network_client_extrapolation_enabled(*m_registry);
+    std::cout << "Extrapolation " << (edyn::get_network_client_extrapolation_enabled(*m_registry) ? "enabled" : "disabled") << std::endl;
 }
 
 void ExampleNetworking::createScene()

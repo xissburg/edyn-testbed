@@ -61,6 +61,10 @@ ENetHost * init_enet(uint16_t port) {
         return nullptr;
     }
 
+    if (enet_host_compress_with_range_coder(host) < 0) {
+        std::cout << "Failed to enable ENet compression." << std::endl;
+    }
+
     return host;
 }
 
