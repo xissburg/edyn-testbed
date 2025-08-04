@@ -5,6 +5,7 @@
 #include <edyn/networking/sys/server_side.hpp>
 #include <enet/enet.h>
 #include <iostream>
+#include <iomanip>
 
 struct PeerID {
     unsigned short value;
@@ -181,6 +182,10 @@ void edyn_server_run(entt::registry &registry) {
     auto time = edyn::performance_time();
     auto &host = registry.ctx().get<ENetHost &>();
 
+    double network_speed_timestamp{};
+    unsigned data_outgoing_total_prev{};
+    unsigned data_incoming_total_prev{};
+
     while (true) {
         edyn_server_process_packets(registry);
         edyn_server_update_latencies(registry);
@@ -189,8 +194,24 @@ void edyn_server_run(entt::registry &registry) {
         edyn_server_update(registry);
         enet_host_flush(&host);
 
-        // Apply delay to maintain a fixed update rate.
         auto t1 = edyn::performance_time();
+        auto network_dt = t1 - network_speed_timestamp;
+
+        if (network_dt > 3) {
+            network_speed_timestamp = t1;
+            auto data_outgoing_delta = host.totalSentData - data_outgoing_total_prev;
+            auto data_incoming_delta = host.totalReceivedData - data_incoming_total_prev;
+            auto network_outgoing_data_rate = (data_outgoing_delta / network_dt) / 1024;
+            auto network_incoming_data_rate = (data_incoming_delta / network_dt) / 1024;
+            data_outgoing_total_prev = host.totalSentData;
+            data_incoming_total_prev = host.totalReceivedData;
+
+            std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(3)
+                << "Network data rate(kB/s): up " << network_outgoing_data_rate
+                << " | down " << network_incoming_data_rate << std::endl;
+        }
+
+        // Apply delay to maintain a fixed update rate.
         auto dt = t1 - time;
         time = t1;
 
