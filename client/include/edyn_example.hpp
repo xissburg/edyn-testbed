@@ -1,13 +1,6 @@
 #ifndef EDYN_TESTBED_EDYN_EXAMPLE_HPP
 #define EDYN_TESTBED_EDYN_EXAMPLE_HPP
 
-#include <edyn/collision/raycast.hpp>
-#include <edyn/math/vector3.hpp>
-#include <memory>
-#include <edyn/edyn.hpp>
-#include <entt/entity/fwd.hpp>
-#include <entt/entity/entity.hpp>
-
 #include <bgfx/bgfx.h>
 #include <common/common.h>
 #include <common/bgfx_utils.h>
@@ -15,6 +8,13 @@
 #include <common/debugdraw/debugdraw.h>
 #include <common/camera.h>
 #include <common/entry/input.h>
+
+#include <edyn/collision/raycast.hpp>
+#include <edyn/math/vector3.hpp>
+#include <memory>
+#include <edyn/edyn.hpp>
+#include <entt/entity/fwd.hpp>
+#include <entt/entity/entity.hpp>
 
 #include "debugdraw.hpp"
 
@@ -77,6 +77,7 @@ public:
     void onRaycastResult(edyn::raycast_id_type, const edyn::raycast_result &,
                          edyn::vector3, edyn::vector3);
     void showSettings();
+    void showProfiling();
     void showFooter();
     void updateSettings();
 

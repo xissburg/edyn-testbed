@@ -1,5 +1,8 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/context/async_settings.hpp>
+#include <edyn/context/profile.hpp>
+#include <edyn/util/settings_util.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 #include <edyn/edyn.hpp>
@@ -21,6 +24,10 @@ void EdynExample::initEdyn()
     auto config = edyn::init_config{};
     config.execution_mode = edyn::execution_mode::asynchronous;
     edyn::attach(*m_registry, config);
+
+    auto &settings = m_registry->ctx().get<edyn::settings>();
+    settings.async_settings->sync_contact_points = true;
+    edyn::refresh_settings(*m_registry);
 }
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
@@ -767,6 +774,7 @@ void EdynExample::updateGUI() {
 
     showExampleDialog(this);
     showSettings();
+    showProfiling();
     showFooter();
 
     imguiEndFrame();
@@ -789,6 +797,42 @@ void EdynExample::showSettings() {
     ImGui::SliderFloat("Gravity (m/s^2)", &m_gui_gravity, 0, 50, "%.2f");
 
     ImGui::End();
+}
+
+void EdynExample::showProfiling() {
+#ifndef EDYN_DISABLE_PROFILING
+    ImGui::SetNextWindowPos(ImVec2(10.0f, 280.f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(280.f, 390.f), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("Profiling");
+    ImGui::PushItemWidth(ImGui::GetWindowWidth()/2);
+
+    auto &timers = m_registry->ctx().get<edyn::profile_timers>();
+    ImGui::LabelText("Step (avg)",          "%.3f", 1e3 * timers.step);
+    ImGui::LabelText("Broad phase",         "%.3f", 1e3 * timers.broadphase);
+    ImGui::LabelText("Narrow phase",        "%.3f", 1e3 * timers.narrowphase);
+    ImGui::LabelText("Update islands",      "%.3f", 1e3 * timers.islands);
+    ImGui::LabelText("Restitution",         "%.3f", 1e3 * timers.restitution);
+    ImGui::LabelText("Prepare constraints", "%.3f", 1e3 * timers.prepare_constraints);
+    ImGui::LabelText("Solve islands",       "%.3f", 1e3 * timers.solve_islands);
+    ImGui::LabelText("Apply results",       "%.3f", 1e3 * timers.apply_results);
+    ImGui::LabelText("Raycasts",            "%.3f", 1e3 * timers.raycasts);
+
+    auto &counters = m_registry->ctx().get<edyn::profile_counters>();
+    ImGui::LabelText("Num bodies",      "%.d", counters.bodies);
+    ImGui::LabelText("Num islands",     "%.d", counters.islands);
+    ImGui::LabelText("Num constraints", "%.d", counters.constraints);
+    ImGui::LabelText("Num con rows",    "%.d", counters.constraint_rows);
+
+    if (auto *network = m_registry->ctx().find<edyn::profile_network>()) {
+        ImGui::LabelText("Network up (kB/s)",   "%.1f", network->outgoing_rate * 1e-3);
+        ImGui::LabelText("Network down (kB/s)", "%.1f", network->incoming_rate * 1e-3);
+    }
+
+    ImGui::PopItemWidth();
+
+    ImGui::End();
+#endif
 }
 
 void EdynExample::showFooter() {
