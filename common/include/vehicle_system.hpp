@@ -122,7 +122,7 @@ enum class VehicleAssetEntry : unsigned short {
     SuspensionRL,
     SuspensionRR,
 };
-static constexpr auto VehicleAssetID = entt::hashed_string{"VehicleAsset"};
+static constexpr auto VehicleAssetID = "VehicleAsset";
 
 void RegisterVehicleComponents(entt::registry &);
 void RegisterNetworkedVehicleComponents(entt::registry &);
