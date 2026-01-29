@@ -2,6 +2,8 @@
 #include "drawing_properties.hpp"
 #include <bx/math.h>
 #include <common/debugdraw/debugdraw.h>
+#include <edyn/collision/contact_point.hpp>
+#include <edyn/util/contact_manifold_util.hpp>
 
 void assignVertexFrictionColor(DebugDrawEncoder &dde, edyn::triangle_mesh &trimesh, size_t edge_idx, size_t v_idx) {
     auto friction = trimesh.get_vertex_friction(trimesh.get_edge_vertex_indices(edge_idx)[v_idx]);
@@ -109,29 +111,28 @@ void draw(DebugDrawEncoder &dde, const edyn::compound_shape &sh) {
     }
 }
 
-void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_manifold &manifold, const entt::registry &reg) {
+
+void draw_contacts(DebugDrawEncoder &dde, entt::entity entity, std::array<entt::entity, 2> body, const entt::registry &reg) {
     //auto &posA = reg.get<edyn::position>(con.body[0]);
     //auto &ornA = reg.get<edyn::orientation>(con.body[0]);
-    auto posB = edyn::get_rigidbody_origin(reg, manifold.body[1]);
-    auto ornB = reg.get<edyn::orientation>(manifold.body[1]);
+    auto posB = edyn::get_rigidbody_origin(reg, body[1]);
+    auto ornB = reg.get<edyn::orientation>(body[1]);
 
-    manifold.each_point([&](auto &cp) {
-        auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
-        auto tip = pB + cp.normal * 0.1;
+    auto &cp = reg.get<edyn::contact_point>(entity);
+    auto pB = edyn::to_world_space(cp.pivotB, posB, ornB);
+    auto tip = pB + cp.normal * 0.1;
 
-        dde.push();
+    dde.push();
 
-        dde.setColor(0xff3300fe);
-        dde.moveTo(pB.x, pB.y, pB.z);
-        dde.lineTo(tip.x, tip.y, tip.z);
+    dde.setColor(0xff3300fe);
+    dde.moveTo(pB.x, pB.y, pB.z);
+    dde.lineTo(tip.x, tip.y, tip.z);
 
-        dde.pop();
-    });
+    dde.pop();
 }
 
 void draw(DebugDrawEncoder &dde, entt::entity entity, const edyn::contact_constraint &con, const entt::registry &reg) {
-    auto &manifold = reg.get<edyn::contact_manifold>(entity);
-    draw(dde, entity, manifold, reg);
+    draw_contacts(dde, entity, con.body, reg);
 }
 
 auto get_transforms(const entt::registry &reg, const edyn::constraint_base &con) {

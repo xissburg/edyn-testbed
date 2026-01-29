@@ -1,26 +1,9 @@
 #include "edyn_example.hpp"
+#include <edyn/collision/contact_point.hpp>
 #include <edyn/serialization/file_archive.hpp>
+#include <edyn/util/contact_manifold_util.hpp>
 #include <edyn/util/shape_io.hpp>
 #include <iostream>
-
-void ContactStarted(entt::registry &registry, entt::entity entity) {
-    auto &manifold = registry.get<edyn::contact_manifold>(entity);
-    EDYN_ASSERT(manifold.num_points > 0);
-    float normal_impulse = 0;
-
-    manifold.each_point([&](edyn::contact_point &cp) {
-        normal_impulse += cp.normal_impulse + cp.normal_restitution_impulse;
-    });
-
-    std::cout << "Started | impulse: " << normal_impulse << std::endl;
-}
-
-void ContactPointDestroyed(entt::registry &registry, entt::entity entity,
-                           edyn::contact_manifold::contact_id_type cp_id) {
-    auto &manifold = registry.get<edyn::contact_manifold>(entity);
-    auto lifetime = manifold.point[cp_id].lifetime;
-    std::cout << "Ended | lifetime: " << lifetime << std::endl;
-}
 
 class ExampleTriangleMesh : public EdynExample
 {
@@ -32,6 +15,32 @@ public:
     }
 
     virtual ~ExampleTriangleMesh() {}
+
+    std::vector<entt::entity> m_newContactEntities;
+
+    void contactStarted(entt::entity entity) {
+        m_newContactEntities.push_back(entity);
+    }
+
+    void processNewContacts() {
+        auto &registry = *m_registry;
+
+        for (auto entity : m_newContactEntities) {
+            if (!registry.valid(entity)) continue;
+
+            auto &cp_imp = registry.get<edyn::contact_point_impulse>(entity);
+            auto normal_impulse = cp_imp.normal_impulse + cp_imp.normal_restitution_impulse;
+            std::cout << "Started | impulse: " << normal_impulse << std::endl;
+        }
+
+        m_newContactEntities.clear();
+    }
+
+    void contactPointDestroyed(entt::registry &registry, entt::entity entity) {
+        auto &cp = registry.get<edyn::contact_point>(entity);
+        auto lifetime = cp.lifetime;
+        std::cout << "Ended | lifetime: " << lifetime << std::endl;
+    }
 
     void createScene() override {
         // Create floor
@@ -104,9 +113,13 @@ public:
         }
 
         // Collision events example.
-        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);
-        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);
-        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);
+        m_registry->on_construct<edyn::contact_point>().connect<&ExampleTriangleMesh::contactStarted>(*this);
+        m_registry->on_destroy<edyn::contact_point>().connect<&ExampleTriangleMesh::contactPointDestroyed>(*this);
+    }
+
+    void updatePhysics(float deltaTime) override {
+        EdynExample::updatePhysics(deltaTime);
+        processNewContacts();
     }
 };
 

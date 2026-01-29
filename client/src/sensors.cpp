@@ -1,7 +1,10 @@
 #include "edyn_example.hpp"
+#include <edyn/collision/contact_point.hpp>
 
 static void SensorContactStarted(entt::registry &registry, entt::entity entity) {
-    auto &manifold = registry.get<edyn::contact_manifold>(entity);
+    auto &cp_list = registry.get<edyn::contact_point_list>(entity);
+    auto &manifold = registry.get<edyn::contact_manifold>(cp_list.parent);
+
     for (auto body : manifold.body) {
         if (auto *color = registry.try_get<ColorComponent>(body)) {
             color->value = 0x80ffffff;
@@ -10,7 +13,13 @@ static void SensorContactStarted(entt::registry &registry, entt::entity entity) 
 }
 
 static void SensorContactEnded(entt::registry &registry, entt::entity entity) {
-    auto &manifold = registry.get<edyn::contact_manifold>(entity);
+    auto &cp_list = registry.get<edyn::contact_point_list>(entity);
+    auto &manifold_state = registry.get<edyn::contact_manifold_state>(cp_list.parent);
+
+    if (manifold_state.num_points > 0) return;
+
+    auto &manifold = registry.get<edyn::contact_manifold>(cp_list.parent);
+
     for (auto body : manifold.body) {
         if (auto *color = registry.try_get<ColorComponent>(body)) {
             color->value = 0x80000000;
@@ -61,8 +70,8 @@ public:
         sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 
-        edyn::on_contact_started(*m_registry).connect<&SensorContactStarted>(*m_registry);
-        edyn::on_contact_ended(*m_registry).connect<&SensorContactEnded>(*m_registry);
+        m_registry->on_construct<edyn::contact_point_list>().connect<&SensorContactStarted>();
+        m_registry->on_destroy<edyn::contact_point_list>().connect<&SensorContactEnded>();
     }
 };
 

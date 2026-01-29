@@ -65,10 +65,11 @@ public:
         def.material->friction = 0.8;
         def.material->restitution = 0;
         def.shape = edyn::box_shape{0.2, 0.2, 0.2};
+        auto n = 5;
 
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 0; j < 5; ++j) {
-                for (int k = 0; k < 5; ++k) {
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                for (int k = 0; k < n; ++k) {
                     def.position = {edyn::scalar(0.4 * j),
                                     edyn::scalar(0.4 * i + 0.6),
                                     edyn::scalar(0.4 * k)};

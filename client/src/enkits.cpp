@@ -84,7 +84,7 @@ public:
             g_TS.AddTaskSetToPipe(&task_set);
             g_TS.WaitforTask(&task_set);
         };
-        edyn::attach(*m_registry, config);
+        EdynExample::initEdyn(config);
     }
 
     void createScene() override

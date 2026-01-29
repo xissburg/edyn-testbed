@@ -65,6 +65,7 @@ public:
     bool update() override;
 
     virtual void initEdyn();
+    void initEdyn(const edyn::init_config &);
     virtual void createScene() = 0;
     virtual void destroyScene() {};
     virtual void updatePhysics(float deltaTime);

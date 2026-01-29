@@ -1,13 +1,10 @@
 #include "edyn_example.hpp"
+#include <edyn/collision/contact_point.hpp>
 #include <edyn/serialization/paged_triangle_mesh_s11n.hpp>
 #include <edyn/shapes/create_paged_triangle_mesh.hpp>
 #include <edyn/util/shape_io.hpp>
 #include <edyn/util/paged_mesh_load_reporting.hpp>
 #include <iostream>
-
-void ContactStarted(entt::registry &registry, entt::entity entity);
-void ContactEnded(entt::registry &registry, entt::entity entity);
-void ContactPointDestroyed(entt::registry &registry, entt::entity entity, unsigned index);
 
 void PageLoaded(entt::registry &registry, entt::entity entity, unsigned index) {
     auto &mesh = registry.get<edyn::paged_mesh_shape>(entity);
@@ -31,6 +28,32 @@ public:
         : EdynExample(_name, _description, _url)
     {
 
+    }
+
+    std::vector<entt::entity> m_newContactEntities;
+
+    void contactStarted(entt::entity entity) {
+        m_newContactEntities.push_back(entity);
+    }
+
+    void processNewContacts() {
+        auto &registry = *m_registry;
+
+        for (auto entity : m_newContactEntities) {
+            if (!registry.valid(entity)) continue;
+
+            auto &cp_imp = registry.get<edyn::contact_point_impulse>(entity);
+            auto normal_impulse = cp_imp.normal_impulse + cp_imp.normal_restitution_impulse;
+            std::cout << "Started | impulse: " << normal_impulse << std::endl;
+        }
+
+        m_newContactEntities.clear();
+    }
+
+    void contactPointDestroyed(entt::registry &registry, entt::entity entity) {
+        auto &cp = registry.get<edyn::contact_point>(entity);
+        auto lifetime = cp.lifetime;
+        std::cout << "Ended | lifetime: " << lifetime << std::endl;
     }
 
     virtual ~ExamplePagedTriangleMesh() {}
@@ -129,9 +152,8 @@ public:
         }
 
         // Collision events example.
-        edyn::on_contact_started(*m_registry).connect<&ContactStarted>(*m_registry);
-        //edyn::on_contact_ended(*m_registry).connect<&ContactEnded>(*m_registry);
-        edyn::on_contact_point_destroyed(*m_registry).connect<&ContactPointDestroyed>(*m_registry);
+        m_registry->on_construct<edyn::contact_point>().connect<&ExamplePagedTriangleMesh::contactStarted>(*this);
+        m_registry->on_destroy<edyn::contact_point>().connect<&ExamplePagedTriangleMesh::contactPointDestroyed>(*this);
 
         edyn::on_paged_mesh_page_loaded(*m_registry).connect<&PageLoaded>(*m_registry);
     }
@@ -139,6 +161,11 @@ public:
     void destroyScene() override {
         m_input->close();
         m_input.reset();
+    }
+
+    void updatePhysics(float deltaTime) override {
+        EdynExample::updatePhysics(deltaTime);
+        processNewContacts();
     }
 
 private:

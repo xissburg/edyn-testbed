@@ -1,8 +1,11 @@
 #include "edyn_example.hpp"
 #include <dear-imgui/imgui.h>
+#include <edyn/collision/contact_point.hpp>
 #include <edyn/context/async_settings.hpp>
 #include <edyn/context/profile.hpp>
 #include <edyn/util/settings_util.hpp>
+#include <edyn/util/transient_util.hpp>
+#include <edyn/util/contact_manifold_util.hpp>
 #include <fenv.h>
 #include "bx_util.hpp"
 #include <edyn/edyn.hpp>
@@ -23,11 +26,13 @@ void EdynExample::initEdyn()
 {
     auto config = edyn::init_config{};
     config.execution_mode = edyn::execution_mode::asynchronous;
-    edyn::attach(*m_registry, config);
+    initEdyn(config);
+}
 
-    auto &settings = m_registry->ctx().get<edyn::settings>();
-    settings.async_settings->sync_contact_points = true;
-    edyn::refresh_settings(*m_registry);
+void EdynExample::initEdyn(const edyn::init_config &config)
+{
+    edyn::attach(*m_registry, config);
+    edyn::set_contact_point_transient<edyn::contact_point>(*m_registry);
 }
 
 void EdynExample::init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height)
@@ -336,7 +341,10 @@ bool EdynExample::update()
     {
         auto view = m_registry->view<edyn::contact_manifold>(entt::exclude<edyn::contact_constraint>);
         for (auto [ent, manifold] : view.each()) {
-            draw(dde, ent, manifold, *m_registry);
+            edyn::contact_manifold_each_point(*m_registry, ent,
+                [&, &manifold=manifold](entt::entity contact_entity) {
+                    draw_contacts(dde, contact_entity, manifold.body, *m_registry);
+                });
         }
     }
 
@@ -802,7 +810,7 @@ void EdynExample::showSettings() {
 void EdynExample::showProfiling() {
 #ifndef EDYN_DISABLE_PROFILING
     ImGui::SetNextWindowPos(ImVec2(10.0f, 280.f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(280.f, 390.f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(280.f, 460.f), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Profiling");
     ImGui::PushItemWidth(ImGui::GetWindowWidth()/2);
@@ -823,6 +831,8 @@ void EdynExample::showProfiling() {
     ImGui::LabelText("Num islands",     "%.d", counters.islands);
     ImGui::LabelText("Num constraints", "%.d", counters.constraints);
     ImGui::LabelText("Num con rows",    "%.d", counters.constraint_rows);
+    ImGui::LabelText("Registry op count",    "%.d", counters.op_count);
+    ImGui::LabelText("Registry sync size",   "%.d", counters.op_size);
 
     if (auto *network = m_registry->ctx().find<edyn::profile_network>()) {
         ImGui::LabelText("Network up (kB/s)",   "%.1f", network->outgoing_rate * 1e-3);

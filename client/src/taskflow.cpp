@@ -29,7 +29,6 @@ public:
 
     void initEdyn() override
     {
-
         auto config = edyn::init_config{};
         config.execution_mode = edyn::execution_mode::asynchronous;
         config.enqueue_task = [](edyn::task_delegate_t task, unsigned size, edyn::task_completion_delegate_t completion) {
@@ -50,7 +49,7 @@ public:
             taskflow.for_each_index(0u, size, 1u, [task](unsigned i) { task(i, i + 1); });
             g_executor->run(taskflow).wait();
         };
-        edyn::attach(*m_registry, config);
+        EdynExample::initEdyn(config);
     }
 
     void createScene() override

@@ -22,7 +22,8 @@ public:
         // Add some capsules.
         auto def = edyn::rigidbody_def();
         def.material->friction = 0.8;
-        def.material->roll_friction = 0.001;
+        def.material->roll_friction = 0.002;
+        def.material->spin_friction = 0.01;
         def.mass = 100;
         def.shape = edyn::capsule_shape{0.2, 0.35, edyn::coordinate_axis::z};
 

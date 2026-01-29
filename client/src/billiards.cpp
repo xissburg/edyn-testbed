@@ -1,4 +1,7 @@
 #include "edyn_example.hpp"
+#include <edyn/collision/contact_manifold.hpp>
+#include <edyn/collision/contact_point.hpp>
+#include <iostream>
 
 #ifdef EDYN_SOUND_ENABLED
 #include <soloud_wav.h>
@@ -14,6 +17,12 @@ public:
     }
 
     virtual ~ExampleBilliards() {}
+
+    std::vector<entt::entity> m_newContactEntities;
+
+    void contactStarted(entt::entity entity) {
+        m_newContactEntities.push_back(entity);
+    }
 
     void createScene() override
     {
@@ -129,39 +138,61 @@ public:
         m_ball_table_collision_sound.set3dMinMaxDistance(0, 30);
 
         // Register contact event handlers.
-        edyn::on_contact_started(*m_registry).connect<&ExampleBilliards::onContactStarted>(*this);
+        m_registry->on_construct<edyn::contact_point>().connect<&ExampleBilliards::contactStarted>(*this);
 #endif
     }
 
 #ifdef EDYN_SOUND_ENABLED
-    void onContactStarted(entt::entity manifold_entity) {
-        auto &manifold = m_registry->get<edyn::contact_manifold>(manifold_entity);
-        auto &materialA = m_registry->get<edyn::material>(manifold.body[0]);
-        auto &materialB = m_registry->get<edyn::material>(manifold.body[1]);
+    void processNewContact(entt::entity contact_entity) {
+        auto &registry = *m_registry;
+        if (!registry.valid(contact_entity)) return;
+
+        auto &cp_list = registry.get<edyn::contact_point_list>(contact_entity);
+        auto &manifold = registry.get<edyn::contact_manifold>(cp_list.parent);
+        auto &materialA = registry.get<edyn::material>(manifold.body[0]);
+        auto &materialB = registry.get<edyn::material>(manifold.body[1]);
 
         auto is_ball_ball = materialA.id == m_ball_mat_id && materialB.id == m_ball_mat_id;
         auto is_ball_table =
-            (materialA.id == m_ball_mat_id && (materialB.id == m_table_mat_id || materialB.id == m_rail_mat_id)) ||
-            (materialB.id == m_ball_mat_id && (materialA.id == m_table_mat_id || materialA.id == m_rail_mat_id));
+        (materialA.id == m_ball_mat_id && (materialB.id == m_table_mat_id || materialB.id == m_rail_mat_id)) ||
+        (materialB.id == m_ball_mat_id && (materialA.id == m_table_mat_id || materialA.id == m_rail_mat_id));
 
-        auto &cp = manifold.get_point(0);
-        auto &posA = m_registry->get<edyn::position>(manifold.body[0]);
-        auto &ornA = m_registry->get<edyn::orientation>(manifold.body[0]);
-        auto pos_cp = edyn::to_world_space(cp.pivotA, posA, ornA);
+        auto &posA = registry.get<edyn::position>(manifold.body[0]);
+        auto &ornA = registry.get<edyn::orientation>(manifold.body[0]);
+
+        auto &cp_imp = registry.get<edyn::contact_point_impulse>(contact_entity);
+        float normal_impulse = cp_imp.normal_impulse + cp_imp.normal_restitution_impulse;
+
+        auto &cp = registry.get<edyn::contact_point>(contact_entity);
+        edyn::vector3 pos_cp = edyn::to_world_space(cp.pivotA, posA, ornA);
+
+        std::cout << "Started | impulse: " << normal_impulse << std::endl;
 
         if (is_ball_ball) {
-            auto volume = (cp.normal_impulse + cp.normal_restitution_impulse) * 20.f;
+            auto volume = normal_impulse * 20.f;
             auto handle = m_soloud.play3d(m_ball_ball_collision_sound,
-                                          pos_cp.x, pos_cp.y, pos_cp.z,
-                                          0, 0, 0, volume);
-            m_soloud.set3dSourceAttenuation(handle, SoLoud::AudioSource::LINEAR_DISTANCE, 1);
+                pos_cp.x, pos_cp.y, pos_cp.z,
+                                        0, 0, 0, volume);
+                                        m_soloud.set3dSourceAttenuation(handle, SoLoud::AudioSource::LINEAR_DISTANCE, 1);
         } else if (is_ball_table) {
-            auto volume = (cp.normal_impulse + cp.normal_restitution_impulse) * 1.1f;
+            auto volume = normal_impulse * 1.1f;
             auto handle = m_soloud.play3d(m_ball_table_collision_sound,
-                                          pos_cp.x, pos_cp.y, pos_cp.z,
-                                          0, 0, 0, volume);
-            m_soloud.set3dSourceAttenuation(handle, SoLoud::AudioSource::LINEAR_DISTANCE, 1);
+                pos_cp.x, pos_cp.y, pos_cp.z,
+                0, 0, 0, volume);
+                m_soloud.set3dSourceAttenuation(handle, SoLoud::AudioSource::LINEAR_DISTANCE, 1);
         }
+    }
+
+    void processNewContacts() {
+        for (auto contact_entity : m_newContactEntities) {
+            processNewContact(contact_entity);
+        }
+        m_newContactEntities.clear();
+    }
+
+    void updatePhysics(float deltaTime) override {
+        EdynExample::updatePhysics(deltaTime);
+        processNewContacts();
     }
 #endif
 
