@@ -115,6 +115,12 @@ if (EDYN_SOUND_ENABLED)
     target_compile_definitions(EdynTestbed PRIVATE
         EDYN_SOUND_ENABLED
     )
+    endif ()
+
+if (ENTT_DISABLE_ASSERT)
+    target_compile_definitions(EdynTestbed PRIVATE
+        ENTT_DISABLE_ASSERT
+    )
 endif ()
 
 target_compile_features(EdynTestbed PUBLIC cxx_std_17)
