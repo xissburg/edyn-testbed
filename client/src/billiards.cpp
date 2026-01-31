@@ -1,6 +1,7 @@
 #include "edyn_example.hpp"
 #include <edyn/collision/contact_manifold.hpp>
 #include <edyn/collision/contact_point.hpp>
+#include <edyn/comp/tag.hpp>
 #include <iostream>
 
 #ifdef EDYN_SOUND_ENABLED
@@ -17,12 +18,6 @@ public:
     }
 
     virtual ~ExampleBilliards() {}
-
-    std::vector<entt::entity> m_newContactEntities;
-
-    void contactStarted(entt::entity entity) {
-        m_newContactEntities.push_back(entity);
-    }
 
     void createScene() override
     {
@@ -138,15 +133,12 @@ public:
         m_ball_table_collision_sound.set3dMinMaxDistance(0, 30);
 
         // Register contact event handlers.
-        m_registry->on_construct<edyn::contact_point>().connect<&ExampleBilliards::contactStarted>(*this);
+        m_registry->on_construct<edyn::contact_started_tag>().connect<&ExampleBilliards::contactStarted>(*this);
 #endif
     }
 
 #ifdef EDYN_SOUND_ENABLED
-    void processNewContact(entt::entity contact_entity) {
-        auto &registry = *m_registry;
-        if (!registry.valid(contact_entity)) return;
-
+    void contactStarted(entt::registry &registry, entt::entity contact_entity) {
         auto &cp_list = registry.get<edyn::contact_point_list>(contact_entity);
         auto &manifold = registry.get<edyn::contact_manifold>(cp_list.parent);
         auto &materialA = registry.get<edyn::material>(manifold.body[0]);
@@ -181,18 +173,6 @@ public:
                 0, 0, 0, volume);
                 m_soloud.set3dSourceAttenuation(handle, SoLoud::AudioSource::LINEAR_DISTANCE, 1);
         }
-    }
-
-    void processNewContacts() {
-        for (auto contact_entity : m_newContactEntities) {
-            processNewContact(contact_entity);
-        }
-        m_newContactEntities.clear();
-    }
-
-    void updatePhysics(float deltaTime) override {
-        EdynExample::updatePhysics(deltaTime);
-        processNewContacts();
     }
 #endif
 

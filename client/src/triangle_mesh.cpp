@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/collision/contact_point.hpp>
+#include <edyn/comp/tag.hpp>
 #include <edyn/serialization/file_archive.hpp>
 #include <edyn/util/contact_manifold_util.hpp>
 #include <edyn/util/shape_io.hpp>
@@ -18,22 +19,10 @@ public:
 
     std::vector<entt::entity> m_newContactEntities;
 
-    void contactStarted(entt::entity entity) {
-        m_newContactEntities.push_back(entity);
-    }
-
-    void processNewContacts() {
-        auto &registry = *m_registry;
-
-        for (auto entity : m_newContactEntities) {
-            if (!registry.valid(entity)) continue;
-
-            auto &cp_imp = registry.get<edyn::contact_point_impulse>(entity);
-            auto normal_impulse = cp_imp.normal_impulse + cp_imp.normal_restitution_impulse;
-            std::cout << "Started | impulse: " << normal_impulse << std::endl;
-        }
-
-        m_newContactEntities.clear();
+    void contactStarted(entt::registry &registry, entt::entity entity) {
+        auto &cp_imp = registry.get<edyn::contact_point_impulse>(entity);
+        auto normal_impulse = cp_imp.normal_impulse + cp_imp.normal_restitution_impulse;
+        std::cout << "Started | impulse: " << normal_impulse << std::endl;
     }
 
     void contactPointDestroyed(entt::registry &registry, entt::entity entity) {
@@ -113,13 +102,8 @@ public:
         }
 
         // Collision events example.
-        m_registry->on_construct<edyn::contact_point>().connect<&ExampleTriangleMesh::contactStarted>(*this);
+        m_registry->on_construct<edyn::contact_started_tag>().connect<&ExampleTriangleMesh::contactStarted>(*this);
         m_registry->on_destroy<edyn::contact_point>().connect<&ExampleTriangleMesh::contactPointDestroyed>(*this);
-    }
-
-    void updatePhysics(float deltaTime) override {
-        EdynExample::updatePhysics(deltaTime);
-        processNewContacts();
     }
 };
 

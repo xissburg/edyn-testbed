@@ -1,4 +1,27 @@
 #include "edyn_example.hpp"
+#include <edyn/util/rigidbody.hpp>
+
+struct SquarePlatformTag { edyn::scalar angle {0}; };
+struct DiscPlatformTag {};
+
+void UpdatePlatforms(entt::registry &registry)
+{
+    auto dt = edyn::get_fixed_dt(registry);
+
+    // It's important to assign a proper velocity to the kinematic
+    // entities for correct constraint behavior, i.e. friction.
+    auto square_platform_entity = registry.view<SquarePlatformTag>().front();
+    auto angle = (registry.get<SquarePlatformTag>(square_platform_entity).angle += dt * 4);
+    registry.get<edyn::linvel>(square_platform_entity).x = std::sin(angle) * -0.8;
+    registry.get<edyn::position>(square_platform_entity).x = -0.9 + std::cos(angle) * 0.8;
+    registry.patch<edyn::position>(square_platform_entity);
+
+    auto disc_platform_entity = registry.view<DiscPlatformTag>().front();
+    auto &disc_w = registry.get<edyn::angvel>(disc_platform_entity);
+    registry.patch<edyn::orientation>(disc_platform_entity, [&](auto &&orn) {
+        orn = edyn::integrate(orn, disc_w, dt);
+    });
+}
 
 class ExamplePlatforms : public EdynExample
 {
@@ -13,6 +36,9 @@ public:
 
     void createScene() override
     {
+        edyn::register_external_components<SquarePlatformTag, DiscPlatformTag>(*m_registry);
+        //edyn::set_pre_step_callback(*m_registry, &UpdatePlatforms);
+
         // Create floor
         auto floor_def = edyn::rigidbody_def();
         floor_def.kind = edyn::rigidbody_kind::rb_static;
@@ -46,10 +72,12 @@ public:
         plat_def.shape = edyn::box_shape{1, 0.07, 1.2};
         plat_def.position = {-0.3, 0.5, 0};
         m_square_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
+        //m_registry->emplace<SquarePlatformTag>(square_platform_entity);
 
         plat_def.shape = edyn::cylinder_shape{1.5, 0.1};
         plat_def.position = {0.8, 1.2, 0.8};
         plat_def.orientation = edyn::quaternion_axis_angle({0,0,1}, edyn::to_radians(89.1));
+        plat_def.angvel = {0, edyn::pi * 0.25, 0};
         plat_def.material->friction = 0.5;
         m_disc_platform_entity = edyn::make_rigidbody(*m_registry, plat_def);
     }
@@ -59,22 +87,14 @@ public:
             m_total_time += deltaTime;
             auto angle = m_total_time * 4;
 
-            // It's important to assign a proper velocity to the kinematic
-            // entities for correct constraint behavior, i.e. friction.
-            m_registry->patch<edyn::linvel>(m_square_platform_entity, [&](edyn::linvel &v) {
-                v.x = std::sin(angle) * -0.8;
-            });
-            m_registry->patch<edyn::position>(m_square_platform_entity, [&](edyn::position &p) {
-                p.x = -0.9 + std::cos(angle) * 0.8;
-            });
+            auto pos = m_registry->get<edyn::position>(m_square_platform_entity);
+            pos.x = -0.9 + std::cos(angle) * 0.8;
+            edyn::set_kinematic_position(*m_registry, m_square_platform_entity, pos, deltaTime);
 
             auto angvel = edyn::vector3{0, edyn::pi * 0.25, 0};
-            m_registry->patch<edyn::angvel>(m_disc_platform_entity, [&](edyn::angvel &w) {
-                w = angvel;
-            });
-            m_registry->patch<edyn::orientation>(m_disc_platform_entity, [&](edyn::orientation &orn) {
-                orn = edyn::integrate(orn, angvel, deltaTime);
-            });
+            auto orn = m_registry->get<edyn::orientation>(m_disc_platform_entity);
+            orn = edyn::integrate(orn, angvel, deltaTime);
+            edyn::set_kinematic_orientation(*m_registry, m_disc_platform_entity, orn, deltaTime);
         }
 
         EdynExample::updatePhysics(deltaTime);
