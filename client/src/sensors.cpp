@@ -1,5 +1,6 @@
 #include "edyn_example.hpp"
 #include <edyn/collision/contact_point.hpp>
+#include <edyn/comp/tag.hpp>
 
 static void SensorContactStarted(entt::registry &registry, entt::entity entity) {
     auto &cp_list = registry.get<edyn::contact_point_list>(entity);
@@ -63,14 +64,16 @@ public:
         sensor_def.position = {0.2, 0.15, 0};
         sensor_def.orientation = edyn::quaternion_axis_angle({0, 1, 0}, edyn::to_radians(38));
         auto sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
+        m_registry->emplace<edyn::collide_boolean_test_tag>(sensor_ent);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 
         sensor_def.shape = edyn::cylinder_shape{0.34, 0.5, edyn::coordinate_axis::y};
         sensor_def.position = {1.2, 0.5, 0.9};
         sensor_ent = edyn::make_rigidbody(*m_registry, sensor_def);
+        m_registry->emplace<edyn::collide_boolean_test_tag>(sensor_ent);
         m_registry->emplace<ColorComponent>(sensor_ent, 0x80000000);
 
-        m_registry->on_construct<edyn::contact_point_list>().connect<&SensorContactStarted>();
+        m_registry->on_construct<edyn::contact_started_tag>().connect<&SensorContactStarted>();
         m_registry->on_destroy<edyn::contact_point_list>().connect<&SensorContactEnded>();
     }
 };
